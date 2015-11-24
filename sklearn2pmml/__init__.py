@@ -26,10 +26,10 @@ def _dump(obj):
 	return path
 
 def sklearn2pmml(estimator, mapper, pmml):
-	if(isinstance(estimator, BaseEstimator) is False):
-		raise TypeError()
-	if((mapper is not None) and (isinstance(mapper, DataFrameMapper) is False)):
-		raise TypeError()
+	if(not isinstance(estimator, BaseEstimator)):
+		raise TypeError("The estimator object is not an instance of " + BaseEstimator.__name__)
+	if((mapper is not None) and (not isinstance(mapper, DataFrameMapper))):
+		raise TypeError("The mapper object is not an instance of " + DataFrameMapper.__name__)
 	cmd = ["java", "-cp", os.pathsep.join(_classpath()), "org.jpmml.sklearn.Main"]
 	dumps = []
 	try:
