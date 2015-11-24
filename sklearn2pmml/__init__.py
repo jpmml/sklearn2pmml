@@ -25,7 +25,7 @@ def _dump(obj):
 	joblib.dump(obj, path, compress = 9)
 	return path
 
-def sklearn2pmml(estimator, mapper, pmml, verbose=False):
+def sklearn2pmml(estimator, mapper, pmml, verbose = False):
 	if(isinstance(estimator, BaseEstimator) is False):
 		raise TypeError()
 	if((mapper is not None) and (isinstance(mapper, DataFrameMapper) is False)):
@@ -41,7 +41,8 @@ def sklearn2pmml(estimator, mapper, pmml, verbose=False):
 			cmd.extend(["--pkl-mapper-input", mapper_pkl])
 			dumps.append(mapper_pkl)
 		cmd.extend(["--pmml-output", pmml])
-		if verbose: print(cmd)
+		if(verbose): 
+            print(cmd)
 		subprocess.check_call(cmd)
 	finally:
 		for dump in dumps:
