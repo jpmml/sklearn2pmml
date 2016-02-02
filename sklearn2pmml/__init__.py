@@ -25,7 +25,7 @@ def _dump(obj):
 	joblib.dump(obj, path, compress = 9)
 	return path
 
-def sklearn2pmml(estimator, mapper, pmml, verbose = False):
+def sklearn2pmml(estimator, mapper, pmml, with_repr = False, verbose = False):
 	if(not isinstance(estimator, BaseEstimator)):
 		raise TypeError("The estimator object is not an instance of " + BaseEstimator.__name__)
 	if((mapper is not None) and (not isinstance(mapper, DataFrameMapper))):
@@ -36,10 +36,16 @@ def sklearn2pmml(estimator, mapper, pmml, verbose = False):
 		estimator_pkl = _dump(estimator)
 		cmd.extend(["--pkl-estimator-input", estimator_pkl])
 		dumps.append(estimator_pkl)
+		if(with_repr):
+			estimator_repr = repr(estimator)
+			cmd.extend(["--repr-estimator", estimator_repr])
 		if(mapper):
 			mapper_pkl = _dump(mapper)
 			cmd.extend(["--pkl-mapper-input", mapper_pkl])
 			dumps.append(mapper_pkl)
+			if(with_repr):
+				mapper_repr = repr(mapper)
+				cmd.extend(["--repr-mapper", mapper_repr])
 		cmd.extend(["--pmml-output", pmml])
 		if(verbose):
 			print(cmd)
