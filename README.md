@@ -70,7 +70,7 @@ iris_classifier.fit(iris_X, iris_y)
 
 from sklearn2pmml import sklearn2pmml
 
-sklearn2pmml(iris_classifier, iris_mapper, "LogisticRegressionIris.pmml")
+sklearn2pmml(iris_classifier, iris_mapper, "LogisticRegressionIris.pmml", with_repr = True)
 ```
 
 # De-installation #
