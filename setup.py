@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
 	name = "sklearn2pmml",
-	version = "0.8.7",
+	version = "0.9.0",
 	description = "Python library for converting Scikit-Learn models to PMML",
 	author = "Villu Ruusmann",
 	author_email = "villu.ruusmann@gmail.com",
