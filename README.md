@@ -38,6 +38,8 @@ For example, developing a logistic regression model for the classification of ir
 from sklearn.datasets import load_iris
 from sklearn.decomposition import PCA
 
+from sklearn2pmml.decoration import ContinuousDomain
+
 import pandas
 import sklearn_pandas
 
@@ -46,7 +48,7 @@ iris = load_iris()
 iris_df = pandas.concat((pandas.DataFrame(iris.data[:, :], columns = ["Sepal.Length", "Sepal.Width", "Petal.Length", "Petal.Width"]), pandas.DataFrame(iris.target, columns = ["Species"])), axis = 1)
 
 iris_mapper = sklearn_pandas.DataFrameMapper([
-    (["Sepal.Length", "Sepal.Width", "Petal.Length", "Petal.Width"], PCA(n_components = 3)),
+    (["Sepal.Length", "Sepal.Width", "Petal.Length", "Petal.Width"], [ContinuousDomain(), PCA(n_components = 3)]),
     ("Species", None)
 ])
 

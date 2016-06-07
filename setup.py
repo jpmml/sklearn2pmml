@@ -10,6 +10,7 @@ setup(
 	license = "GNU Affero General Public License (AGPL) version 3.0",
 	packages = [
 		"sklearn2pmml",
+		"sklearn2pmml.decoration",
 		"sklearn2pmml.resources"
 	],
 	package_data = {
@@ -17,6 +18,7 @@ setup(
 	},
 	install_requires = [
 		"joblib",
+		"numpy",
 		"sklearn",
 		"sklearn_pandas"
 	]
