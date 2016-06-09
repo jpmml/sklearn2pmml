@@ -22,7 +22,10 @@ def _classpath():
 
 def _dump(obj):
 	fd, path = tempfile.mkstemp(suffix = ".pkl")
-	joblib.dump(obj, path, compress = 9)
+	try:
+		joblib.dump(obj, path, compress = 9)
+	finally:
+		os.close(fd)
 	return path
 
 def sklearn2pmml(estimator, mapper, pmml, with_repr = False, verbose = False):
