@@ -1,13 +1,15 @@
 from distutils.core import setup
 
+from sklearn2pmml import __license__, __version__
+
 setup(
 	name = "sklearn2pmml",
-	version = "0.9.3",
+	version = __version__,
 	description = "Python library for converting Scikit-Learn models to PMML",
 	author = "Villu Ruusmann",
 	author_email = "villu.ruusmann@gmail.com",
 	url = "https://github.com/jpmml/sklearn2pmml",
-	license = "GNU Affero General Public License (AGPL) version 3.0",
+	license = __license__,
 	packages = [
 		"sklearn2pmml",
 		"sklearn2pmml.decoration",
