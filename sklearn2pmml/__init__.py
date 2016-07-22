@@ -29,7 +29,7 @@ def _dump(obj):
 		os.close(fd)
 	return path
 
-def sklearn2pmml(estimator, mapper, pmml, with_repr = False, verbose = False):
+def sklearn2pmml(estimator, mapper, pmml, with_repr = False, verbose = False, debug = False):
 	if(not isinstance(estimator, BaseEstimator)):
 		raise TypeError("The estimator object is not an instance of " + BaseEstimator.__name__)
 	if((mapper is not None) and (not isinstance(mapper, DataFrameMapper))):
@@ -52,8 +52,13 @@ def sklearn2pmml(estimator, mapper, pmml, with_repr = False, verbose = False):
 				cmd.extend(["--repr-mapper", mapper_repr])
 		cmd.extend(["--pmml-output", pmml])
 		if(verbose):
-			print(cmd)
+			print(' '.join(cmd))
 		subprocess.check_call(cmd)
 	finally:
-		for dump in dumps:
-			os.remove(dump)
+		if (not debug):
+			for dump in dumps:
+				os.remove(dump)
+		else:
+			print ('debug option was enabled, following pkl files are not removed:\n{0}'.format('\n'.join(dumps)))
+
+
