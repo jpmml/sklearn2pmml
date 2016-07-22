@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
 from sklearn.base import BaseEstimator
+from sklearn.externals import joblib
 from sklearn_pandas import DataFrameMapper
 
-import joblib
 import os
 import pkg_resources
 import subprocess

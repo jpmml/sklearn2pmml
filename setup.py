@@ -19,7 +19,6 @@ setup(
 		"sklearn2pmml.resources" : ["*.jar"]
 	},
 	install_requires = [
-		"joblib",
 		"numpy",
 		"sklearn",
 		"sklearn_pandas"
