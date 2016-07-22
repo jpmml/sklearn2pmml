@@ -21,10 +21,10 @@ def _classpath():
 			jars.append(pkg_resources.resource_filename("sklearn2pmml.resources", resource))
 	return jars
 
-def _dump(obj):
-	fd, path = tempfile.mkstemp(suffix = ".pkl")
+def _dump(obj, prefix):
+	fd, path = tempfile.mkstemp(prefix = (prefix + "-"), suffix = ".pkl.z")
 	try:
-		joblib.dump(obj, path, compress = 9)
+		joblib.dump(obj, path, compress = 3)
 	finally:
 		os.close(fd)
 	return path
@@ -37,14 +37,14 @@ def sklearn2pmml(estimator, mapper, pmml, with_repr = False, verbose = False):
 	cmd = ["java", "-cp", os.pathsep.join(_classpath()), "org.jpmml.sklearn.Main"]
 	dumps = []
 	try:
-		estimator_pkl = _dump(estimator)
+		estimator_pkl = _dump(estimator, "estimator")
 		cmd.extend(["--pkl-estimator-input", estimator_pkl])
 		dumps.append(estimator_pkl)
 		if(with_repr):
 			estimator_repr = repr(estimator)
 			cmd.extend(["--repr-estimator", estimator_repr])
 		if(mapper):
-			mapper_pkl = _dump(mapper)
+			mapper_pkl = _dump(mapper, "mapper")
 			cmd.extend(["--pkl-mapper-input", mapper_pkl])
 			dumps.append(mapper_pkl)
 			if(with_repr):
