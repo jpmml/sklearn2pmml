@@ -6,6 +6,9 @@ from sklearn_pandas import DataFrameMapper
 
 import os
 import pkg_resources
+import platform
+import sklearn
+import sklearn_pandas
 import subprocess
 import tempfile
 
@@ -29,7 +32,13 @@ def _dump(obj, prefix):
 		os.close(fd)
 	return path
 
-def sklearn2pmml(estimator, mapper, pmml, with_repr = False, verbose = False):
+def sklearn2pmml(estimator, mapper, pmml, with_repr = False, debug = False):
+	if(debug):
+		print("python: ", platform.python_version())
+		print("sklearn: ", sklearn.__version__)
+		print("sklearn.externals.joblib:", joblib.__version__)
+		print("sklearn_pandas: ", sklearn_pandas.__version__)
+		print("sklearn2pmml: ", __version__)
 	if(not isinstance(estimator, BaseEstimator)):
 		raise TypeError("The estimator object is not an instance of " + BaseEstimator.__name__)
 	if((mapper is not None) and (not isinstance(mapper, DataFrameMapper))):
@@ -51,9 +60,12 @@ def sklearn2pmml(estimator, mapper, pmml, with_repr = False, verbose = False):
 				mapper_repr = repr(mapper)
 				cmd.extend(["--repr-mapper", mapper_repr])
 		cmd.extend(["--pmml-output", pmml])
-		if(verbose):
-			print(cmd)
+		if(debug):
+			print(" ".join(cmd))
 		subprocess.check_call(cmd)
 	finally:
-		for dump in dumps:
-			os.remove(dump)
+		if(debug):
+			print("Preserved joblib dump file(s): ", " ".join(dumps))
+		else:
+			for dump in dumps:
+				os.remove(dump)
