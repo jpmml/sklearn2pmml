@@ -17,7 +17,7 @@ This library is a thin wrapper around the [JPMML-SkLearn] (https://github.com/jp
 Installing the latest version from GitHub:
 
 ```
-pip install --user --upgrade git+https://github.com/jpmml/sklearn2pmml.git
+pip install --user git+https://github.com/jpmml/sklearn2pmml.git
 ```
 
 # Usage #
