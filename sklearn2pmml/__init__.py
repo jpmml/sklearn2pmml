@@ -4,6 +4,8 @@ from sklearn.base import BaseEstimator
 from sklearn.externals import joblib
 from sklearn_pandas import DataFrameMapper
 
+from metadata import __version__
+
 import os
 import pkg_resources
 import platform
@@ -12,9 +14,6 @@ import sklearn_pandas
 import subprocess
 import tempfile
 
-__copyright__ = "Copyright (c) 2015 Villu Ruusmann"
-__license__ = "GNU Affero General Public License (AGPL) version 3.0"
-__version__ = "0.12.0"
 
 def _classpath():
 	jars = []
