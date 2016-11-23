@@ -14,7 +14,7 @@ import tempfile
 
 __copyright__ = "Copyright (c) 2015 Villu Ruusmann"
 __license__ = "GNU Affero General Public License (AGPL) version 3.0"
-__version__ = "0.12.0"
+__version__ = "0.12.1"
 
 def _classpath():
 	jars = []
