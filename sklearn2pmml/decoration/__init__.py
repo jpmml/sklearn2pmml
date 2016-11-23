@@ -4,6 +4,7 @@ from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils import column_or_1d
 
 import numpy
+import pandas
 
 __copyright__ = "Copyright (c) 2016 Villu Ruusmann"
 __license__ = "GNU Affero General Public License (AGPL) version 3.0"
@@ -23,7 +24,7 @@ class CategoricalDomain(Domain):
 
 	def fit(self, y):
 		y = column_or_1d(y, warn = True)
-		self.data_ = numpy.unique(y[~numpy.isnan(y)])
+		self.data_ = numpy.unique(y[~pandas.isnull(y)])
 		return self
 
 	def transform(self, y):
