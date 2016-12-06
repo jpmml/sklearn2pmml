@@ -22,13 +22,13 @@ class CategoricalDomain(Domain):
 	def __init__(self, invalid_value_treatment = "return_invalid"):
 		Domain.__init__(self, invalid_value_treatment)
 
-	def fit(self, y):
-		y = column_or_1d(y, warn = True)
-		self.data_ = numpy.unique(y[~pandas.isnull(y)])
+	def fit(self, X, y = None):
+		X = column_or_1d(X, warn = True)
+		self.data_ = numpy.unique(X[~pandas.isnull(X)])
 		return self
 
-	def transform(self, y):
-		return y
+	def transform(self, X):
+		return X
 
 class ContinuousDomain(Domain):
 
