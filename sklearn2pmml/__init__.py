@@ -16,7 +16,7 @@ __copyright__ = "Copyright (c) 2015 Villu Ruusmann"
 __license__ = "GNU Affero General Public License (AGPL) version 3.0"
 __version__ = "0.13.0"
 
-def _classpath():
+def _package_classpath():
 	jars = []
 	resources = pkg_resources.resource_listdir("sklearn2pmml.resources", "")
 	for resource in resources:
@@ -32,7 +32,7 @@ def _dump(obj, prefix):
 		os.close(fd)
 	return path
 
-def sklearn2pmml(estimator, mapper, pmml, with_repr = False, debug = False):
+def sklearn2pmml(estimator, mapper, pmml, user_classpath = [], with_repr = False, debug = False):
 	if(debug):
 		print("python: ", platform.python_version())
 		print("sklearn: ", sklearn.__version__)
@@ -43,7 +43,7 @@ def sklearn2pmml(estimator, mapper, pmml, with_repr = False, debug = False):
 		raise TypeError("The estimator object is not an instance of " + BaseEstimator.__name__)
 	if((mapper is not None) and (not isinstance(mapper, DataFrameMapper))):
 		raise TypeError("The mapper object is not an instance of " + DataFrameMapper.__name__)
-	cmd = ["java", "-cp", os.pathsep.join(_classpath()), "org.jpmml.sklearn.Main"]
+	cmd = ["java", "-cp", os.pathsep.join(_package_classpath() + user_classpath), "org.jpmml.sklearn.Main"]
 	dumps = []
 	try:
 		estimator_pkl = _dump(estimator, "estimator")
