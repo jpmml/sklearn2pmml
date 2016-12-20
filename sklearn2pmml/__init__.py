@@ -33,6 +33,30 @@ def _dump(obj, prefix):
 	return path
 
 def sklearn2pmml(estimator, mapper, pmml, user_classpath = [], with_repr = False, debug = False):
+	"""Converts fitted Scikit-Learn object(s) to PMML.
+
+	Parameters:
+	----------
+	estimator: BaseEstimator
+		The estimator.
+
+	mapper: DataFrameMapper
+		The mapper that was used to prepare X and y matrices for the estimator.
+
+	pmml: string
+		The path to where the PMML document should be stored.
+
+	user_classpath: list of strings, optional
+		The paths to JAR files that provide custom Transformer, Selector and/or Estimator converter classes.
+		The JPMML-SkLearn classpath is constructed by appending user JAR files to package JAR files.
+
+	with_repr: boolean, optional
+		If true, insert the textual representation of estimator and mapper objects into the PMML document.
+
+	debug: boolean, optional
+		If true, print information about the conversion operation.
+
+	"""
 	if(debug):
 		print("python: ", platform.python_version())
 		print("sklearn: ", sklearn.__version__)
