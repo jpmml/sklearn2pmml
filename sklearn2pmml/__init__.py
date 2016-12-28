@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 
-from sklearn.base import BaseEstimator
+from pandas import DataFrame, Series
 from sklearn.externals import joblib
-from sklearn_pandas import DataFrameMapper
+from sklearn.pipeline import Pipeline
 
 import os
+import pandas
 import pkg_resources
 import platform
 import sklearn
@@ -14,7 +15,19 @@ import tempfile
 
 __copyright__ = "Copyright (c) 2015 Villu Ruusmann"
 __license__ = "GNU Affero General Public License (AGPL) version 3.0"
-__version__ = "0.13.0"
+__version__ = "0.14.0"
+
+class PMMLPipeline(Pipeline):
+
+	def __init__(self, steps):
+		Pipeline.__init__(self, steps)
+
+	def _fit(self, X, y, **fit_params):
+		if(isinstance(X, DataFrame)):
+			self.active_fields = X.columns.values
+		if(isinstance(y, Series)):
+			self.target_field = y.name
+		return Pipeline._fit(self, X, y, **fit_params)
 
 def _package_classpath():
 	jars = []
@@ -32,16 +45,13 @@ def _dump(obj, prefix):
 		os.close(fd)
 	return path
 
-def sklearn2pmml(estimator, mapper, pmml, user_classpath = [], with_repr = False, debug = False):
-	"""Converts fitted Scikit-Learn object(s) to PMML.
+def sklearn2pmml(pipeline, pmml, user_classpath = [], with_repr = False, debug = False):
+	"""Converts fitted Scikit-Learn pipeline to PMML.
 
 	Parameters:
 	----------
-	estimator: BaseEstimator
-		The estimator.
-
-	mapper: DataFrameMapper
-		The mapper that was used to prepare X and y matrices for the estimator.
+	pipeline: PMMLPipeline
+		The pipeline.
 
 	pmml: string
 		The path to where the PMML document should be stored.
@@ -51,7 +61,7 @@ def sklearn2pmml(estimator, mapper, pmml, user_classpath = [], with_repr = False
 		The JPMML-SkLearn classpath is constructed by appending user JAR files to package JAR files.
 
 	with_repr: boolean, optional
-		If true, insert the textual representation of estimator and mapper objects into the PMML document.
+		If true, insert the textual representation of pipeline into the PMML document.
 
 	debug: boolean, optional
 		If true, print information about the conversion operation.
@@ -61,28 +71,20 @@ def sklearn2pmml(estimator, mapper, pmml, user_classpath = [], with_repr = False
 		print("python: ", platform.python_version())
 		print("sklearn: ", sklearn.__version__)
 		print("sklearn.externals.joblib:", joblib.__version__)
+		print("pandas: ", pandas.__version__)
 		print("sklearn_pandas: ", sklearn_pandas.__version__)
 		print("sklearn2pmml: ", __version__)
-	if(not isinstance(estimator, BaseEstimator)):
-		raise TypeError("The estimator object is not an instance of " + BaseEstimator.__name__)
-	if((mapper is not None) and (not isinstance(mapper, DataFrameMapper))):
-		raise TypeError("The mapper object is not an instance of " + DataFrameMapper.__name__)
+	if(not isinstance(pipeline, PMMLPipeline)):
+		raise TypeError("The pipeline object is not an instance of " + PMMLPipeline.__name__)
 	cmd = ["java", "-cp", os.pathsep.join(_package_classpath() + user_classpath), "org.jpmml.sklearn.Main"]
 	dumps = []
 	try:
-		estimator_pkl = _dump(estimator, "estimator")
-		cmd.extend(["--pkl-estimator-input", estimator_pkl])
-		dumps.append(estimator_pkl)
+		pipeline_pkl = _dump(pipeline, "pipeline")
+		cmd.extend(["--pkl-pipeline-input", pipeline_pkl])
+		dumps.append(pipeline_pkl)
 		if(with_repr):
-			estimator_repr = repr(estimator)
-			cmd.extend(["--repr-estimator", estimator_repr])
-		if(mapper):
-			mapper_pkl = _dump(mapper, "mapper")
-			cmd.extend(["--pkl-mapper-input", mapper_pkl])
-			dumps.append(mapper_pkl)
-			if(with_repr):
-				mapper_repr = repr(mapper)
-				cmd.extend(["--repr-mapper", mapper_repr])
+			pipeline_repr = repr(pipeline)
+			cmd.extend(["--repr-pipeline", pipeline_repr])
 		cmd.extend(["--pmml-output", pmml])
 		if(debug):
 			print(" ".join(cmd))
