@@ -24,55 +24,60 @@ pip install --user git+https://github.com/jpmml/sklearn2pmml.git
 
 A typical workflow can be summarized as follows:
 
-1. Create and fit a [`sklearn_pandas.DataFrameMapper`] (https://pypi.python.org/pypi/sklearn-pandas) object that captures "feature engineering" operations that are needed to transform data from its original representation to the Scikit-Learn's representation.
-2. Create and fit a Scikit-Learn's Estimator object.
-3. Convert the above two Python objects to a PMML document by invoking the utility method `sklearn2pmml.sklearn2pmml(estimator, mapper, pmml_destination_path)`.
+1. Create a `sklearn2pmml.PMMLPipeline` object, and populate it with pipeline steps as usual. Class `sklearn2pmml.PMMLPipeline` extends class `sklearn.pipeline.Pipeline` with the following functionality:
+  * If the `Pipeline.fit(X, y)` method is invoked with `pandas.DataFrame` object as an `X` argument, then its column names are used as feature names. Otherwise, feature names default to "x1", "x2", .., "x{number_of_features}".
+  * If the `Pipeline.fit(X, y)` method is invoked with `pandas.Series` object as an `y` argument, then its name is used as the target name (for supervised models). Otherwise, the target name defaults to "y".
+2. Fit and validate the pipeline as usual.
+3. Convert the fitted `sklearn2pmml.PMMLPipeline` object to PMML document by invoking utility method `sklearn2pmml.sklearn2pmml(pipeline, pmml_destination_path)`.
 
-For example, developing a logistic regression model for the classification of iris species:
+Developing a simple decision tree model for the classification of iris species:
 
 ```python
-#
-# Step 1: feature engineering
-#
-
-from sklearn.datasets import load_iris
-from sklearn.decomposition import PCA
-
-from sklearn2pmml.decoration import ContinuousDomain
-
 import pandas
-import sklearn_pandas
 
-iris = load_iris()
+iris_df = pandas.read_csv("Iris.csv")
 
-iris_df = pandas.concat((pandas.DataFrame(iris.data[:, :], columns = ["Sepal.Length", "Sepal.Width", "Petal.Length", "Petal.Width"]), pandas.DataFrame(iris.target, columns = ["Species"])), axis = 1)
+from sklearn2pmml import PMMLPipeline
+from sklearn.tree import DecisionTreeClassifier
 
-iris_mapper = sklearn_pandas.DataFrameMapper([
-    (["Sepal.Length", "Sepal.Width", "Petal.Length", "Petal.Width"], [ContinuousDomain(), PCA(n_components = 3)]),
-    ("Species", None)
+iris_pipeline = PMMLPipeline([
+	("classifier", DecisionTreeClassifier())
 ])
-
-iris = iris_mapper.fit_transform(iris_df)
-
-#
-# Step 2: training a logistic regression model
-#
-
-from sklearn.linear_model import LogisticRegressionCV
-
-iris_X = iris[:, 0:3]
-iris_y = iris[:, 3]
-
-iris_classifier = LogisticRegressionCV()
-iris_classifier.fit(iris_X, iris_y)
-
-#
-# Step 3: conversion to PMML
-#
+iris_pipeline.fit(iris_df[iris_df.columns.difference["Species"]], iris_df["Species"])
 
 from sklearn2pmml import sklearn2pmml
 
-sklearn2pmml(iris_classifier, iris_mapper, "LogisticRegressionIris.pmml", with_repr = True)
+sklearn2pmml(iris_pipeline, "DecisionTreeIris.pmml", with_repr = True)
+```
+
+Developing a more elaborate logistic regression model for the same:
+
+```python
+import pandas
+
+iris_df = pandas.read_csv("Iris.csv")
+
+from sklearn2pmml import PMMLPipeline
+from sklearn2pmml.decoration import ContinuousDomain
+from sklearn_pandas import DataFrameMapper
+from sklearn.decomposition import PCA
+from sklearn.feature_selection import SelectKBest
+from sklearn.preprocessing import Imputer
+from sklearn.linear_model import LogisticRegression
+
+iris_pipeline = PMMLPipeline([
+	("mapper", DataFrameMapper([
+		(["Sepal.Length", "Sepal.Width", "Petal.Length", "Petal.Width"], [ContinuousDomain(), Imputer()])
+	])),
+	("pca", PCA(n_components = 3)),
+	("selector", SelectKBest(k = 2)),
+	("classifier", LogisticRegression())
+])
+iris_pipeline.fit(iris_df, iris_df["Species"])
+
+from sklearn2pmml import sklearn2pmml
+
+sklearn2pmml(iris_pipeline, "LogisticRegressionIris.pmml", with_repr = True)
 ```
 
 # De-installation #
