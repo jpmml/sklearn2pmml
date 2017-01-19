@@ -43,7 +43,7 @@ from sklearn.tree import DecisionTreeClassifier
 iris_pipeline = PMMLPipeline([
 	("classifier", DecisionTreeClassifier())
 ])
-iris_pipeline.fit(iris_df[iris_df.columns.difference["Species"]], iris_df["Species"])
+iris_pipeline.fit(iris_df[iris_df.columns.difference(["Species"])], iris_df["Species"])
 
 from sklearn2pmml import sklearn2pmml
 
