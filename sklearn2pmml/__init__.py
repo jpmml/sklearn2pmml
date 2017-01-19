@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from pandas import DataFrame, Series
+from sklearn.base import BaseEstimator
 from sklearn.externals import joblib
 from sklearn.pipeline import Pipeline
 
@@ -28,6 +29,25 @@ class PMMLPipeline(Pipeline):
 		if(isinstance(y, Series)):
 			self.target_field = y.name
 		return Pipeline._fit(self, X, y, **fit_params)
+
+class EstimatorProxy(BaseEstimator):
+
+	def __init__(self, estimator_, attr_names_ = ["feature_importances_"]):
+		self.estimator_ = estimator_
+		self.attr_names_ = attr_names_
+
+	def __getattr__(self, name):
+		return getattr(self.estimator_, name)
+
+	def _copy_attrs(self):
+		for attr_name_ in self.attr_names_:
+			if hasattr(self.estimator_, attr_name_):
+				setattr(self, attr_name_, getattr(self.estimator_, attr_name_))
+
+	def fit(self, X, y = None, **fit_params):
+		self.estimator_.fit(X, y, **fit_params)
+		self._copy_attrs()
+		return self
 
 def _package_classpath():
 	jars = []
