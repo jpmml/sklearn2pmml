@@ -49,6 +49,27 @@ class EstimatorProxy(BaseEstimator):
 		self._copy_attrs()
 		return self
 
+class SelectorProxy(BaseEstimator):
+
+	def __init__(self, selector_):
+		self.selector_ = selector_
+
+	def __getattr__(self, name):
+		return getattr(self.selector_, name)
+
+	def _copy_attrs(self):
+		setattr(self, "support_mask_", self.selector_._get_support_mask())
+
+	def fit(self, X, y = None, **fit_params):
+		self.selector_.fit(X, y, **fit_params)
+		self._copy_attrs()
+		return self
+
+	def fit_transform(self, X, y = None, **fit_params):
+		Xt = self.selector_.fit_transform(X, y, **fit_params)
+		self._copy_attrs()
+		return Xt
+
 def _package_classpath():
 	jars = []
 	resources = pkg_resources.resource_listdir("sklearn2pmml.resources", "")
