@@ -13,6 +13,8 @@ setup(
 	packages = [
 		"sklearn2pmml",
 		"sklearn2pmml.decoration",
+		"sklearn2pmml.feature_extraction",
+		"sklearn2pmml.feature_extraction.text",
 		"sklearn2pmml.resources"
 	],
 	package_data = {
