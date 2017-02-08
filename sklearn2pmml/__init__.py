@@ -5,6 +5,7 @@ from sklearn.base import BaseEstimator
 from sklearn.externals import joblib
 from sklearn.pipeline import Pipeline
 
+import numpy
 import os
 import pandas
 import pkg_resources
@@ -24,8 +25,12 @@ class PMMLPipeline(Pipeline):
 		Pipeline.__init__(self, steps)
 
 	def _fit(self, X, y, **fit_params):
+		# Collect feature name(s)
 		if(isinstance(X, DataFrame)):
 			self.active_fields = X.columns.values
+		elif(isinstance(X, Series)):
+			self.active_fields = numpy.array([X.name])
+		# Collect label name
 		if(isinstance(y, Series)):
 			self.target_field = y.name
 		return Pipeline._fit(self, X, y, **fit_params)
