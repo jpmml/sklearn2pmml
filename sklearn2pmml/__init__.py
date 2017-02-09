@@ -24,6 +24,10 @@ class PMMLPipeline(Pipeline):
 	def __init__(self, steps):
 		Pipeline.__init__(self, steps)
 
+	def __repr__(self):
+		class_name = self.__class__.__name__
+		return "%s(steps=[%s])" % (class_name, (",\n" + (1 + len(class_name) // 2) * " ").join(repr(step) for step in self.steps))
+
 	def _fit(self, X, y, **fit_params):
 		# Collect feature name(s)
 		if(isinstance(X, DataFrame)):
@@ -107,7 +111,7 @@ def sklearn2pmml(pipeline, pmml, user_classpath = [], with_repr = False, debug =
 		The JPMML-SkLearn classpath is constructed by appending user JAR files to package JAR files.
 
 	with_repr: boolean, optional
-		If true, insert the textual representation of pipeline into the PMML document.
+		If true, insert the string representation of pipeline into the PMML document.
 
 	debug: boolean, optional
 		If true, print information about the conversion operation.
@@ -125,12 +129,11 @@ def sklearn2pmml(pipeline, pmml, user_classpath = [], with_repr = False, debug =
 	cmd = ["java", "-cp", os.pathsep.join(_package_classpath() + user_classpath), "org.jpmml.sklearn.Main"]
 	dumps = []
 	try:
+		if(with_repr):
+			pipeline.repr_ = repr(pipeline)
 		pipeline_pkl = _dump(pipeline, "pipeline")
 		cmd.extend(["--pkl-pipeline-input", pipeline_pkl])
 		dumps.append(pipeline_pkl)
-		if(with_repr):
-			pipeline_repr = repr(pipeline)
-			cmd.extend(["--repr-pipeline", pipeline_repr])
 		cmd.extend(["--pmml-output", pmml])
 		if(debug):
 			print(" ".join(cmd))
