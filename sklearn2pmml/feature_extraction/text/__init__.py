@@ -1,5 +1,18 @@
 import re
 import string
+import sys
+import unicodedata
+
+punctuation = ""
+
+for i in range(sys.maxunicode):
+	c = i
+	try:
+		c = unichr(c)
+	except:
+		c = chr(c)
+	if((unicodedata.category(c)).startswith('P')):
+		punctuation += c
 
 class Splitter:
 
@@ -15,7 +28,7 @@ class Splitter:
 	def __call__(self, text):
 		tokens = re.split(self.separator_re, text)
 		# Trim tokens by removing leading and trailing puncutation characters
-		tokens = [token.strip(string.punctuation) for token in tokens]
+		tokens = [token.strip(punctuation) for token in tokens]
 		# Remove empty tokens
 		tokens = [token for token in tokens if token]
 		return tuple(tokens)

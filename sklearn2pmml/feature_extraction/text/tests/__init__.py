@@ -9,6 +9,11 @@ class SplitterTest(TestCase):
 		splitter = Splitter()
 		self.assertEqual((), splitter(""))
 		self.assertEqual((), splitter("."))
+		self.assertEqual(("one", ), splitter("one"))
+		self.assertEqual(("++one", ), splitter("++one"))
+		self.assertEqual(("one++", ), splitter("one++"))
+		self.assertEqual(("one", ), splitter("--one"))
+		self.assertEqual(("one", ), splitter("one--"))
 		self.assertEqual(("one", "two", "three"), splitter("one two three"))
 		self.assertEqual(("one", "t,w.o", "three"), splitter(",one _t,w.o_ three."))
 
