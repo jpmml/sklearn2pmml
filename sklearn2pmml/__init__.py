@@ -4,6 +4,7 @@ from pandas import DataFrame, Series
 from sklearn.base import BaseEstimator
 from sklearn.externals import joblib
 from sklearn.pipeline import Pipeline
+from subprocess import CalledProcessError
 
 import numpy
 import os
@@ -137,7 +138,10 @@ def sklearn2pmml(pipeline, pmml, user_classpath = [], with_repr = False, debug =
 		cmd.extend(["--pmml-output", pmml])
 		if(debug):
 			print(" ".join(cmd))
-		subprocess.check_call(cmd)
+		try:
+			subprocess.check_call(cmd)
+		except CalledProcessError:
+			raise RuntimeError("The JPMML-SkLearn conversion application has failed. The Java process should have printed more information about the failure into its standard output and/or error streams")
 	finally:
 		if(debug):
 			print("Preserved joblib dump file(s): ", " ".join(dumps))
