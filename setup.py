@@ -1,6 +1,8 @@
 from distutils.core import setup
-
-from sklearn2pmml import __license__, __version__
+import sys
+sys.path.append('sklearn2pmml')
+from version import __version__
+from license import __license__
 
 setup(
 	name = "sklearn2pmml",
