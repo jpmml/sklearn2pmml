@@ -1,6 +1,6 @@
 from distutils.core import setup
 
-from sklearn2pmml import __license__, __version__
+exec(open('sklearn2pmml/metadata.py').read())
 
 setup(
 	name = "sklearn2pmml",
