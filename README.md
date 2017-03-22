@@ -1,11 +1,11 @@
 SkLearn2PMML
 ============
 
-Python library for converting [Scikit-Learn] (http://scikit-learn.org/) models to PMML.
+Python library for converting [Scikit-Learn](http://scikit-learn.org/) models to PMML.
 
 # Features #
 
-This library is a thin wrapper around the [JPMML-SkLearn] (https://github.com/jpmml/jpmml-sklearn) command-line application. For a list of supported Scikit-Learn Estimator and Transformer types, please refer to the documentation of the JPMML-SkLearn project.
+This library is a thin wrapper around the [JPMML-SkLearn](https://github.com/jpmml/jpmml-sklearn) command-line application. For a list of supported Scikit-Learn Estimator and Transformer types, please refer to the documentation of the JPMML-SkLearn project.
 
 # Prerequisites #
 
@@ -90,8 +90,8 @@ pip uninstall sklearn2pmml
 
 # License #
 
-SkLearn2PMML is licensed under the [GNU Affero General Public License (AGPL) version 3.0] (http://www.gnu.org/licenses/agpl-3.0.html). Other licenses are available on request.
+SkLearn2PMML is licensed under the [GNU Affero General Public License (AGPL) version 3.0](http://www.gnu.org/licenses/agpl-3.0.html). Other licenses are available on request.
 
 # Additional information #
 
-Please contact [info@openscoring.io] (mailto:info@openscoring.io)
+Please contact [info@openscoring.io](mailto:info@openscoring.io)
