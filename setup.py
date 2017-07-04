@@ -23,6 +23,6 @@ setup(
 	},
 	install_requires = [
 		"scikit-learn>=0.16.0",
-		"sklearn_pandas>=0.0.10"
+		"sklearn-pandas>=0.0.10"
 	]
 )
