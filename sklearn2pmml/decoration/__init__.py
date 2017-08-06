@@ -49,4 +49,8 @@ class ContinuousDomain(Domain):
 	def fit(self, X, y = None):
 		self.data_min_ = numpy.nanmin(X, axis = 0)
 		self.data_max_ = numpy.nanmax(X, axis = 0)
+		self.data_mean_ = numpy.nanmean(X, axis = 0)
+		self.data_std_ = numpy.nanstd(X, axis = 0)[0]
+		self.data_median_ = numpy.nanmedian(X, axis = 0)
+		self.data_inter_quartile_range_ = numpy.nanpercentile(X, 75, axis = 0)[0] - numpy.nanpercentile(X, 25, axis = 0)[0]
 		return self
