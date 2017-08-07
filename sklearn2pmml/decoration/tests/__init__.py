@@ -14,10 +14,14 @@ class CategoricalDomainTest(TestCase):
 		self.assertEqual(-999, domain.missing_value_replacement)
 		self.assertEqual("as_is", domain.invalid_value_treatment)
 		self.assertFalse(hasattr(domain, "data_"))
+		self.assertFalse(hasattr(domain, "data_total_freq_"))
+		self.assertFalse(hasattr(domain, "data_missing_freq_"))
 		X = DataFrame(numpy.array([1, None, 3, 2, None, 2]))
 		Xt = domain.fit_transform(X)
 		self.assertEqual(numpy.array([1, 2, 3]).tolist(), domain.data_.tolist())
 		self.assertEqual(numpy.array([1, -999, 3, 2, -999, 2]).tolist(), Xt[0].tolist())
+		self.assertEqual(6, domain.data_total_freq_)
+		self.assertEqual(2, domain.data_missing_freq_)
 		X = numpy.array([None, None]);
 		Xt = domain.transform(X)
 		self.assertEqual(numpy.array([-999, -999]).tolist(), Xt.tolist())
@@ -41,6 +45,8 @@ class CategoricalDomainTest(TestCase):
 		])
 		mapper.fit_transform(df)
 		self.assertEqual(numpy.array(["1", "2", "3"]).tolist(), domain.data_.tolist())
+		self.assertEqual(3, domain.data_total_freq_)
+		self.assertEqual(0, domain.data_missing_freq_)
 
 class ContinuousDomainTest(TestCase):
 
@@ -55,6 +61,8 @@ class ContinuousDomainTest(TestCase):
 		self.assertFalse(hasattr(domain, "data_std_"))
 		self.assertFalse(hasattr(domain, "data_median_"))
 		self.assertFalse(hasattr(domain, "data_inter_quartile_range_"))
+		self.assertFalse(hasattr(domain, "data_total_freq_"))
+		self.assertFalse(hasattr(domain, "data_missing_freq_"))
 		X = DataFrame(numpy.array([1.0, float('NaN'), 3.0, 2.0, float('NaN'), 2.0]))
 		Xt = domain.fit_transform(X)
 		self.assertEqual(1.0, domain.data_min_)

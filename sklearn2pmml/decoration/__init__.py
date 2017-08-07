@@ -39,6 +39,8 @@ class CategoricalDomain(Domain):
 	def fit(self, X, y = None):
 		X = column_or_1d(X, warn = True)
 		self.data_ = numpy.unique(X[~pandas.isnull(X)])
+		self.data_total_freq_ = X.size
+		self.data_missing_freq_ = numpy.sum(pandas.isnull(X).astype(int), axis=0)
 		return self
 
 class ContinuousDomain(Domain):
