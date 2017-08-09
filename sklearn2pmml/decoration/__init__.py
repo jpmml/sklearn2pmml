@@ -39,6 +39,8 @@ class CategoricalDomain(Domain):
 	def fit(self, X, y = None):
 		X = column_or_1d(X, warn = True)
 		self.data_ = numpy.unique(X[~pandas.isnull(X)])
+		self.data_total_freq_ = X.size
+		self.data_missing_freq_ = numpy.sum(pandas.isnull(X).astype(int), axis=0)
 		return self
 
 class ContinuousDomain(Domain):
@@ -49,4 +51,13 @@ class ContinuousDomain(Domain):
 	def fit(self, X, y = None):
 		self.data_min_ = numpy.nanmin(X, axis = 0)
 		self.data_max_ = numpy.nanmax(X, axis = 0)
+		self.data_mean_ = numpy.nanmean(X, axis = 0)
+		self.data_std_ = numpy.nanstd(X, axis = 0)
+		self.data_median_ = numpy.nanmedian(X, axis = 0)
+		self.data_inter_quartile_range_ = numpy.nanpercentile(X, 75, axis = 0) - numpy.nanpercentile(X, 25, axis = 0)
+		self.data_1st_quantile_ = numpy.nanpercentile(X, 25, axis = 0)
+		self.data_3rd_quantile_ = numpy.nanpercentile(X, 75, axis = 0)
+		self.data_total_freq_ = numpy.empty(X.shape[1])
+		self.data_total_freq_.fill(X.shape[0])
+		self.data_missing_freq_ = numpy.array(numpy.sum(numpy.isnan(X).astype(int), axis=0))
 		return self
