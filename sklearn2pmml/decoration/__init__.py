@@ -9,9 +9,20 @@ import pandas
 __copyright__ = "Copyright (c) 2016 Villu Ruusmann"
 __license__ = "GNU Affero General Public License (AGPL) version 3.0"
 
+def _count(mask):
+	if(hasattr(mask, "values")):
+		mask = mask.values
+	non_missing_freq = sum(mask)
+	missing_freq = sum(~mask)
+	return {
+		"totalFreq" : (non_missing_freq + missing_freq),
+		"missingFreq" : missing_freq,
+		"invalidFreq" : (non_missing_freq - non_missing_freq) # A scalar zero, or an array of zeroes
+	}
+
 class Domain(BaseEstimator, TransformerMixin):
 
-	def __init__(self, missing_value_treatment = "as_is", missing_value_replacement = None, invalid_value_treatment = "return_invalid"):
+	def __init__(self, missing_value_treatment = "as_is", missing_value_replacement = None, invalid_value_treatment = "return_invalid", with_statistics = True):
 		missing_value_treatments = ["as_is", "as_mean", "as_mode", "as_median", "as_value"]
 		if missing_value_treatment not in missing_value_treatments:
 			raise ValueError("Missing value treatment {0} not in {1}".format(missing_value_treatment, missing_value_treatments))
@@ -22,6 +33,7 @@ class Domain(BaseEstimator, TransformerMixin):
 		if invalid_value_treatment not in invalid_value_treatments:
 			raise ValueError("Invalid value treatment {0} not in {1}".format(invalid_value_treatment, invalid_value_treatments))
 		self.invalid_value_treatment = invalid_value_treatment
+		self.with_statistics = with_statistics
 
 	def transform(self, X):
 		if hasattr(self, "missing_value_replacement"):
@@ -38,7 +50,12 @@ class CategoricalDomain(Domain):
 
 	def fit(self, X, y = None):
 		X = column_or_1d(X, warn = True)
-		self.data_ = numpy.unique(X[~pandas.isnull(X)])
+		mask = pandas.notnull(X)
+		values, counts = numpy.unique(X[mask], return_counts = True)
+		self.data_ = values
+		if(self.with_statistics):
+			self.counts_ = _count(mask)
+			self.discr_stats_ = (values, counts)
 		return self
 
 class ContinuousDomain(Domain):
@@ -47,6 +64,17 @@ class ContinuousDomain(Domain):
 		Domain.__init__(self, **kwargs)
 
 	def fit(self, X, y = None):
+		mask = pandas.notnull(X)
 		self.data_min_ = numpy.nanmin(X, axis = 0)
 		self.data_max_ = numpy.nanmax(X, axis = 0)
+		if(self.with_statistics):
+			self.counts_ = _count(mask)
+			self.numeric_info_ = {
+				"minimum" : self.data_min_,
+				"maximum" : self.data_max_,
+				"mean" : numpy.nanmean(X, axis = 0),
+				"standardDeviation" : numpy.nanstd(X, axis = 0),
+				"median" : numpy.nanmedian(X, axis = 0),
+				"interQuartileRange" : (numpy.nanpercentile(X, 75, axis = 0) - numpy.nanpercentile(X, 25, axis = 0))
+			}
 		return self
