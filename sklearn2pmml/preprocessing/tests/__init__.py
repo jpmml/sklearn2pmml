@@ -1,8 +1,26 @@
 from pandas import Series
-from sklearn2pmml.preprocessing import PMMLLabelBinarizer, PMMLLabelEncoder
+from sklearn2pmml.preprocessing import ExpressionTransformer, PMMLLabelBinarizer, PMMLLabelEncoder
 from unittest import TestCase
 
 import numpy
+
+class ExpressionTransformerTest(TestCase):
+
+	def test_transform(self):
+		transformer = ExpressionTransformer("X[:, 0] + X[:, 1]")
+		self.assertTrue(hasattr(transformer, "expr_"))
+		X = numpy.array([[0.5, 0.5], [1.0, 2.0]])
+		Xt = transformer.fit_transform(X)
+		self.assertEqual(numpy.array([1.0, 3.0]).tolist(), Xt.tolist())
+		transformer = ExpressionTransformer("X[:, 0] - X[:, 1]")
+		Xt = transformer.fit_transform(X)
+		self.assertEqual(numpy.array([0.0, -1.0]).tolist(), Xt.tolist())
+		transformer = ExpressionTransformer("X[:, 0] * X[:, 1]")
+		Xt = transformer.fit_transform(X)
+		self.assertEqual(numpy.array([0.25, 2.0]).tolist(), Xt.tolist())
+		transformer = ExpressionTransformer("X[:, 0] / X[:, 1]")
+		Xt = transformer.fit_transform(X)
+		self.assertEquals(numpy.array([1.0, 0.5]).tolist(), Xt.tolist())
 
 class PMMLLabelBinarizerTest(TestCase):
 

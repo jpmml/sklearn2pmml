@@ -5,6 +5,17 @@ from sklearn.utils import column_or_1d
 import numpy
 import pandas
 
+class ExpressionTransformer(TransformerMixin):
+
+	def __init__(self, expr):
+		self.expr_ = expr
+
+	def fit(self, X, y = None):
+		return self
+
+	def transform(self, X, y = None):
+		return eval(self.expr_)
+
 class PMMLLabelBinarizer(BaseEstimator, TransformerMixin):
 
 	def fit(self, y):
