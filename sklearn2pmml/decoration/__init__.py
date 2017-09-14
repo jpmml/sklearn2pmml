@@ -22,7 +22,7 @@ def _count(mask):
 
 class Domain(BaseEstimator, TransformerMixin):
 
-	def __init__(self, missing_value_treatment = "as_is", missing_value_replacement = None, invalid_value_treatment = "return_invalid", with_statistics = True):
+	def __init__(self, missing_value_treatment = "as_is", missing_value_replacement = None, invalid_value_treatment = "return_invalid", with_data = True, with_statistics = True):
 		missing_value_treatments = ["as_is", "as_mean", "as_mode", "as_median", "as_value"]
 		if missing_value_treatment not in missing_value_treatments:
 			raise ValueError("Missing value treatment {0} not in {1}".format(missing_value_treatment, missing_value_treatments))
@@ -33,6 +33,7 @@ class Domain(BaseEstimator, TransformerMixin):
 		if invalid_value_treatment not in invalid_value_treatments:
 			raise ValueError("Invalid value treatment {0} not in {1}".format(invalid_value_treatment, invalid_value_treatments))
 		self.invalid_value_treatment = invalid_value_treatment
+		self.with_data = with_data
 		self.with_statistics = with_statistics
 
 	def transform(self, X):
@@ -52,7 +53,8 @@ class CategoricalDomain(Domain):
 		X = column_or_1d(X, warn = True)
 		mask = pandas.notnull(X)
 		values, counts = numpy.unique(X[mask], return_counts = True)
-		self.data_ = values
+		if(self.with_data):
+			self.data_ = values
 		if(self.with_statistics):
 			self.counts_ = _count(mask)
 			self.discr_stats_ = (values, counts)
@@ -65,13 +67,16 @@ class ContinuousDomain(Domain):
 
 	def fit(self, X, y = None):
 		mask = pandas.notnull(X)
-		self.data_min_ = numpy.nanmin(X, axis = 0)
-		self.data_max_ = numpy.nanmax(X, axis = 0)
+		min = numpy.nanmin(X, axis = 0)
+		max = numpy.nanmax(X, axis = 0)
+		if(self.with_data):
+			self.data_min_ = min
+			self.data_max_ = max
 		if(self.with_statistics):
 			self.counts_ = _count(mask)
 			self.numeric_info_ = {
-				"minimum" : self.data_min_,
-				"maximum" : self.data_max_,
+				"minimum" : min,
+				"maximum" : max,
 				"mean" : numpy.nanmean(X, axis = 0),
 				"standardDeviation" : numpy.nanstd(X, axis = 0),
 				"median" : numpy.nanmedian(X, axis = 0),
