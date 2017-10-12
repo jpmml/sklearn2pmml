@@ -15,10 +15,11 @@ def _array_to_list(info):
 class CategoricalDomainTest(TestCase):
 
 	def test_fit_int(self):
-		domain = CategoricalDomain(missing_value_treatment = "as_value", missing_value_replacement = -999, invalid_value_treatment = "as_is")
+		domain = CategoricalDomain(missing_value_treatment = "as_value", missing_value_replacement = -999, invalid_value_treatment = "as_is", invalid_value_replacement = 0)
 		self.assertEqual("as_value", domain.missing_value_treatment)
 		self.assertEqual(-999, domain.missing_value_replacement)
 		self.assertEqual("as_is", domain.invalid_value_treatment)
+		self.assertEqual(0, domain.invalid_value_replacement)
 		self.assertFalse(hasattr(domain, "data_"))
 		self.assertFalse(hasattr(domain, "counts_"))
 		self.assertFalse(hasattr(domain, "discr_stats_"))
@@ -37,6 +38,7 @@ class CategoricalDomainTest(TestCase):
 		self.assertEqual("as_is", domain.missing_value_treatment)
 		self.assertFalse(hasattr(domain, "missing_value_replacement"))
 		self.assertEqual("return_invalid", domain.invalid_value_treatment)
+		self.assertFalse(hasattr(domain, "invalid_value_replacement"))
 		X = numpy.array(["1", None, "3", "2", None, "2"])
 		Xt = domain.fit_transform(X)
 		self.assertEqual(numpy.array(["1", "2", "3"]).tolist(), domain.data_.tolist())
@@ -59,10 +61,11 @@ class CategoricalDomainTest(TestCase):
 class ContinuousDomainTest(TestCase):
 
 	def test_fit_float(self):
-		domain = ContinuousDomain(missing_value_treatment = "as_value", missing_value_replacement = -1.0, invalid_value_treatment = "as_is")
+		domain = ContinuousDomain(missing_value_treatment = "as_value", missing_value_replacement = -1.0, invalid_value_treatment = "as_is", invalid_value_replacement = 0.0)
 		self.assertEqual("as_value", domain.missing_value_treatment)
 		self.assertEqual(-1.0, domain.missing_value_replacement)
 		self.assertEqual("as_is", domain.invalid_value_treatment)
+		self.assertEqual(0.0, domain.invalid_value_replacement)
 		self.assertFalse(hasattr(domain, "data_min_"))
 		self.assertFalse(hasattr(domain, "data_max_"))
 		self.assertFalse(hasattr(domain, "counts_"))

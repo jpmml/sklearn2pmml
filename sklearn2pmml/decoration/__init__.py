@@ -17,7 +17,7 @@ def _count(mask):
 
 class Domain(BaseEstimator, TransformerMixin):
 
-	def __init__(self, missing_value_treatment = "as_is", missing_value_replacement = None, invalid_value_treatment = "return_invalid", with_data = True, with_statistics = True):
+	def __init__(self, missing_value_treatment = "as_is", missing_value_replacement = None, invalid_value_treatment = "return_invalid", invalid_value_replacement = None, with_data = True, with_statistics = True):
 		missing_value_treatments = ["as_is", "as_mean", "as_mode", "as_median", "as_value"]
 		if missing_value_treatment not in missing_value_treatments:
 			raise ValueError("Missing value treatment {0} not in {1}".format(missing_value_treatment, missing_value_treatments))
@@ -27,6 +27,8 @@ class Domain(BaseEstimator, TransformerMixin):
 		invalid_value_treatments = ["return_invalid", "as_is", "as_missing"]
 		if invalid_value_treatment not in invalid_value_treatments:
 			raise ValueError("Invalid value treatment {0} not in {1}".format(invalid_value_treatment, invalid_value_treatments))
+		if invalid_value_replacement is not None:
+			self.invalid_value_replacement = invalid_value_replacement
 		self.invalid_value_treatment = invalid_value_treatment
 		self.with_data = with_data
 		self.with_statistics = with_statistics
