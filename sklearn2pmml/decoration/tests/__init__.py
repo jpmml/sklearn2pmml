@@ -28,7 +28,7 @@ class CategoricalDomainTest(TestCase):
 		self.assertEqual({"totalFreq" : 6, "missingFreq" : 2, "invalidFreq" : 0}, domain.counts_)
 		self.assertEqual({1 : 1, 2 : 2, 3 : 1}, _value_count(domain.discr_stats_))
 		self.assertEqual(numpy.array([1, -999, 3, 2, -999, 2]).tolist(), Xt[0].tolist())
-		X = numpy.array([None, None]);
+		X = numpy.array([None, None])
 		Xt = domain.transform(X)
 		self.assertEqual(numpy.array([-999, -999]).tolist(), Xt.tolist())
 

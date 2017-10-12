@@ -1,5 +1,4 @@
 import re
-import string
 import sys
 import unicodedata
 
@@ -11,7 +10,7 @@ for i in range(sys.maxunicode):
 		c = unichr(c)
 	except:
 		c = chr(c)
-	if((unicodedata.category(c)).startswith('P')):
+	if (unicodedata.category(c)).startswith('P'):
 		punctuation += c
 
 class Splitter:

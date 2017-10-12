@@ -1,16 +1,11 @@
-#!/usr/bin/env python
-
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils import column_or_1d
 
 import numpy
 import pandas
 
-__copyright__ = "Copyright (c) 2016 Villu Ruusmann"
-__license__ = "GNU Affero General Public License (AGPL) version 3.0"
-
 def _count(mask):
-	if(hasattr(mask, "values")):
+	if hasattr(mask, "values"):
 		mask = mask.values
 	non_missing_freq = sum(mask)
 	missing_freq = sum(~mask)
@@ -27,7 +22,7 @@ class Domain(BaseEstimator, TransformerMixin):
 		if missing_value_treatment not in missing_value_treatments:
 			raise ValueError("Missing value treatment {0} not in {1}".format(missing_value_treatment, missing_value_treatments))
 		self.missing_value_treatment = missing_value_treatment
-		if(missing_value_replacement is not None):
+		if missing_value_replacement is not None:
 			self.missing_value_replacement = missing_value_replacement
 		invalid_value_treatments = ["return_invalid", "as_is", "as_missing"]
 		if invalid_value_treatment not in invalid_value_treatments:
@@ -53,9 +48,9 @@ class CategoricalDomain(Domain):
 		X = column_or_1d(X, warn = True)
 		mask = pandas.notnull(X)
 		values, counts = numpy.unique(X[mask], return_counts = True)
-		if(self.with_data):
+		if self.with_data:
 			self.data_ = values
-		if(self.with_statistics):
+		if self.with_statistics:
 			self.counts_ = _count(mask)
 			self.discr_stats_ = (values, counts)
 		return self
@@ -69,10 +64,10 @@ class ContinuousDomain(Domain):
 		mask = pandas.notnull(X)
 		min = numpy.nanmin(X, axis = 0)
 		max = numpy.nanmax(X, axis = 0)
-		if(self.with_data):
+		if self.with_data:
 			self.data_min_ = min
 			self.data_max_ = max
-		if(self.with_statistics):
+		if self.with_statistics:
 			self.counts_ = _count(mask)
 			self.numeric_info_ = {
 				"minimum" : min,

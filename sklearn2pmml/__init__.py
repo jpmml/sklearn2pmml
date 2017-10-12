@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from pandas import DataFrame, Series
 from sklearn.base import BaseEstimator
 from sklearn.externals import joblib
@@ -29,12 +27,12 @@ class PMMLPipeline(Pipeline):
 
 	def _fit(self, X, y, **fit_params):
 		# Collect feature name(s)
-		if(isinstance(X, DataFrame)):
+		if isinstance(X, DataFrame):
 			self.active_fields = X.columns.values
-		elif(isinstance(X, Series)):
+		elif isinstance(X, Series):
 			self.active_fields = numpy.array([X.name])
 		# Collect label name
-		if(isinstance(y, Series)):
+		if isinstance(y, Series):
 			self.target_field = y.name
 		return Pipeline._fit(self, X, y, **fit_params)
 
@@ -82,7 +80,7 @@ def _package_classpath():
 	jars = []
 	resources = pkg_resources.resource_listdir("sklearn2pmml.resources", "")
 	for resource in resources:
-		if(resource.endswith(".jar")):
+		if resource.endswith(".jar"):
 			jars.append(pkg_resources.resource_filename("sklearn2pmml.resources", resource))
 	return jars
 
@@ -116,32 +114,32 @@ def sklearn2pmml(pipeline, pmml, user_classpath = [], with_repr = False, debug =
 		If true, print information about the conversion operation.
 
 	"""
-	if(debug):
+	if debug:
 		print("python: ", platform.python_version())
 		print("sklearn: ", sklearn.__version__)
 		print("sklearn.externals.joblib:", joblib.__version__)
 		print("pandas: ", pandas.__version__)
 		print("sklearn_pandas: ", sklearn_pandas.__version__)
 		print("sklearn2pmml: ", __version__)
-	if(not isinstance(pipeline, PMMLPipeline)):
+	if not isinstance(pipeline, PMMLPipeline):
 		raise TypeError("The pipeline object is not an instance of " + PMMLPipeline.__name__)
 	cmd = ["java", "-cp", os.pathsep.join(_package_classpath() + user_classpath), "org.jpmml.sklearn.Main"]
 	dumps = []
 	try:
-		if(with_repr):
+		if with_repr:
 			pipeline.repr_ = repr(pipeline)
 		pipeline_pkl = _dump(pipeline, "pipeline")
 		cmd.extend(["--pkl-pipeline-input", pipeline_pkl])
 		dumps.append(pipeline_pkl)
 		cmd.extend(["--pmml-output", pmml])
-		if(debug):
+		if debug:
 			print(" ".join(cmd))
 		try:
 			subprocess.check_call(cmd)
 		except CalledProcessError:
 			raise RuntimeError("The JPMML-SkLearn conversion application has failed. The Java process should have printed more information about the failure into its standard output and/or error streams")
 	finally:
-		if(debug):
+		if debug:
 			print("Preserved joblib dump file(s): ", " ".join(dumps))
 		else:
 			for dump in dumps:

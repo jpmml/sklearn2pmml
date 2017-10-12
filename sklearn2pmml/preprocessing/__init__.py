@@ -1,4 +1,3 @@
-from pandas import Series
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils import column_or_1d
 
