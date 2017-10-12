@@ -42,7 +42,7 @@ class Domain(BaseEstimator, TransformerMixin):
 class CategoricalDomain(Domain):
 
 	def __init__(self, **kwargs):
-		Domain.__init__(self, **kwargs)
+		super(CategoricalDomain, self).__init__(**kwargs)
 
 	def fit(self, X, y = None):
 		X = column_or_1d(X, warn = True)
@@ -58,7 +58,7 @@ class CategoricalDomain(Domain):
 class ContinuousDomain(Domain):
 
 	def __init__(self, **kwargs):
-		Domain.__init__(self, **kwargs)
+		super(ContinuousDomain, self).__init__(**kwargs)
 
 	def fit(self, X, y = None):
 		mask = pandas.notnull(X)

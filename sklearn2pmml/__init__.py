@@ -19,13 +19,13 @@ from .metadata import __copyright__, __license__, __version__
 class PMMLPipeline(Pipeline):
 
 	def __init__(self, steps):
-		Pipeline.__init__(self, steps)
+		super(PMMLPipeline, self).__init__(steps = steps)
 
 	def __repr__(self):
 		class_name = self.__class__.__name__
 		return "%s(steps=[%s])" % (class_name, (",\n" + (1 + len(class_name) // 2) * " ").join(repr(step) for step in self.steps))
 
-	def _fit(self, X, y, **fit_params):
+	def _fit(self, X, y = None, **fit_params):
 		# Collect feature name(s)
 		if isinstance(X, DataFrame):
 			self.active_fields = X.columns.values
@@ -34,7 +34,7 @@ class PMMLPipeline(Pipeline):
 		# Collect label name
 		if isinstance(y, Series):
 			self.target_field = y.name
-		return Pipeline._fit(self, X, y, **fit_params)
+		return super(PMMLPipeline, self)._fit(X = X, y = y, **fit_params)
 
 class EstimatorProxy(BaseEstimator):
 
