@@ -11,15 +11,16 @@ class PMMLPipelineTest(TestCase):
 	def test_fit(self):
 		pipeline = PMMLPipeline([("estimator", DummyRegressor())])
 		self.assertFalse(hasattr(pipeline, "active_fields"))
-		self.assertFalse(hasattr(pipeline, "target_field"))
+		self.assertFalse(hasattr(pipeline, "target_fields"))
 		X = DataFrame([[1, 0], [2, 0], [3, 0]], columns = ["X1", "X2"])
 		y = Series([0.5, 1.0, 1.5], name = "y")
 		pipeline.fit(X, y)
 		self.assertEqual(["X1", "X2"], pipeline.active_fields.tolist())
-		self.assertEqual("y", pipeline.target_field)
+		self.assertEqual("y", pipeline.target_fields.tolist())
 		X.columns = ["x1", "x2"]
 		pipeline.fit(X, y)
 		self.assertEqual(["x1", "x2"], pipeline.active_fields.tolist())
+		self.assertEqual("y", pipeline.target_fields.tolist())
 
 class EstimatorProxyTest(TestCase):
 

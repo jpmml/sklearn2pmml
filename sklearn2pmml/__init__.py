@@ -25,15 +25,23 @@ class PMMLPipeline(Pipeline):
 		class_name = self.__class__.__name__
 		return "%s(steps=[%s])" % (class_name, (",\n" + (1 + len(class_name) // 2) * " ").join(repr(step) for step in self.steps))
 
+	def _get_column_names(self, X):
+		if isinstance(X, DataFrame):
+			return X.columns.values
+		elif isinstance(X, Series):
+			return numpy.asarray(X.name)
+		else:
+			return None
+
 	def _fit(self, X, y = None, **fit_params):
 		# Collect feature name(s)
-		if isinstance(X, DataFrame):
-			self.active_fields = X.columns.values
-		elif isinstance(X, Series):
-			self.active_fields = numpy.array([X.name])
-		# Collect label name
-		if isinstance(y, Series):
-			self.target_field = y.name
+		active_fields = self._get_column_names(X)
+		if active_fields is not None:
+			self.active_fields = active_fields
+		# Collect label name(s)
+		target_fields = self._get_column_names(y)
+		if target_fields is not None:
+			self.target_fields = target_fields
 		return super(PMMLPipeline, self)._fit(X = X, y = y, **fit_params)
 
 class EstimatorProxy(BaseEstimator):
