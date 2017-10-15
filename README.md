@@ -1,7 +1,7 @@
 SkLearn2PMML
 ============
 
-Python library for converting [Scikit-Learn](http://scikit-learn.org/) models to PMML.
+Python library for converting [Scikit-Learn](http://scikit-learn.org/) pipelines to PMML.
 
 # Features #
 
