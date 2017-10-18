@@ -1,7 +1,11 @@
 from pandas import DataFrame, Series
 from sklearn.base import BaseEstimator
+from sklearn.exceptions import NotFittedError
 from sklearn.externals import joblib
-from sklearn.pipeline import Pipeline
+from sklearn.feature_selection.base import SelectorMixin
+from sklearn.feature_selection import SelectFromModel
+from sklearn.pipeline import FeatureUnion, Pipeline
+from sklearn_pandas import DataFrameMapper
 from subprocess import CalledProcessError
 
 import numpy
@@ -49,6 +53,10 @@ class EstimatorProxy(BaseEstimator):
 	def __init__(self, estimator_, attr_names_ = ["feature_importances_"]):
 		self.estimator_ = estimator_
 		self.attr_names_ = attr_names_
+		try:
+			self._copy_attrs()
+		except NotFittedError:
+			pass
 
 	def __getattr__(self, name):
 		return getattr(self.estimator_, name)
@@ -67,12 +75,19 @@ class SelectorProxy(BaseEstimator):
 
 	def __init__(self, selector_):
 		self.selector_ = selector_
+		try:
+			self._copy_attrs()
+		except NotFittedError:
+			pass
 
 	def __getattr__(self, name):
 		return getattr(self.selector_, name)
 
 	def _copy_attrs(self):
-		setattr(self, "support_mask_", self.selector_._get_support_mask())
+		try:
+			setattr(self, "support_mask_", self.selector_._get_support_mask())
+		except ValueError:
+			pass
 
 	def fit(self, X, y = None, **fit_params):
 		self.selector_.fit(X, y, **fit_params)
@@ -83,6 +98,61 @@ class SelectorProxy(BaseEstimator):
 		Xt = self.selector_.fit_transform(X, y, **fit_params)
 		self._copy_attrs()
 		return Xt
+
+def _get_steps(obj):
+	if isinstance(obj, Pipeline):
+		return obj.steps
+	elif isinstance(obj, BaseEstimator):
+		return [("estimator", obj)]
+	else:
+		raise ValueError()
+
+def _filter(obj):
+	if isinstance(obj, DataFrameMapper):
+		obj.features = _filter_steps(obj.features)
+		if hasattr(obj, "built_features"):
+			if obj.built_features is not None:
+				obj.built_features = _filter_steps(obj.built_features)
+	elif isinstance(obj, FeatureUnion):
+		obj.transformer_list = _filter_steps(obj.transformer_list)
+	elif isinstance(obj, Pipeline):
+		obj.steps = _filter_steps(obj.steps)
+	elif isinstance(obj, SelectorMixin):
+		if isinstance(obj, SelectFromModel):
+			if hasattr(obj, "estimator"):
+				setattr(obj, "estimator", EstimatorProxy(obj.estimator))
+			if hasattr(obj, "estimator_"):
+				setattr(obj, "estimator_", EstimatorProxy(obj.estimator_))
+		return SelectorProxy(obj)
+	elif isinstance(obj, list):
+		return [_filter(e) for e in obj]
+	return obj
+
+def _filter_steps(steps):
+	return [(step[:1] + (_filter(step[1]), ) + step[2:]) for step in steps]
+
+def make_pmml_pipeline(obj, active_fields = None, target_fields = None):
+	"""Translates a regular Scikit-Learn estimator or pipeline to a PMML pipeline.
+
+	Parameters:
+	----------
+	obj: BaseEstimator
+		The object.
+
+	active_fields: list of strings, optional
+		Feature names. If missing, "x1", "x2", .., "xn" are assumed.
+
+	target_fields: list of strings, optional
+		Label name(s). If missing, "y" is assumed.
+
+	"""
+	steps = _filter_steps(_get_steps(obj))
+	pipeline = PMMLPipeline(steps)
+	if active_fields is not None:
+		pipeline.active_fields = numpy.asarray(active_fields)
+	if target_fields is not None:
+		pipeline.target_fields = numpy.asarray(target_fields)
+	return pipeline
 
 def _package_classpath():
 	jars = []
