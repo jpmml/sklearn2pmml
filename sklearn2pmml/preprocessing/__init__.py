@@ -1,3 +1,4 @@
+from collections import defaultdict
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils import column_or_1d
 
@@ -14,6 +15,27 @@ class ExpressionTransformer(TransformerMixin):
 
 	def transform(self, X, y = None):
 		return eval(self.expr_)
+
+class LookupTransformer(TransformerMixin):
+
+	def __init__(self, mapping, default_value):
+		if type(mapping) is not dict:
+			raise ValueError("Input value to output value mapping is not a dict")
+		self.mapping = mapping
+		self.default_value = default_value
+
+	def fit(self, y):
+		y = column_or_1d(y, warn = True)
+		return self
+
+	def transform(self, y):
+		y = column_or_1d(y, warn = True)
+		transform_dict = defaultdict(lambda: self.default_value)
+		transform_dict.update(self.mapping)
+		func = lambda k: transform_dict[k]
+		if hasattr(y, "apply"):
+			return y.apply(func)
+		return numpy.vectorize(func)(y)
 
 class PMMLLabelBinarizer(BaseEstimator, TransformerMixin):
 

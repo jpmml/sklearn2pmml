@@ -1,7 +1,8 @@
 from pandas import Series
-from sklearn2pmml.preprocessing import ExpressionTransformer, PMMLLabelBinarizer, PMMLLabelEncoder
+from sklearn2pmml.preprocessing import ExpressionTransformer, LookupTransformer, PMMLLabelBinarizer, PMMLLabelEncoder
 from unittest import TestCase
 
+import math
 import numpy
 
 class ExpressionTransformerTest(TestCase):
@@ -21,6 +22,21 @@ class ExpressionTransformerTest(TestCase):
 		transformer = ExpressionTransformer("X[:, 0] / X[:, 1]")
 		Xt = transformer.fit_transform(X)
 		self.assertEqual([1.0, 0.5], Xt.tolist())
+
+class LookupTransformerTest(TestCase):
+
+	def test_transform_float(self):
+		mapping = {0.0 : math.cos(0.0), 45.0 : math.cos(45.0), 90.0 : math.cos(90.0)}
+		transformer = LookupTransformer(mapping, float("NaN"))
+		self.assertEqual([math.cos(0.0), math.cos(90.0)], transformer.transform([0.0, 90.0]).tolist())
+		self.assertTrue(math.isnan(transformer.transform([180.0])))
+		self.assertEqual([math.cos(0.0), math.cos(45.0), math.cos(90.0)], transformer.transform(Series(numpy.array([0.0, 45.0, 90.0]))).tolist())
+
+	def test_transform_string(self):
+		mapping = {"one" : "ein", "two" : "zwei", "three" : "drei"}
+		transformer = LookupTransformer(mapping, None)
+		self.assertEqual([None, "ein"], transformer.transform(["zero", "one"]).tolist())
+		self.assertEqual(["ein", "zwei", "drei"], transformer.transform(Series(numpy.array(["one", "two", "three"]))).tolist())
 
 class PMMLLabelBinarizerTest(TestCase):
 
