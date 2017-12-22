@@ -2,7 +2,8 @@ from pandas import DataFrame, Series
 from sklearn.dummy import DummyRegressor
 from sklearn.feature_selection import f_regression, SelectFromModel, SelectKBest
 from sklearn.tree import DecisionTreeRegressor
-from sklearn2pmml import _filter, _filter_steps, EstimatorProxy, PMMLPipeline, SelectorProxy
+from sklearn2pmml import _classpath, _filter, _filter_steps, _strip_module, _supported_classes, EstimatorProxy, PMMLPipeline, SelectorProxy
+from sklearn2pmml import make_tpot_pmml_config
 from unittest import TestCase
 
 import numpy
@@ -79,4 +80,30 @@ class SelectorProxyTest(TestCase):
 		self.assertIsInstance(selector, SelectorProxy)
 		self.assertIsInstance(selector.estimator, EstimatorProxy)
 		self.assertFalse(hasattr(selector, "estimator_"))
-		self.assertEquals([0, 1], selector._get_support_mask().tolist())
+		self.assertEqual([0, 1], selector._get_support_mask().tolist())
+
+class ClasspathTest(TestCase):
+
+	def test_classpath(self):
+		classpath = _classpath([])
+		self.assertEqual(17, len(classpath))
+		classpath = _classpath(["A.jar", "B.jar"])
+		self.assertEqual(17 + 2, len(classpath))
+
+	def test_supported_classes(self):
+		classes = _supported_classes([])
+		self.assertTrue(len(classes) > 100)
+
+	def test_strip_module(self):
+		self.assertEqual("sklearn.decomposition.PCA", _strip_module("sklearn.decomposition.pca.PCA"))
+		self.assertEqual("sklearn.feature_selection.SelectPercentile", _strip_module("sklearn.feature_selection.univariate_selection.SelectPercentile"))
+		self.assertEqual("sklearn.preprocessing.StandardScaler", _strip_module("sklearn.preprocessing.data.StandardScaler"))
+		self.assertEqual("sklearn.tree.DecisionTreeClassifier", _strip_module("sklearn.tree.tree.DecisionTreeClassifier"))
+
+	def test_make_tpot_pmml_config(self):
+		config = {
+			"sklearn.kernel_approximation.RBFSampler" : {"gamma" : numpy.arange(0.0, 1.01, 0.05)},
+			"sklearn.preprocessing.StandardScaler" : {}
+		}
+		tpot_pmml_config = make_tpot_pmml_config(config)
+		self.assertEqual({"sklearn.preprocessing.StandardScaler" : {}}, tpot_pmml_config)

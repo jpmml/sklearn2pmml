@@ -7,12 +7,14 @@ from sklearn.feature_selection import SelectFromModel
 from sklearn.pipeline import FeatureUnion, Pipeline
 from sklearn_pandas import DataFrameMapper
 from subprocess import CalledProcessError
+from zipfile import ZipFile
 
 import numpy
 import os
 import pandas
 import pkg_resources
 import platform
+import re
 import sklearn
 import sklearn_pandas
 import subprocess
@@ -162,6 +164,20 @@ def _package_classpath():
 			jars.append(pkg_resources.resource_filename("sklearn2pmml.resources", resource))
 	return jars
 
+def _classpath(user_classpath):
+	return _package_classpath() + user_classpath
+
+def _process_classpath(name, fun, user_classpath):
+	jars = _classpath(user_classpath)
+	for jar in jars:
+		with ZipFile(jar, "r") as zipfile:
+			try:
+				zipentry = zipfile.getinfo(name)
+			except KeyError:
+				pass
+			else:
+				fun(zipfile.open(zipentry))
+
 def _dump(obj, prefix):
 	fd, path = tempfile.mkstemp(prefix = (prefix + "-"), suffix = ".pkl.z")
 	try:
@@ -201,7 +217,7 @@ def sklearn2pmml(pipeline, pmml, user_classpath = [], with_repr = False, debug =
 		print("sklearn2pmml: ", __version__)
 	if not isinstance(pipeline, PMMLPipeline):
 		raise TypeError("The pipeline object is not an instance of " + PMMLPipeline.__name__)
-	cmd = ["java", "-cp", os.pathsep.join(_package_classpath() + user_classpath), "org.jpmml.sklearn.Main"]
+	cmd = ["java", "-cp", os.pathsep.join(_classpath(user_classpath)), "org.jpmml.sklearn.Main"]
 	dumps = []
 	try:
 		if with_repr:
@@ -222,3 +238,45 @@ def sklearn2pmml(pipeline, pmml, user_classpath = [], with_repr = False, debug =
 		else:
 			for dump in dumps:
 				os.remove(dump)
+
+def _parse_properties(lines):
+	splitter = re.compile("\s*=\s*")
+	properties = dict()
+	for line in lines:
+		line = line.decode("UTF-8").rstrip()
+		if line.startswith("#"):
+			continue
+		key, value = splitter.split(line)
+		properties[key] = value
+	return properties
+
+def _supported_classes(user_classpath):
+	classes = []
+	parser = lambda x: classes.extend(_parse_properties(x.readlines()).keys())
+	_process_classpath("META-INF/sklearn2pmml.properties", parser, user_classpath)
+	return classes
+
+def _strip_module(name):
+	parts = name.split(".")
+	if len(parts) > 1:
+		parts.pop(-2)
+		return ".".join(parts)
+	return name
+
+def make_tpot_pmml_config(config, user_classpath = []):
+	"""Translates a regular TPOT configuration to a PMML-compatible TPOT configuration.
+
+	Parameters:
+	----------
+	obj: config
+		The configuration dictionary.
+
+	user_classpath: list of strings, optional
+		The paths to JAR files that provide custom Transformer, Selector and/or Estimator converter classes.
+		The JPMML-SkLearn classpath is constructed by appending user JAR files to package JAR files.
+
+	"""
+	tpot_keys = set(config.keys())
+	classes = _supported_classes(user_classpath)
+	pmml_keys = (set(classes)).union(set([_strip_module(class_) for class_ in classes]))
+	return { key : config[key] for key in (tpot_keys).intersection(pmml_keys)}
