@@ -1,5 +1,5 @@
 from pandas import DataFrame, Series
-from sklearn.base import BaseEstimator
+from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.exceptions import NotFittedError
 from sklearn.externals import joblib
 from sklearn.feature_selection.base import SelectorMixin
@@ -22,6 +22,18 @@ import tempfile
 
 from .metadata import __copyright__, __license__, __version__
 
+class _Verification(object):
+
+	def __init__(self, active_values, target_values, precision, zeroThreshold):
+		if precision < 0:
+			raise ValueError("Precision cannot be negative")
+		if zeroThreshold < 0:
+			raise ValueError("Zero threshold cannot be negative")
+		self.active_values = active_values
+		self.target_values = target_values
+		self.precision = precision
+		self.zeroThreshold = zeroThreshold
+
 class PMMLPipeline(Pipeline):
 
 	def __init__(self, steps):
@@ -39,6 +51,14 @@ class PMMLPipeline(Pipeline):
 		else:
 			return None
 
+	def _get_values(self, X):
+		if isinstance(X, DataFrame):
+			return X.values
+		elif isinstance(X, Series):
+			return X.values
+		else:
+			return X
+
 	def _fit(self, X, y = None, **fit_params):
 		# Collect feature name(s)
 		active_fields = self._get_column_names(X)
@@ -49,6 +69,24 @@ class PMMLPipeline(Pipeline):
 		if target_fields is not None:
 			self.target_fields = target_fields
 		return super(PMMLPipeline, self)._fit(X = X, y = y, **fit_params)
+
+	def verify(self, X, precision = 1e-13, zeroThreshold = 1e-13):
+		active_fields = self._get_column_names(X)
+		if self.active_fields is None or active_fields is None:
+			raise ValueError("Cannot perform model validation with anonymous data")
+		if self.active_fields.tolist() != active_fields.tolist():
+			raise ValueError("The columns between training data {} and verification data {} do not match".format(self.active_fields, active_fields))
+		active_values = self._get_values(X)
+		y = self.predict(X)
+		target_values = self._get_values(y)
+		self.verification = _Verification(active_values, target_values, precision, zeroThreshold)
+		estimator = self._final_estimator
+		if isinstance(estimator, ClassifierMixin) and hasattr(estimator, "predict_proba"):
+			try:
+				y_proba = self.predict_proba(X)
+				self.verification.probability_values = self._get_values(y_proba)
+			except AttributeError:
+				pass
 
 class EstimatorProxy(BaseEstimator):
 

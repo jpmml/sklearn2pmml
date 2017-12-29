@@ -10,7 +10,7 @@ import numpy
 
 class PMMLPipelineTest(TestCase):
 
-	def test_fit(self):
+	def test_fit_verify(self):
 		pipeline = PMMLPipeline([("estimator", DummyRegressor())])
 		self.assertFalse(hasattr(pipeline, "active_fields"))
 		self.assertFalse(hasattr(pipeline, "target_fields"))
@@ -23,6 +23,13 @@ class PMMLPipelineTest(TestCase):
 		pipeline.fit(X, y)
 		self.assertEqual(["x1", "x2"], pipeline.active_fields.tolist())
 		self.assertEqual("y", pipeline.target_fields.tolist())
+		self.assertFalse(hasattr(pipeline, "verification"))
+		pipeline.verify(X.sample(2))
+		self.assertEqual(2, len(pipeline.verification.active_values))
+		self.assertEqual(2, len(pipeline.verification.target_values))
+		X.columns = ["x2", "x1"]
+		with self.assertRaises(ValueError):
+			pipeline.verify(X.sample(2))
 
 class EstimatorProxyTest(TestCase):
 
