@@ -68,14 +68,14 @@ class CategoricalDomain(Domain):
 			self.discr_stats_ = (values, counts)
 		return self
 
+def _interquartile_range(X, axis):
+	quartiles = numpy.nanpercentile(X, [25, 75], axis = axis)
+	return (quartiles[1] - quartiles[0])
+
 class ContinuousDomain(Domain):
 
 	def __init__(self, **kwargs):
 		super(ContinuousDomain, self).__init__(**kwargs)
-
-	def _interquartile_range(self, X, axis):
-		quartiles = numpy.nanpercentile(X, [25, 75], axis = axis)
-		return (quartiles[1] - quartiles[0])
 
 	def fit(self, X, y = None):
 		if self._empty_fit():
@@ -89,13 +89,13 @@ class ContinuousDomain(Domain):
 			self.data_max_ = max
 		if self.with_statistics:
 			self.counts_ = _count(mask)
-			X = numpy.ma.asarray(X, dtype = numpy.float).filled(float('NaN'))
+			X = numpy.ma.asarray(X, dtype = numpy.float).filled(float("NaN"))
 			self.numeric_info_ = {
 				"minimum" : min,
 				"maximum" : max,
 				"mean" : numpy.asarray(numpy.nanmean(X, axis = 0)),
 				"standardDeviation" : numpy.asarray(numpy.nanstd(X, axis = 0)),
 				"median" : numpy.asarray(numpy.nanmedian(X, axis = 0)),
-				"interQuartileRange" : numpy.asarray(self._interquartile_range(X, axis = 0))
+				"interQuartileRange" : numpy.asarray(_interquartile_range(X, axis = 0))
 			}
 		return self

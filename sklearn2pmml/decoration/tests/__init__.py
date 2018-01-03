@@ -119,7 +119,7 @@ class ContinuousDomainTest(TestCase):
 		self.assertFalse(hasattr(domain, "counts_"))
 		self.assertFalse(hasattr(domain, "numeric_info_"))
 		self.assertFalse(domain._empty_fit())
-		X = DataFrame(numpy.array([1.0, float('NaN'), 3.0, 2.0, float('NaN'), 2.0]))
+		X = DataFrame(numpy.array([1.0, float("NaN"), 3.0, 2.0, float("NaN"), 2.0]))
 		Xt = domain.fit_transform(X)
 		self.assertIsInstance(Xt, DataFrame)
 		self.assertEqual(1.0, domain.data_min_)
@@ -127,7 +127,7 @@ class ContinuousDomainTest(TestCase):
 		self.assertEqual({"totalFreq" : 6, "missingFreq" : 2, "invalidFreq" : 0}, domain.counts_)
 		self.assertEqual({"minimum" : [1.0], "maximum" : [3.0], "mean" : [2.0], "standardDeviation" : [0.7071067811865476], "median" : [2.0], "interQuartileRange" : [0.5]}, _array_to_list(domain.numeric_info_))
 		self.assertEqual([1.0, -1.0, 3.0, 2.0, -1.0, 2.0], Xt[0].tolist())
-		X = numpy.array([float('NaN'), None])
+		X = numpy.array([float("NaN"), None])
 		Xt = domain.transform(X)
 		self.assertEqual([-1.0, -1.0], Xt.tolist())
 

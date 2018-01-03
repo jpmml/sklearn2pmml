@@ -1,6 +1,6 @@
 from distutils.core import setup
 
-exec(open('sklearn2pmml/metadata.py').read())
+exec(open("sklearn2pmml/metadata.py").read())
 
 setup(
 	name = "sklearn2pmml",
