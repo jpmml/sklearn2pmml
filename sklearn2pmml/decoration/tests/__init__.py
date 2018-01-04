@@ -1,6 +1,6 @@
 from pandas import DataFrame
 from sklearn.preprocessing import Imputer, LabelBinarizer, StandardScaler
-from sklearn2pmml.decoration import CategoricalDomain, ContinuousDomain
+from sklearn2pmml.decoration import CategoricalDomain, ContinuousDomain, MultiDomain
 from sklearn_pandas import DataFrameMapper
 from unittest import TestCase
 
@@ -160,3 +160,18 @@ class ContinuousDomainTest(TestCase):
 		self.assertEqual({"minimum" : [1.0, 0.5], "maximum" : [3.0, 3.5], "mean" : [2.0, 2.0]}, _array_to_list(dict((k, domain.numeric_info_[k]) for k in ["minimum", "maximum", "mean"])))
 		self.assertEqual([1.0, 0.5], domain.data_min_.tolist())
 		self.assertEqual([3.0, 3.5], domain.data_max_.tolist())
+
+class MultiDomainTest(TestCase):
+
+	def test_fit_transform(self):
+		domain = MultiDomain([ContinuousDomain(missing_value_replacement = 0.0), CategoricalDomain(missing_value_replacement = "zero")])
+		X = DataFrame([[-1.0, "minus one"], [float("NaN"), None], [1.0, "one"]], columns = ["x1", "x2"])
+		Xt = domain.fit_transform(X)
+		self.assertTrue(isinstance(Xt, DataFrame))
+		self.assertEqual([-1.0, 0.0, 1.0], Xt["x1"].tolist())
+		self.assertEqual(["minus one", "zero", "one"], Xt["x2"].tolist())
+		X = numpy.array([[float("NaN"), None]])
+		Xt = domain.transform(X)
+		self.assertTrue(isinstance(Xt, numpy.ndarray))
+		self.assertTrue([0.0], Xt[:, 0].tolist())
+		self.assertTrue(["zero"], Xt[:, 1].tolist())

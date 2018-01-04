@@ -1,3 +1,4 @@
+from pandas import DataFrame
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils import column_or_1d
 
@@ -99,3 +100,32 @@ class ContinuousDomain(Domain):
 				"interQuartileRange" : numpy.asarray(_interquartile_range(X, axis = 0))
 			}
 		return self
+
+class MultiDomain(TransformerMixin):
+
+	def __init__(self, domains):
+		self.domains = domains
+
+	def fit(self, X, y = None):
+		rows, columns = X.shape
+		if len(self.domains) != columns:
+			raise ValueError("The number of columns {0} is not equal to the number of domain objects {1}".format(columns, len(self.domains)))
+		if isinstance(X, DataFrame):
+			for domain, column in zip(self.domains, X.columns):
+				domain.fit(X[column].values)
+		else:
+			for domain, column in zip(self.domains, range(0, columns)):
+				domain.fit(X[:, column])
+		return self
+
+	def transform(self, X, y = None):
+		rows, columns = X.shape
+		if len(self.domains) != columns:
+			raise ValueError("The number of columns {0} is not equal to the number of domain objects {1}".format(columns, len(self.domains)))
+		if isinstance(X, DataFrame):
+			for domain, column in zip(self.domains, X.columns):
+				X[column] = domain.transform(X[column].values)
+		else:
+			for domain, column in zip(self.domains, range(0, columns)):
+				X[:, column] = domain.transform(X[:, column])
+		return X
