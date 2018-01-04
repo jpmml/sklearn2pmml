@@ -1,5 +1,5 @@
-from pandas import Series
-from sklearn2pmml.preprocessing import ExpressionTransformer, LookupTransformer, PMMLLabelBinarizer, PMMLLabelEncoder
+from pandas import DataFrame, Series
+from sklearn2pmml.preprocessing import ExpressionTransformer, LookupTransformer, MultiLookupTransformer, PMMLLabelBinarizer, PMMLLabelEncoder
 from unittest import TestCase
 
 import math
@@ -33,10 +33,35 @@ class LookupTransformerTest(TestCase):
 		self.assertEqual([math.cos(0.0), math.cos(45.0), math.cos(90.0)], transformer.transform(Series(numpy.array([0.0, 45.0, 90.0]))).tolist())
 
 	def test_transform_string(self):
-		mapping = {"one" : "ein", "two" : "zwei", "three" : "drei"}
+		mapping = {None : "null", "one" : "ein", "two" : "zwei", "three" : "drei"}
+		with self.assertRaises(ValueError):
+			LookupTransformer(mapping, None)
+		mapping.pop(None)
 		transformer = LookupTransformer(mapping, None)
 		self.assertEqual([None, "ein"], transformer.transform(["zero", "one"]).tolist())
 		self.assertEqual(["ein", "zwei", "drei"], transformer.transform(Series(numpy.array(["one", "two", "three"]))).tolist())
+
+class MultiLookupTransformerTest(TestCase):
+
+	def test_transform_int(self):
+		mapping = {(1, 1) : "one", (2, 2) : "two", (3, 3) : "three"}
+		transformer = MultiLookupTransformer(mapping, None)
+		Y = DataFrame([[1, 0], [1, 1], [2, 0], [2, 1], [2, 2], [3, 0], [3, 1], [3, 2], [3, 3]])
+		Yt = transformer.transform(Y)
+		self.assertEqual([None, "one", None, None, "two", None, None, None, "three"], Yt.tolist())
+
+	def test_transform_object(self):
+		mapping = {tuple(["zero"]) : "null", ("one", True) : "ein", ("two", True) : "zwei", ("three", True) : "drei"}
+		with self.assertRaises(ValueError):
+			MultiLookupTransformer(mapping, None)
+		mapping.pop(tuple(["zero"]))
+		transformer = MultiLookupTransformer(mapping, None)
+		Y = DataFrame([["one", None], ["one", True], [None, True], ["two", True], ["three", True]])
+		Yt = transformer.transform(Y)
+		self.assertEqual([None, "ein", None, "zwei", "drei"], Yt.tolist())
+		Y = numpy.matrix([["one", True], ["one", None], ["two", True]], dtype = "O")
+		Yt = transformer.transform(Y)
+		self.assertEqual(["ein", None, "zwei"], Yt.tolist())
 
 class PMMLLabelBinarizerTest(TestCase):
 
