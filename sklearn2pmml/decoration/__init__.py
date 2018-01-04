@@ -41,6 +41,9 @@ class Domain(BaseEstimator, TransformerMixin):
 
 	def _get_mask(self, X):
 		if hasattr(self, "missing_values"):
+			# float("NaN") != float("NaN")
+			if isinstance(self.missing_values, float) and numpy.isnan(self.missing_values):
+				return pandas.isnull(X)
 			return X == self.missing_values
 		else:
 			return pandas.isnull(X)

@@ -108,8 +108,8 @@ class ContinuousDomainTest(TestCase):
 	def test_fit_float(self):
 		domain = ContinuousDomain(with_data = False, with_statistics = False)
 		self.assertTrue(domain._empty_fit())
-		domain = ContinuousDomain(missing_value_treatment = "as_value", missing_value_replacement = -1.0, invalid_value_treatment = "as_is", invalid_value_replacement = 0.0)
-		self.assertFalse(hasattr(domain, "missing_values"))
+		domain = ContinuousDomain(missing_values = float("NaN"), missing_value_treatment = "as_value", missing_value_replacement = -1.0, invalid_value_treatment = "as_is", invalid_value_replacement = 0.0)
+		self.assertTrue(numpy.isnan(domain.missing_values))
 		self.assertEqual("as_value", domain.missing_value_treatment)
 		self.assertEqual(-1.0, domain.missing_value_replacement)
 		self.assertEqual("as_is", domain.invalid_value_treatment)
