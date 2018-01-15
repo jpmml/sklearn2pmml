@@ -6,7 +6,7 @@ from sklearn.feature_selection.base import SelectorMixin
 from sklearn.feature_selection import SelectFromModel
 from sklearn.pipeline import FeatureUnion, Pipeline
 from sklearn_pandas import DataFrameMapper
-from subprocess import CalledProcessError
+from subprocess import PIPE, Popen
 from zipfile import ZipFile
 
 import numpy
@@ -17,7 +17,6 @@ import platform
 import re
 import sklearn
 import sklearn_pandas
-import subprocess
 import tempfile
 
 from .metadata import __copyright__, __license__, __version__
@@ -194,6 +193,21 @@ def make_pmml_pipeline(obj, active_fields = None, target_fields = None):
 		pipeline.target_fields = numpy.asarray(target_fields)
 	return pipeline
 
+def _java_version():
+	try:
+		process = Popen(["java", "-version"], stdout = PIPE, stderr = PIPE, bufsize = 1)
+	except:
+		return None
+	output, error = process.communicate()
+	retcode = process.poll()
+	if retcode:
+		return None
+	match = re.match("^(.*)\sversion\s\"(.*)\"$", error.decode("UTF-8"), re.MULTILINE)
+	if match:
+		return (match.group(1), match.group(2))
+	else:
+		return None
+
 def _package_classpath():
 	jars = []
 	resources = pkg_resources.resource_listdir("sklearn2pmml.resources", "")
@@ -247,12 +261,16 @@ def sklearn2pmml(pipeline, pmml, user_classpath = [], with_repr = False, debug =
 
 	"""
 	if debug:
-		print("python: ", platform.python_version())
-		print("sklearn: ", sklearn.__version__)
-		print("sklearn.externals.joblib:", joblib.__version__)
-		print("pandas: ", pandas.__version__)
-		print("sklearn_pandas: ", sklearn_pandas.__version__)
-		print("sklearn2pmml: ", __version__)
+		java_version = _java_version()
+		if java_version is None:
+			java_version = ("java", "N/A")
+		print("python: {0}".format(platform.python_version()))
+		print("sklearn: {0}".format(sklearn.__version__))
+		print("sklearn.externals.joblib: {0}".format(joblib.__version__))
+		print("pandas: {0}".format(pandas.__version__))
+		print("sklearn_pandas: {0}".format(sklearn_pandas.__version__))
+		print("sklearn2pmml: {0}".format(__version__))
+		print("{0}: {1}".format(java_version[0], java_version[1]))
 	if not isinstance(pipeline, PMMLPipeline):
 		raise TypeError("The pipeline object is not an instance of " + PMMLPipeline.__name__)
 	cmd = ["java", "-cp", os.pathsep.join(_classpath(user_classpath)), "org.jpmml.sklearn.Main"]
@@ -265,14 +283,27 @@ def sklearn2pmml(pipeline, pmml, user_classpath = [], with_repr = False, debug =
 		dumps.append(pipeline_pkl)
 		cmd.extend(["--pmml-output", pmml])
 		if debug:
-			print(" ".join(cmd))
+			print("Executing command:\n{0}".format(" ".join(cmd)))
 		try:
-			subprocess.check_call(cmd)
-		except CalledProcessError:
-			raise RuntimeError("The JPMML-SkLearn conversion application has failed. The Java process should have printed more information about the failure into its standard output and/or error streams")
+			process = Popen(cmd, stdout = PIPE, stderr = PIPE, bufsize = 1)
+		except OSError:
+			raise RuntimeError("Java is not installed, or the Java executable is not on system path")
+		output, error = process.communicate()
+		retcode = process.poll()
+		if debug or retcode:
+			if(len(output) > 0):
+				print("Standard output:\n{0}".format(output.decode("UTF-8")))
+			else:
+				print("Standard output is empty")
+			if(len(error) > 0):
+				print("Standard error:\n{0}".format(error.decode("UTF-8")))
+			else:
+				print("Standard error is empty")
+		if retcode:
+			raise RuntimeError("The JPMML-SkLearn conversion application has failed. The Java executable should have printed more information about the failure into its standard output and/or standard error streams")
 	finally:
 		if debug:
-			print("Preserved joblib dump file(s): ", " ".join(dumps))
+			print("Preserved joblib dump file(s): {0}".format(" ".join(dumps)))
 		else:
 			for dump in dumps:
 				os.remove(dump)
