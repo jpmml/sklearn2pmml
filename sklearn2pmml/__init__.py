@@ -33,11 +33,14 @@ class _Verification(object):
 		self.precision = precision
 		self.zeroThreshold = zeroThreshold
 
+def _filter_column_names(X):
+	return (numpy.asarray(X)).astype(str);
+
 def _get_column_names(X):
 	if isinstance(X, DataFrame):
-		return X.columns.values
+		return _filter_column_names(X.columns.values)
 	elif isinstance(X, Series):
-		return numpy.asarray(X.name)
+		return _filter_column_names(X.name)
 	else:
 		return None
 

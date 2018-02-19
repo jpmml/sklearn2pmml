@@ -2,13 +2,23 @@ from pandas import DataFrame, Series
 from sklearn.dummy import DummyRegressor
 from sklearn.feature_selection import f_regression, SelectFromModel, SelectKBest
 from sklearn.tree import DecisionTreeRegressor
-from sklearn2pmml import _classpath, _filter, _filter_steps, _strip_module, _supported_classes, EstimatorProxy, PMMLPipeline, SelectorProxy
+from sklearn2pmml import _classpath, _filter, _filter_steps, _get_column_names, _strip_module, _supported_classes, EstimatorProxy, PMMLPipeline, SelectorProxy
 from sklearn2pmml import make_tpot_pmml_config
 from unittest import TestCase
 
 import numpy
 
 class PMMLPipelineTest(TestCase):
+
+	def test_get_columns(self):
+		X = DataFrame([[1, 0], [2, 0], [3, 0]], columns = [1, 2])
+		self.assertEqual(["1", "2"], _get_column_names(X).tolist())
+		X.columns = numpy.asarray([1.0, 2.0])
+		self.assertEqual(["1.0", "2.0"], _get_column_names(X).tolist())
+		x = Series([1, 2, 3], name = 1)
+		self.assertEqual("1", _get_column_names(x).tolist())
+		x.name = 1.0
+		self.assertEqual("1.0", _get_column_names(x).tolist())
 
 	def test_fit_verify(self):
 		pipeline = PMMLPipeline([("estimator", DummyRegressor())])
