@@ -39,7 +39,7 @@ class Domain(BaseEstimator, TransformerMixin):
 	def _empty_fit(self):
 		return not (self.with_data or self.with_statistics)
 
-	def _get_mask(self, X):
+	def _missing_value_mask(self, X):
 		if hasattr(self, "missing_values"):
 			# float("NaN") != float("NaN")
 			if isinstance(self.missing_values, float) and numpy.isnan(self.missing_values):
@@ -50,7 +50,7 @@ class Domain(BaseEstimator, TransformerMixin):
 
 	def transform(self, X):
 		if hasattr(self, "missing_value_replacement"):
-			mask = self._get_mask(X)
+			mask = self._missing_value_mask(X)
 			X[mask] = self.missing_value_replacement
 		return X
 
@@ -63,7 +63,7 @@ class CategoricalDomain(Domain):
 		X = column_or_1d(X, warn = True)
 		if self._empty_fit():
 			return self
-		mask = self._get_mask(X)
+		mask = self._missing_value_mask(X)
 		values, counts = numpy.unique(X[~mask], return_counts = True)
 		if self.with_data:
 			self.data_ = values
@@ -76,15 +76,33 @@ def _interquartile_range(X, axis):
 	quartiles = numpy.nanpercentile(X, [25, 75], axis = axis)
 	return (quartiles[1] - quartiles[0])
 
+def _abjunction(outlier_mask, missing_value_mask):
+	outlier_mask[missing_value_mask] = False
+	return outlier_mask
+
 class ContinuousDomain(Domain):
 
-	def __init__(self, **kwargs):
+	def __init__(self, outlier_treatment = "as_is", low_value = None, high_value = None, **kwargs):
 		super(ContinuousDomain, self).__init__(**kwargs)
+		outlier_treatments = ["as_is", "as_missing_values", "as_extreme_values"]
+		if outlier_treatment not in outlier_treatments:
+			raise ValueError("Outlier treatment {0} not in {1}".format(outlier_treatment, outlier_treatments))
+		self.outlier_treatment = outlier_treatment
+		if outlier_treatment == "as_is":
+			if (low_value is not None) or (high_value is not None):
+				raise ValueError("Outlier treatment {0} does not support low_value and high_value attributes".format(outlier_treatment))
+		elif outlier_treatment == "as_missing_values" or outlier_treatment == "as_extreme_values":
+			if (low_value is None) or (high_value is None):
+				raise ValueError("Outlier treatment {0} requires low_value and high_value attributes".format(outlier_treatment))
+			self.low_value = low_value
+			self.high_value = high_value
+		else:
+			raise ValueError("Outlier treatment {0} not in {1}".format(outlier_treatment, outlier_treatments))
 
 	def fit(self, X, y = None):
 		if self._empty_fit():
 			return self
-		mask = self._get_mask(X)
+		mask = self._missing_value_mask(X)
 		X = numpy.ma.masked_array(X, mask = mask)
 		min = numpy.asarray(numpy.nanmin(X, axis = 0))
 		max = numpy.asarray(numpy.nanmax(X, axis = 0))
@@ -103,6 +121,35 @@ class ContinuousDomain(Domain):
 				"interQuartileRange" : numpy.asarray(_interquartile_range(X, axis = 0))
 			}
 		return self
+
+	def _outlier_mask(self, X):
+		mask = self._missing_value_mask(X)
+		result = (numpy.less(X, self.low_value, where = ~mask) | numpy.greater(X, self.high_value, where = ~mask))
+		return _abjunction(result, mask)
+
+	def _negative_outlier_mask(self, X):
+		mask = self._missing_value_mask(X)
+		result = numpy.less(X, self.low_value, where = ~mask)
+		return _abjunction(result, mask)
+
+	def _positive_outlier_mask(self, X):
+		mask = self._missing_value_mask(X)
+		result = numpy.greater(X, self.high_value, where = ~mask)
+		return _abjunction(result, mask)
+
+	def transform(self, X):
+		if self.outlier_treatment == "as_missing_values":
+			mask = self._outlier_mask(X)
+			if hasattr(self, "missing_values"):
+				X[mask] = self.missing_values
+			else:
+				X[mask] = None
+		elif self.outlier_treatment == "as_extreme_values":
+			mask = self._negative_outlier_mask(X)
+			X[mask] = self.low_value
+			mask = self._positive_outlier_mask(X)
+			X[mask] = self.high_value
+		return super(ContinuousDomain, self).transform(X)
 
 class MultiDomain(TransformerMixin):
 

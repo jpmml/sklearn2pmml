@@ -148,6 +148,26 @@ class ContinuousDomainTest(TestCase):
 		Xt = domain.transform(X)
 		self.assertEqual([4.0, 4.0], Xt.tolist())
 
+	def test_fit_float_outlier(self):
+		domain = ContinuousDomain(outlier_treatment = "as_missing_values", low_value = 0.0, high_value = 3.0, missing_values = float("NaN"), missing_value_replacement = 1.0)
+		self.assertEqual(0.0, domain.low_value)
+		self.assertEqual(3.0, domain.high_value)
+		X = DataFrame([[-2.0, float("NaN")], [2.0, 4.0], [float("NaN"), 0.0]])
+		self.assertEqual([[False, True], [False, False], [True, False]], domain._missing_value_mask(X).values.tolist())
+		self.assertEqual([[True, False], [False, True], [False, False]], domain._outlier_mask(X).values.tolist())
+		Xt = domain.fit_transform(X)
+		self.assertEqual([1.0, 2.0, 1.0], Xt[0].tolist())
+		self.assertEqual([1.0, 1.0, 0.0], Xt[1].tolist())
+		domain = ContinuousDomain(outlier_treatment = "as_extreme_values", low_value = 0.0, high_value = 3.0, missing_values = -1.0)
+		X = DataFrame([[-2.0, -1.0], [2.0, 4.0], [-1.0, 0.0]])
+		self.assertEqual([[False, True], [False, False], [True, False]], domain._missing_value_mask(X).values.tolist())
+		self.assertEqual([[True, False], [False, True], [False, False]], domain._outlier_mask(X).values.tolist())
+		self.assertEqual([[True, False], [False, False], [False, False]], domain._negative_outlier_mask(X).values.tolist())
+		self.assertEqual([[False, False], [False, True], [False, False]], domain._positive_outlier_mask(X).values.tolist())
+		Xt = domain.fit_transform(X)
+		self.assertEqual([0.0, 2.0, -1.0], X[0].tolist())
+		self.assertEqual([-1.0, 3.0, 0.0], X[1].tolist())
+
 	def test_mapper(self):
 		domain = ContinuousDomain()
 		df = DataFrame([{"X1" : 2.0, "X2" : 2, "y" : 2.0}, {"X1" : 1.0, "X2" : 0.5}, {"X1" : 2}, {"X2" : 2}, {"X1" : 2.0, "y" : 1}, {"X1" : 3.0, "X2" : 3.5}])
