@@ -1,9 +1,23 @@
 from pandas import DataFrame, Series
-from sklearn2pmml.preprocessing import ExpressionTransformer, LookupTransformer, MultiLookupTransformer, PMMLLabelBinarizer, PMMLLabelEncoder
+from sklearn2pmml.preprocessing import Aggregator, ExpressionTransformer, LookupTransformer, MultiLookupTransformer, PMMLLabelBinarizer, PMMLLabelEncoder, PowerFunctionTransformer, StringNormalizer
 from unittest import TestCase
 
 import math
 import numpy
+
+class AggregatorTest(TestCase): 
+
+	def test_min(self):
+		X = numpy.asarray([1, 0.5, 2, 3.0, 0, 1.0])
+		min = Aggregator(function = "min")
+		X = X.reshape((1, 6))
+		self.assertEqual(0, min.transform(X))
+		X = X.reshape((3, 2))
+		self.assertEqual([0.5, 2, 0], min.transform(X).tolist())
+		X = X.reshape((2, 3))
+		self.assertEqual([0.5, 0], min.transform(X).tolist())
+		X = X.reshape((6, 1))
+		self.assertEqual([1, 0.5, 2, 3.0, 0, 1.0], min.transform(X).tolist())
 
 class ExpressionTransformerTest(TestCase):
 
@@ -133,3 +147,27 @@ class PMMLLabelEncoderTest(TestCase):
 		self.assertEqual([0, 2, None, 1], encoder.transform(["A", "C", None, "B"]).tolist())
 		self.assertEqual([None], encoder.transform(numpy.array([None])).tolist())
 		self.assertEqual([0, 1, 2], encoder.transform(Series(numpy.array(["A", "B", "C"]))).tolist())
+
+class PowerFunctionTransformerTest(TestCase):
+
+	def test_power(self):
+		X = numpy.asarray([-2, -1, 0, 1, 2])
+		pow = PowerFunctionTransformer(power = 1)
+		self.assertEquals(X.tolist(), pow.transform(X).tolist())
+		pow = PowerFunctionTransformer(power = 2)
+		self.assertEquals([4, 1, 0, 1, 4], pow.transform(X).tolist())
+		pow = PowerFunctionTransformer(power = 3)
+		self.assertEquals([-8, -1, 0, 1, 8], pow.transform(X).tolist())
+
+class StringNormalizerTest(TestCase):
+
+	def test_normalize(self):
+		X = numpy.asarray([" One", " two ", "THRee "])
+		normalizer = StringNormalizer(function = None)
+		self.assertEquals(["One", "two", "THRee"], normalizer.transform(X).tolist())
+		normalizer = StringNormalizer(function = "uppercase", trim_blanks = False)
+		self.assertEquals([" ONE", " TWO ", "THREE "], normalizer.transform(X).tolist())
+		normalizer = StringNormalizer(function = "lowercase")
+		self.assertEquals(["one", "two", "three"], normalizer.transform(X).tolist())
+		X = Series(X, dtype = str)
+		self.assertEquals(["one", "two", "three"], normalizer.transform(X).tolist())
