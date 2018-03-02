@@ -25,6 +25,22 @@ class Aggregator(BaseEstimator, TransformerMixin):
 			return numpy.mean(X, axis = 1)
 		return X
 
+class CutTransformer(BaseEstimator, TransformerMixin):
+
+	def __init__(self, bins, right = True, labels = None, include_lowest = True):
+		self.bins = bins
+		self.right = right
+		self.labels = labels
+		self.include_lowest = include_lowest
+
+	def fit(self, y):
+		y = column_or_1d(y, warn = True)
+		return self
+
+	def transform(self, y):
+		y = column_or_1d(y, warn = True)
+		return pandas.cut(y, bins = self.bins, right = self.right, labels = False, include_lowest = self.include_lowest)
+
 class ExpressionTransformer(BaseEstimator, TransformerMixin):
 
 	def __init__(self, expr):

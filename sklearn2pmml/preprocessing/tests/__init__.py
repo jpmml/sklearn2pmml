@@ -1,5 +1,5 @@
 from pandas import DataFrame, Series
-from sklearn2pmml.preprocessing import Aggregator, ExpressionTransformer, LookupTransformer, MultiLookupTransformer, PMMLLabelBinarizer, PMMLLabelEncoder, PowerFunctionTransformer, StringNormalizer
+from sklearn2pmml.preprocessing import Aggregator, CutTransformer, ExpressionTransformer, LookupTransformer, MultiLookupTransformer, PMMLLabelBinarizer, PMMLLabelEncoder, PowerFunctionTransformer, StringNormalizer
 from unittest import TestCase
 
 import math
@@ -18,6 +18,24 @@ class AggregatorTest(TestCase):
 		self.assertEqual([0.5, 0], min.transform(X).tolist())
 		X = X.reshape((6, 1))
 		self.assertEqual([1, 0.5, 2, 3.0, 0, 1.0], min.transform(X).tolist())
+
+class CutTransformerTest(TestCase):
+
+	def test_transform(self):
+		bins = [float("-inf"), -1.0, 0.0, 1.0, float("+inf")]
+		transformer = CutTransformer(bins, right = True)
+		X = numpy.array([-2.0, -1.0, -0.5, 0.0, 0.5, 1.0, 2.0])
+		self.assertEqual([0, 0, 1, 1, 2, 2, 3], transformer.transform(X).tolist())
+		transformer = CutTransformer(bins, right = False)
+		self.assertEqual([0, 1, 1, 2, 2, 3, 3], transformer.transform(X).tolist())
+		bins = [-3.0, -1.0, 1.0, 3.0]
+		transformer = CutTransformer(bins, right = True, include_lowest = True)
+		X = numpy.array([-3.0, -2.0, 2.0, 3.0])
+		self.assertEqual([0, 0, 2, 2], transformer.transform(X).tolist())
+		X = numpy.array([-5.0])
+		self.assertTrue(numpy.isnan(transformer.transform(X)).tolist()[0])
+		X = numpy.array([5.0])
+		self.assertTrue(numpy.isnan(transformer.transform(X)).tolist()[0])
 
 class ExpressionTransformerTest(TestCase):
 
