@@ -151,7 +151,7 @@ class ContinuousDomain(Domain):
 			X[mask] = self.high_value
 		return super(ContinuousDomain, self).transform(X)
 
-class MultiDomain(TransformerMixin):
+class MultiDomain(BaseEstimator, TransformerMixin):
 
 	def __init__(self, domains):
 		self.domains = domains

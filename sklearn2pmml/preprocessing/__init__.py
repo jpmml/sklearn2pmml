@@ -5,7 +5,7 @@ from sklearn.utils import column_or_1d
 import numpy
 import pandas
 
-class Aggregator(TransformerMixin):
+class Aggregator(BaseEstimator, TransformerMixin):
 
 	def __init__(self, function):
 		functions = ["min", "max", "mean"]
@@ -25,7 +25,7 @@ class Aggregator(TransformerMixin):
 			return numpy.mean(X, axis = 1)
 		return X
 
-class ExpressionTransformer(TransformerMixin):
+class ExpressionTransformer(BaseEstimator, TransformerMixin):
 
 	def __init__(self, expr):
 		self.expr_ = expr
@@ -36,7 +36,7 @@ class ExpressionTransformer(TransformerMixin):
 	def transform(self, X, y = None):
 		return eval(self.expr_)
 
-class LookupTransformer(TransformerMixin):
+class LookupTransformer(BaseEstimator, TransformerMixin):
 
 	def __init__(self, mapping, default_value):
 		if type(mapping) is not dict:
@@ -120,7 +120,7 @@ class PMMLLabelEncoder(BaseEstimator, TransformerMixin):
 		index = list(self.classes_)
 		return numpy.array([self.missing_value if pandas.isnull(v) else index.index(v) for v in y])
 
-class PowerFunctionTransformer(TransformerMixin):
+class PowerFunctionTransformer(BaseEstimator, TransformerMixin):
 
 	def __init__(self, power):
 		if not isinstance(power, int):
@@ -133,7 +133,7 @@ class PowerFunctionTransformer(TransformerMixin):
 	def transform(self, X, y = None):
 		return numpy.power(X, self.power)
 
-class StringNormalizer(TransformerMixin):
+class StringNormalizer(BaseEstimator, TransformerMixin):
 
 	def __init__(self, function = None, trim_blanks = True):
 		functions = ["lowercase", "uppercase"]
