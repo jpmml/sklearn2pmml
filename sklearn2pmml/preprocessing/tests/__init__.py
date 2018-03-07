@@ -23,13 +23,13 @@ class CutTransformerTest(TestCase):
 
 	def test_transform(self):
 		bins = [float("-inf"), -1.0, 0.0, 1.0, float("+inf")]
-		transformer = CutTransformer(bins, right = True)
+		transformer = CutTransformer(bins, labels = False, right = True)
 		X = numpy.array([-2.0, -1.0, -0.5, 0.0, 0.5, 1.0, 2.0])
 		self.assertEqual([0, 0, 1, 1, 2, 2, 3], transformer.transform(X).tolist())
-		transformer = CutTransformer(bins, right = False)
+		transformer = CutTransformer(bins, labels = False, right = False)
 		self.assertEqual([0, 1, 1, 2, 2, 3, 3], transformer.transform(X).tolist())
 		bins = [-3.0, -1.0, 1.0, 3.0]
-		transformer = CutTransformer(bins, right = True, include_lowest = True)
+		transformer = CutTransformer(bins, labels = False, right = True, include_lowest = True)
 		X = numpy.array([-3.0, -2.0, 2.0, 3.0])
 		self.assertEqual([0, 0, 2, 2], transformer.transform(X).tolist())
 		X = numpy.array([-5.0])

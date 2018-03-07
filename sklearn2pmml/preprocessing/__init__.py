@@ -39,7 +39,7 @@ class CutTransformer(BaseEstimator, TransformerMixin):
 
 	def transform(self, y):
 		y = column_or_1d(y, warn = True)
-		return pandas.cut(y, bins = self.bins, right = self.right, labels = False, include_lowest = self.include_lowest)
+		return pandas.cut(y, bins = self.bins, right = self.right, labels = self.labels, include_lowest = self.include_lowest)
 
 class ExpressionTransformer(BaseEstimator, TransformerMixin):
 
