@@ -41,7 +41,7 @@ class ExpressionTransformerTest(TestCase):
 
 	def test_transform(self):
 		transformer = ExpressionTransformer("X[:, 0] + X[:, 1]")
-		self.assertTrue(hasattr(transformer, "expr_"))
+		self.assertTrue(hasattr(transformer, "expr"))
 		X = numpy.array([[0.5, 0.5], [1.0, 2.0]])
 		Xt = transformer.fit_transform(X)
 		self.assertEqual([1.0, 3.0], Xt.tolist())

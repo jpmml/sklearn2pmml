@@ -44,13 +44,13 @@ class CutTransformer(BaseEstimator, TransformerMixin):
 class ExpressionTransformer(BaseEstimator, TransformerMixin):
 
 	def __init__(self, expr):
-		self.expr_ = expr
+		self.expr = expr
 
 	def fit(self, X, y = None):
 		return self
 
 	def transform(self, X, y = None):
-		return eval(self.expr_)
+		return eval(self.expr)
 
 class LookupTransformer(BaseEstimator, TransformerMixin):
 
