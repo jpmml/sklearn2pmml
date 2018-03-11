@@ -50,7 +50,8 @@ class ExpressionTransformer(BaseEstimator, TransformerMixin):
 		return self
 
 	def transform(self, X, y = None):
-		return eval(self.expr)
+		result = eval(self.expr)
+		return result.reshape(-1, 1)
 
 class LookupTransformer(BaseEstimator, TransformerMixin):
 

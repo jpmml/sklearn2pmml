@@ -44,16 +44,16 @@ class ExpressionTransformerTest(TestCase):
 		self.assertTrue(hasattr(transformer, "expr"))
 		X = numpy.array([[0.5, 0.5], [1.0, 2.0]])
 		Xt = transformer.fit_transform(X)
-		self.assertEqual([1.0, 3.0], Xt.tolist())
+		self.assertEqual([[1.0], [3.0]], Xt.tolist())
 		transformer = ExpressionTransformer("X[:, 0] - X[:, 1]")
 		Xt = transformer.fit_transform(X)
-		self.assertEqual([0.0, -1.0], Xt.tolist())
+		self.assertEqual([[0.0], [-1.0]], Xt.tolist())
 		transformer = ExpressionTransformer("X[:, 0] * X[:, 1]")
 		Xt = transformer.fit_transform(X)
-		self.assertEqual([0.25, 2.0], Xt.tolist())
+		self.assertEqual([[0.25], [2.0]], Xt.tolist())
 		transformer = ExpressionTransformer("X[:, 0] / X[:, 1]")
 		Xt = transformer.fit_transform(X)
-		self.assertEqual([1.0, 0.5], Xt.tolist())
+		self.assertEqual([[1.0], [0.5]], Xt.tolist())
 
 class LookupTransformerTest(TestCase):
 
