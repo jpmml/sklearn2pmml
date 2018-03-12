@@ -1,10 +1,18 @@
 from pandas import DataFrame
 from sklearn.preprocessing import Imputer, LabelBinarizer, StandardScaler
-from sklearn2pmml.decoration import CategoricalDomain, ContinuousDomain, MultiDomain
+from sklearn2pmml.decoration import Alias, CategoricalDomain, ContinuousDomain, MultiDomain
 from sklearn_pandas import DataFrameMapper
 from unittest import TestCase
 
 import numpy
+
+class AliasTest(TestCase):
+
+	def test_fit_transform(self):
+		alias = Alias(StandardScaler(), name = "standard_scaler(X)")
+		self.assertFalse(hasattr(alias, "transformer_"))
+		alias.fit_transform(numpy.array([[0.0], [1.0], [2.0]]))
+		self.assertTrue(hasattr(alias, "transformer_"))
 
 def _value_count(stats):
 	return dict(zip(stats[0].tolist(), stats[1].tolist()))

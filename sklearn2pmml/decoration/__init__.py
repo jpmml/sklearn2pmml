@@ -1,9 +1,26 @@
 from pandas import DataFrame
-from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.base import clone, BaseEstimator, TransformerMixin
 from sklearn.utils import column_or_1d
 
 import numpy
 import pandas
+
+class Alias(BaseEstimator, TransformerMixin):
+
+	def __init__(self, transformer, name):
+		self.transformer = transformer
+		self.name = name
+
+	def fit(self, X, y = None):
+		self.transformer_ = clone(self.transformer)
+		if y is None:
+			self.transformer_.fit(X)
+		else:
+			self.transformer_.fit(X, y)
+		return self
+
+	def transform(self, X):
+		return self.transformer_.transform(X)
 
 def _count(mask):
 	if hasattr(mask, "values"):
