@@ -16,7 +16,7 @@ class Aggregator(BaseEstimator, TransformerMixin):
 	def fit(self, X, y = None):
 		return self
 
-	def transform(self, X, y = None):
+	def transform(self, X):
 		if self.function == "min":
 			return numpy.amin(X, axis = 1) 
 		elif self.function == "max":
@@ -49,7 +49,7 @@ class ExpressionTransformer(BaseEstimator, TransformerMixin):
 	def fit(self, X, y = None):
 		return self
 
-	def transform(self, X, y = None):
+	def transform(self, X):
 		result = eval(self.expr)
 		return result.reshape(-1, 1)
 
@@ -147,7 +147,7 @@ class PowerFunctionTransformer(BaseEstimator, TransformerMixin):
 	def fit(self, X, y = None):
 		return self
 
-	def transform(self, X, y = None):
+	def transform(self, X):
 		return numpy.power(X, self.power)
 
 class StringNormalizer(BaseEstimator, TransformerMixin):
@@ -162,7 +162,7 @@ class StringNormalizer(BaseEstimator, TransformerMixin):
 	def fit(self, X, y = None):
 		return self
 
-	def transform(self, X, y = None):
+	def transform(self, X):
 		if hasattr(X, "values"):
 			X = X.values
 		X = X.astype("U")

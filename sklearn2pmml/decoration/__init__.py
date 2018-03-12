@@ -185,7 +185,7 @@ class MultiDomain(BaseEstimator, TransformerMixin):
 				domain.fit(X[:, column])
 		return self
 
-	def transform(self, X, y = None):
+	def transform(self, X):
 		rows, columns = X.shape
 		if len(self.domains) != columns:
 			raise ValueError("The number of columns {0} is not equal to the number of domain objects {1}".format(columns, len(self.domains)))
