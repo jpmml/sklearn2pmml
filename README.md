@@ -24,11 +24,12 @@ pip install --user git+https://github.com/jpmml/sklearn2pmml.git
 
 A typical workflow can be summarized as follows:
 
-1. Create a `sklearn2pmml.pipeline.PMMLPipeline` object, and populate it with pipeline steps as usual. Class `sklearn2pmml.pipeline.PMMLPipeline` extends class `sklearn.pipeline.Pipeline` with the following functionality:
-  * If the `Pipeline.fit(X, y)` method is invoked with `pandas.DataFrame` or `pandas.Series` object as an `X` argument, then its column names are used as feature names. Otherwise, feature names default to "x1", "x2", .., "x{number_of_features}".
-  * If the `Pipeline.fit(X, y)` method is invoked with `pandas.Series` object as an `y` argument, then its name is used as the target name (for supervised models). Otherwise, the target name defaults to "y".
+1. Create a `PMMLPipeline` object, and populate it with pipeline steps as usual. Class `sklearn2pmml.pipeline.PMMLPipeline` extends class `sklearn.pipeline.Pipeline` with the following functionality:
+  * If the `PMMLPipeline.fit(X, y)` method is invoked with `pandas.DataFrame` or `pandas.Series` object as an `X` argument, then its column names are used as feature names. Otherwise, feature names default to "x1", "x2", .., "x{number_of_features}".
+  * If the `PMMLPipeline.fit(X, y)` method is invoked with `pandas.Series` object as an `y` argument, then its name is used as the target name (for supervised models). Otherwise, the target name defaults to "y".
 2. Fit and validate the pipeline as usual.
-3. Convert the fitted `sklearn2pmml.pipeline.PMMLPipeline` object to PMML document by invoking utility method `sklearn2pmml.sklearn2pmml(pipeline, pmml_destination_path)`.
+3. Optionally, compute and embed verification data into the `PMMLPipeline` object by invoking `PMMLPipeline.verify(X)` method with a small but representative subset of training data.
+4. Convert the `PMMLPipeline` object to a PMML file in local filesystem by invoking utility method `sklearn2pmml.sklearn2pmml(pipeline, pmml_destination_path)`.
 
 Developing a simple decision tree model for the classification of iris species:
 
@@ -79,6 +80,10 @@ from sklearn2pmml import sklearn2pmml
 
 sklearn2pmml(iris_pipeline, "LogisticRegressionIris.pmml", with_repr = True)
 ```
+
+Please refer to the following resources for more ideas and code examples:
+
+* [Converting Scikit-Learn to PMML](https://www.slideshare.net/VilluRuusmann/converting-scikitlearn-to-pmml)
 
 # De-installation #
 
