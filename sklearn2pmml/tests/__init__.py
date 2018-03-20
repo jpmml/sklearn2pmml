@@ -1,45 +1,13 @@
 from pandas import DataFrame, Series
 from sklearn.dummy import DummyRegressor
 from sklearn.feature_selection import f_regression, SelectFromModel, SelectKBest
+from sklearn.pipeline import Pipeline
 from sklearn.tree import DecisionTreeRegressor
-from sklearn2pmml import _classpath, _filter, _filter_steps, _get_column_names, _strip_module, _supported_classes, EstimatorProxy, PMMLPipeline, SelectorProxy
-from sklearn2pmml import make_tpot_pmml_config
+from sklearn2pmml import _classpath, _filter, _filter_steps, _strip_module, _supported_classes, make_pmml_pipeline, make_tpot_pmml_config, EstimatorProxy, SelectorProxy
+from sklearn2pmml.pipeline import PMMLPipeline
 from unittest import TestCase
 
 import numpy
-
-class PMMLPipelineTest(TestCase):
-
-	def test_get_columns(self):
-		X = DataFrame([[1, 0], [2, 0], [3, 0]], columns = [1, 2])
-		self.assertEqual(["1", "2"], _get_column_names(X).tolist())
-		X.columns = numpy.asarray([1.0, 2.0])
-		self.assertEqual(["1.0", "2.0"], _get_column_names(X).tolist())
-		x = Series([1, 2, 3], name = 1)
-		self.assertEqual("1", _get_column_names(x).tolist())
-		x.name = 1.0
-		self.assertEqual("1.0", _get_column_names(x).tolist())
-
-	def test_fit_verify(self):
-		pipeline = PMMLPipeline([("estimator", DummyRegressor())])
-		self.assertFalse(hasattr(pipeline, "active_fields"))
-		self.assertFalse(hasattr(pipeline, "target_fields"))
-		X = DataFrame([[1, 0], [2, 0], [3, 0]], columns = ["X1", "X2"])
-		y = Series([0.5, 1.0, 1.5], name = "y")
-		pipeline.fit(X, y)
-		self.assertEqual(["X1", "X2"], pipeline.active_fields.tolist())
-		self.assertEqual("y", pipeline.target_fields.tolist())
-		X.columns = ["x1", "x2"]
-		pipeline.fit(X, y)
-		self.assertEqual(["x1", "x2"], pipeline.active_fields.tolist())
-		self.assertEqual("y", pipeline.target_fields.tolist())
-		self.assertFalse(hasattr(pipeline, "verification"))
-		pipeline.verify(X.sample(2))
-		self.assertEqual(2, len(pipeline.verification.active_values))
-		self.assertEqual(2, len(pipeline.verification.target_values))
-		X.columns = ["x2", "x1"]
-		with self.assertRaises(ValueError):
-			pipeline.verify(X.sample(2))
 
 class EstimatorProxyTest(TestCase):
 
@@ -116,6 +84,18 @@ class ClasspathTest(TestCase):
 		self.assertEqual("sklearn.feature_selection.SelectPercentile", _strip_module("sklearn.feature_selection.univariate_selection.SelectPercentile"))
 		self.assertEqual("sklearn.preprocessing.StandardScaler", _strip_module("sklearn.preprocessing.data.StandardScaler"))
 		self.assertEqual("sklearn.tree.DecisionTreeClassifier", _strip_module("sklearn.tree.tree.DecisionTreeClassifier"))
+
+class FunctionTest(TestCase):
+
+	def test_make_pmml_pipeline(self):
+		estimator = DummyRegressor()
+		pmml_pipeline = make_pmml_pipeline(estimator)
+		self.assertTrue(isinstance(pmml_pipeline, PMMLPipeline))
+		pipeline = Pipeline([
+			("estimator", estimator)
+		])
+		pmml_pipeline = make_pmml_pipeline(pipeline)
+		self.assertTrue(isinstance(pmml_pipeline, PMMLPipeline))
 
 	def test_make_tpot_pmml_config(self):
 		config = {
