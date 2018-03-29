@@ -194,8 +194,9 @@ def sklearn2pmml(pipeline, pmml, user_classpath = [], with_repr = False, debug =
 		If true, print information about the conversion operation.
 
 	"""
+	java_version = _java_version()
+
 	if debug:
-		java_version = _java_version()
 		if java_version is None:
 			java_version = ("java", "N/A")
 		print("python: {0}".format(platform.python_version()))
@@ -208,6 +209,10 @@ def sklearn2pmml(pipeline, pmml, user_classpath = [], with_repr = False, debug =
 	if not isinstance(pipeline, PMMLPipeline):
 		raise TypeError("The pipeline object is not an instance of " + PMMLPipeline.__name__)
 	cmd = ["java", "-cp", os.pathsep.join(_classpath(user_classpath)), "org.jpmml.sklearn.Main"]
+
+	if java_version[1] == '9':	
+		cmd = ["java", "--add-modules", "java.se.ee"] + cmd[1:]
+	
 	dumps = []
 	try:
 		if with_repr:
