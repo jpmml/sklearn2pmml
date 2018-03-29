@@ -10,7 +10,7 @@ This library is a thin wrapper around the [JPMML-SkLearn](https://github.com/jpm
 # Prerequisites #
 
 * Python 2.7, 3.4 or newer.
-* Java 1.7 or newer. The Java executable must be available on system path.
+* Java 1.8 or newer. The Java executable must be available on system path.
 
 # Installation #
 
