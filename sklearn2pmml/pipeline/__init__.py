@@ -55,6 +55,12 @@ class PMMLPipeline(Pipeline):
 			self.target_fields = target_fields
 		return super(PMMLPipeline, self)._fit(X = X, y = y, **fit_params)
 
+	def configure(self, **pmml_options):
+		if len(pmml_options) > 0:
+			estimator = self._final_estimator
+			estimator.pmml_options_ = dict()
+			estimator.pmml_options_.update(pmml_options)
+
 	def verify(self, X, precision = 1e-13, zeroThreshold = 1e-13):
 		active_fields = _get_column_names(X)
 		if self.active_fields is None or active_fields is None:

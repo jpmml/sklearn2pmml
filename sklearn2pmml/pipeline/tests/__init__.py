@@ -1,5 +1,6 @@
 from pandas import DataFrame, Series
 from sklearn.dummy import DummyRegressor
+from sklearn.tree import DecisionTreeRegressor
 from sklearn2pmml.pipeline import _get_column_names, PMMLPipeline
 from unittest import TestCase
 
@@ -16,6 +17,18 @@ class PMMLPipelineTest(TestCase):
 		self.assertEqual("1", _get_column_names(x).tolist())
 		x.name = 1.0
 		self.assertEqual("1.0", _get_column_names(x).tolist())
+
+	def test_configure(self):
+		regressor = DecisionTreeRegressor()
+		pipeline = PMMLPipeline([("regressor", regressor)])
+		self.assertFalse(hasattr(regressor, "pmml_options_"))
+		pipeline.configure()
+		self.assertFalse(hasattr(regressor, "pmml_options_"))
+		pipeline.configure(compact = True, flat = True)
+		self.assertTrue(hasattr(regressor, "pmml_options_"))
+		pmml_options = regressor.pmml_options_
+		self.assertEqual(True, pmml_options["compact"])
+		self.assertEqual(True, pmml_options["flat"])
 
 	def test_fit_verify(self):
 		pipeline = PMMLPipeline([("estimator", DummyRegressor())])
