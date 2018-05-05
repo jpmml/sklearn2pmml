@@ -101,5 +101,5 @@ SkLearn2PMML is dual-licensed under the [GNU Affero General Public License (AGPL
 
 SkLearn2PMML is developed and maintained by Openscoring Ltd, Estonia.
 
-Openscoring Ltd offers a wide variety of [products and services](https://openscoring.io/#products-list) in the field of applied predictive analytics. Please subscribe to Opensoring Ltd [newsletter](https://openscoring.io/#newsletter) for periodic updates about JPMML and Openscoring software projects.
+Interested in using JPMML software in your application? Please contact [info@openscoring.io](mailto:info@openscoring.io)
 
