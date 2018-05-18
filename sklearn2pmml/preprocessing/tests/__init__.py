@@ -135,8 +135,8 @@ class PMMLLabelEncoderTest(TestCase):
 	def test_fit_float(self):
 		y = [1.0, float("NaN"), 1.0, 2.0, float("NaN"), 3.0, 3.0, 2.0]
 		labels = [1.0, 2.0, 3.0]
-		encoder = PMMLLabelEncoder(missing_value = -999)
-		self.assertEqual(-999, encoder.missing_value)
+		encoder = PMMLLabelEncoder(missing_values = -999)
+		self.assertEqual(-999, encoder.missing_values)
 		encoder.fit(y)
 		self.assertEqual(labels, encoder.classes_.tolist())
 
@@ -154,7 +154,7 @@ class PMMLLabelEncoderTest(TestCase):
 
 	def test_transform_float(self):
 		y = [1.0, float("NaN"), 2.0, 3.0]
-		encoder = PMMLLabelEncoder(missing_value = -999)
+		encoder = PMMLLabelEncoder(missing_values = -999)
 		encoder.fit(y)
 		self.assertEqual([0, 2, -999, 1], encoder.transform([1.0, 3.0, float("NaN"), 2.0]).tolist())
 

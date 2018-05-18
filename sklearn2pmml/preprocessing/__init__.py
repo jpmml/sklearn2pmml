@@ -124,8 +124,8 @@ class PMMLLabelBinarizer(BaseEstimator, TransformerMixin):
 
 class PMMLLabelEncoder(BaseEstimator, TransformerMixin):
 
-	def __init__(self, missing_value = None):
-		self.missing_value = missing_value
+	def __init__(self, missing_values = None):
+		self.missing_values = missing_values
 
 	def fit(self, y):
 		y = column_or_1d(y, warn = True)
@@ -135,7 +135,7 @@ class PMMLLabelEncoder(BaseEstimator, TransformerMixin):
 	def transform(self, y):
 		y = column_or_1d(y, warn = True)
 		index = list(self.classes_)
-		return numpy.array([self.missing_value if pandas.isnull(v) else index.index(v) for v in y])
+		return numpy.array([self.missing_values if pandas.isnull(v) else index.index(v) for v in y])
 
 class PowerFunctionTransformer(BaseEstimator, TransformerMixin):
 
