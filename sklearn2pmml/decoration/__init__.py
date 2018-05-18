@@ -73,8 +73,8 @@ class Domain(BaseEstimator, TransformerMixin):
 
 class CategoricalDomain(Domain):
 
-	def __init__(self, **kwargs):
-		super(CategoricalDomain, self).__init__(**kwargs)
+	def __init__(self, missing_values = None, missing_value_treatment = "as_is", missing_value_replacement = None, invalid_value_treatment = "return_invalid", invalid_value_replacement = None, with_data = True, with_statistics = True):
+		super(CategoricalDomain, self).__init__(missing_values = missing_values, missing_value_treatment = missing_value_treatment, missing_value_replacement = missing_value_replacement, invalid_value_treatment = invalid_value_treatment, invalid_value_replacement = invalid_value_replacement, with_data = with_data, with_statistics = with_statistics)
 
 	def fit(self, X, y = None):
 		X = column_or_1d(X, warn = True)
@@ -99,8 +99,8 @@ def _abjunction(outlier_mask, missing_value_mask):
 
 class ContinuousDomain(Domain):
 
-	def __init__(self, outlier_treatment = "as_is", low_value = None, high_value = None, **kwargs):
-		super(ContinuousDomain, self).__init__(**kwargs)
+	def __init__(self, missing_values = None, missing_value_treatment = "as_is", missing_value_replacement = None, invalid_value_treatment = "return_invalid", invalid_value_replacement = None, outlier_treatment = "as_is", low_value = None, high_value = None, with_data = True, with_statistics = True):
+		super(ContinuousDomain, self).__init__(missing_values = missing_values, missing_value_treatment = missing_value_treatment, missing_value_replacement = missing_value_replacement, invalid_value_treatment = invalid_value_treatment, invalid_value_replacement = invalid_value_replacement, with_data = with_data, with_statistics = with_statistics)
 		outlier_treatments = ["as_is", "as_missing_values", "as_extreme_values"]
 		if outlier_treatment not in outlier_treatments:
 			raise ValueError("Outlier treatment {0} not in {1}".format(outlier_treatment, outlier_treatments))
