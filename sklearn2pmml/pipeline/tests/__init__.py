@@ -1,5 +1,7 @@
 from pandas import DataFrame, Series
 from sklearn.dummy import DummyRegressor
+from sklearn.pipeline import FeatureUnion
+from sklearn.preprocessing import FunctionTransformer
 from sklearn.tree import DecisionTreeRegressor
 from sklearn2pmml.pipeline import _get_column_names, PMMLPipeline
 from unittest import TestCase
@@ -17,6 +19,20 @@ class PMMLPipelineTest(TestCase):
 		self.assertEqual("1", _get_column_names(x).tolist())
 		x.name = 1.0
 		self.assertEqual("1.0", _get_column_names(x).tolist())
+
+	def test_predict_transform(self):
+		predict_transformer = FeatureUnion([
+			("identity", FunctionTransformer(None)),
+			("log10", FunctionTransformer(numpy.log10))
+		])
+		pipeline = PMMLPipeline([("estimator", DummyRegressor())], predict_transformer = predict_transformer)
+		X = DataFrame([[1, 0], [2, 0], [3, 0]], columns = ["X1", "X2"])
+		y = Series([0.5, 1.0, 1.5], name = "y")
+		pipeline.fit(X, y)
+		y_pred = [1.0, 1.0, 1.0]
+		y_predt = [1.0, 1.0, numpy.log10(1.0)]
+		self.assertEquals(y_pred, pipeline.predict(X).tolist())
+		self.assertEquals([y_predt for i in range(0, 3)], pipeline.predict_transform(X).tolist())
 
 	def test_configure(self):
 		regressor = DecisionTreeRegressor()

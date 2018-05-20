@@ -37,8 +37,9 @@ def _get_values(X):
 
 class PMMLPipeline(Pipeline):
 
-	def __init__(self, steps):
+	def __init__(self, steps, predict_transformer = None):
 		super(PMMLPipeline, self).__init__(steps = steps)
+		self.predict_transformer = predict_transformer
 
 	def __repr__(self):
 		class_name = self.__class__.__name__
@@ -54,6 +55,15 @@ class PMMLPipeline(Pipeline):
 		if target_fields is not None:
 			self.target_fields = target_fields
 		return super(PMMLPipeline, self)._fit(X = X, y = y, **fit_params)
+
+	def predict_transform(self, X):
+		y_pred = self.predict(X)
+		if self.predict_transformer is not None:
+			nrow = len(y_pred)
+			y_pred = y_pred.reshape(nrow, -1)
+			y_predt = self.predict_transformer.transform(y_pred).reshape(nrow, -1)
+			return numpy.hstack((y_pred, y_predt))
+		return y_pred
 
 	def configure(self, **pmml_options):
 		if len(pmml_options) > 0:
