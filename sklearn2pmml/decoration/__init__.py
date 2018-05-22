@@ -7,9 +7,12 @@ import pandas
 
 class Alias(BaseEstimator, TransformerMixin):
 
-	def __init__(self, transformer, name):
+	def __init__(self, transformer, name, prefit = False):
 		self.transformer = transformer
 		self.name = name
+		self.prefit = prefit
+		if prefit:
+			self.transformer_ = clone(self.transformer)
 
 	def fit(self, X, y = None):
 		self.transformer_ = clone(self.transformer)

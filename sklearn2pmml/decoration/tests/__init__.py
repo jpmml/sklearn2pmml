@@ -11,8 +11,12 @@ class AliasTest(TestCase):
 
 	def test_fit_transform(self):
 		alias = Alias(StandardScaler(), name = "standard_scaler(X)")
+		self.assertTrue(hasattr(alias, "transformer"))
 		self.assertFalse(hasattr(alias, "transformer_"))
 		alias.fit_transform(numpy.array([[0.0], [1.0], [2.0]]))
+		self.assertTrue(hasattr(alias, "transformer_"))
+		alias = Alias(StandardScaler(), name = "standard_scaler(X)", prefit = True)
+		self.assertTrue(hasattr(alias, "transformer"))
 		self.assertTrue(hasattr(alias, "transformer_"))
 
 def _value_count(stats):
