@@ -17,7 +17,7 @@ This library is a thin wrapper around the [JPMML-SkLearn](https://github.com/jpm
 Installing the latest version from GitHub:
 
 ```
-pip install --user git+https://github.com/jpmml/sklearn2pmml.git
+pip install --user --upgrade git+https://github.com/jpmml/sklearn2pmml.git
 ```
 
 # Usage #
@@ -41,14 +41,14 @@ iris_df = pandas.read_csv("Iris.csv")
 from sklearn.tree import DecisionTreeClassifier
 from sklearn2pmml.pipeline import PMMLPipeline
 
-iris_pipeline = PMMLPipeline([
+pipeline = PMMLPipeline([
 	("classifier", DecisionTreeClassifier())
 ])
-iris_pipeline.fit(iris_df[iris_df.columns.difference(["Species"])], iris_df["Species"])
+pipeline.fit(iris_df[iris_df.columns.difference(["Species"])], iris_df["Species"])
 
 from sklearn2pmml import sklearn2pmml
 
-sklearn2pmml(iris_pipeline, "DecisionTreeIris.pmml", with_repr = True)
+sklearn2pmml(pipeline, "DecisionTreeIris.pmml", with_repr = True)
 ```
 
 Developing a more elaborate logistic regression model for the same:
@@ -66,7 +66,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn2pmml.decoration import ContinuousDomain
 from sklearn2pmml.pipeline import PMMLPipeline
 
-iris_pipeline = PMMLPipeline([
+pipeline = PMMLPipeline([
 	("mapper", DataFrameMapper([
 		(["Sepal.Length", "Sepal.Width", "Petal.Length", "Petal.Width"], [ContinuousDomain(), Imputer()])
 	])),
@@ -74,11 +74,11 @@ iris_pipeline = PMMLPipeline([
 	("selector", SelectKBest(k = 2)),
 	("classifier", LogisticRegression())
 ])
-iris_pipeline.fit(iris_df, iris_df["Species"])
+pipeline.fit(iris_df, iris_df["Species"])
 
 from sklearn2pmml import sklearn2pmml
 
-sklearn2pmml(iris_pipeline, "LogisticRegressionIris.pmml", with_repr = True)
+sklearn2pmml(pipeline, "LogisticRegressionIris.pmml", with_repr = True)
 ```
 
 Please refer to the following resources for more ideas and code examples:
