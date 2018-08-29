@@ -24,6 +24,9 @@ def _get_column_names(X):
 		return _filter_column_names(X.columns.values)
 	elif isinstance(X, Series):
 		return _filter_column_names(X.name)
+	# elif isinstance(X, H2OFrame)
+	elif hasattr(X, "names"):
+		return _filter_column_names(X.names)
 	else:
 		return None
 
@@ -31,6 +34,10 @@ def _get_values(X):
 	if isinstance(X, DataFrame):
 		return X.values
 	elif isinstance(X, Series):
+		return X.values
+	# elif isinstance(X, H2OFrame)
+	elif hasattr(X, "as_data_frame"):
+		X = X.as_data_frame()
 		return X.values
 	else:
 		return X
