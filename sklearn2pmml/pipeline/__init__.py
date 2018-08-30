@@ -1,5 +1,5 @@
 from pandas import DataFrame, Series
-from sklearn.base import ClassifierMixin
+from sklearn.base import BaseEstimator, ClassifierMixin, RegressorMixin
 from sklearn.pipeline import Pipeline
 
 import numpy
@@ -96,11 +96,24 @@ class PMMLPipeline(Pipeline):
 		active_values = _get_values(X)
 		y = self.predict(X)
 		target_values = _get_values(y)
-		self.verification = _Verification(active_values, target_values, precision, zeroThreshold)
 		estimator = self._final_estimator
-		if isinstance(estimator, ClassifierMixin) and hasattr(estimator, "predict_proba"):
-			try:
-				y_proba = self.predict_proba(X)
-				self.verification.probability_values = _get_values(y_proba)
-			except AttributeError:
-				pass
+		if isinstance(estimator, BaseEstimator):
+			if isinstance(estimator, RegressorMixin):
+				self.verification = _Verification(active_values, target_values, precision, zeroThreshold)
+			elif isinstance(estimator, ClassifierMixin):
+				self.verification = _Verification(active_values, target_values, precision, zeroThreshold)
+				if hasattr(estimator, "predict_proba"):
+					try:
+						y_proba = self.predict_proba(X)
+						self.verification.probability_values = _get_values(y_proba)
+					except AttributeError:
+						pass
+		# elif isinstance(estimator, H2OEstimator):
+		elif hasattr(estimator, "_estimator_type") and hasattr(estimator, "download_mojo"):
+			if estimator._estimator_type == "regressor":
+				self.verification = _Verification(active_values, target_values, precision, zeroThreshold)
+			elif estimator._estimator_type == "classifier":
+				probability_values = target_values[:, 1:]
+				target_values = target_values[:, 0]
+				self.verification = _Verification(active_values, target_values, precision, zeroThreshold)
+				self.verification.probability_values = probability_values

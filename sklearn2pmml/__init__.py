@@ -207,11 +207,17 @@ def sklearn2pmml(pipeline, pmml, user_classpath = [], with_repr = False, debug =
 		print("{0}: {1}".format(java_version[0], java_version[1]))
 	if not isinstance(pipeline, PMMLPipeline):
 		raise TypeError("The pipeline object is not an instance of " + PMMLPipeline.__name__)
+	estimator = pipeline._final_estimator
 	cmd = ["java", "-cp", os.pathsep.join(_classpath(user_classpath)), "org.jpmml.sklearn.Main"]
 	dumps = []
 	try:
 		if with_repr:
 			pipeline.repr_ = repr(pipeline)
+		# if isinstance(estimator, H2OEstimator):
+		if hasattr(estimator, "download_mojo"):
+			estimator_mojo = estimator.download_mojo()
+			dumps.append(estimator_mojo)
+			estimator._mojo_path = estimator_mojo
 		pipeline_pkl = _dump(pipeline, "pipeline")
 		cmd.extend(["--pkl-pipeline-input", pipeline_pkl])
 		dumps.append(pipeline_pkl)
