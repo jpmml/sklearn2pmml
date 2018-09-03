@@ -27,7 +27,8 @@ setup(
 		"sklearn2pmml.feature_extraction.text",
 		"sklearn2pmml.pipeline",
 		"sklearn2pmml.preprocessing",
-		"sklearn2pmml.resources"
+		"sklearn2pmml.resources",
+		"sklearn2pmml.ruleset"
 	],
 	package_data = {
 		"sklearn2pmml.resources" : ["*.jar"]
