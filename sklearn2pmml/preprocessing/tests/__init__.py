@@ -1,4 +1,6 @@
 from pandas import DataFrame, Series
+from sklearn.preprocessing import Imputer
+from sklearn_pandas import DataFrameMapper
 from sklearn2pmml.preprocessing import Aggregator, CutTransformer, ExpressionTransformer, LookupTransformer, MultiLookupTransformer, PMMLLabelBinarizer, PMMLLabelEncoder, PowerFunctionTransformer, StringNormalizer
 from unittest import TestCase
 
@@ -40,20 +42,34 @@ class CutTransformerTest(TestCase):
 class ExpressionTransformerTest(TestCase):
 
 	def test_transform(self):
-		transformer = ExpressionTransformer("X[:, 0] + X[:, 1]")
+		transformer = ExpressionTransformer("X['a'] + X['b']")
+		X = DataFrame([[0.5, 0.5], [1.0, 2.0]], columns = ["a", "b"])
+		Xt = transformer.fit_transform(X)
+		self.assertIsInstance(Xt, numpy.ndarray)
+		self.assertEqual([[1.0], [3.0]], Xt.tolist())
+		transformer = ExpressionTransformer("X[0] + X[1]")
 		self.assertTrue(hasattr(transformer, "expr"))
 		X = numpy.array([[0.5, 0.5], [1.0, 2.0]])
 		Xt = transformer.fit_transform(X)
+		self.assertIsInstance(Xt, numpy.ndarray)
 		self.assertEqual([[1.0], [3.0]], Xt.tolist())
-		transformer = ExpressionTransformer("X[:, 0] - X[:, 1]")
+		transformer = ExpressionTransformer("X[0] - X[1]")
 		Xt = transformer.fit_transform(X)
 		self.assertEqual([[0.0], [-1.0]], Xt.tolist())
-		transformer = ExpressionTransformer("X[:, 0] * X[:, 1]")
+		transformer = ExpressionTransformer("X[0] * X[1]")
 		Xt = transformer.fit_transform(X)
 		self.assertEqual([[0.25], [2.0]], Xt.tolist())
-		transformer = ExpressionTransformer("X[:, 0] / X[:, 1]")
+		transformer = ExpressionTransformer("X[0] / X[1]")
 		Xt = transformer.fit_transform(X)
 		self.assertEqual([[1.0], [0.5]], Xt.tolist())
+
+	def test_sequence_transform(self):
+		mapper = DataFrameMapper([
+			(["a"], [ExpressionTransformer("0 if pandas.isnull(X[0]) else X[0]"), Imputer(missing_values = 0)])
+		])
+		X = DataFrame([[None], [1], [None]], columns = ["a"])
+		Xt = mapper.fit_transform(X)
+		self.assertEqual([[1], [1], [1]], Xt.tolist())
 
 class LookupTransformerTest(TestCase):
 

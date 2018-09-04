@@ -1,6 +1,8 @@
 from collections import defaultdict
+from pandas import Series
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils import column_or_1d
+from sklearn2pmml.util import eval_rows
 
 import numpy
 import pandas
@@ -46,12 +48,18 @@ class ExpressionTransformer(BaseEstimator, TransformerMixin):
 	def __init__(self, expr):
 		self.expr = expr
 
+	def _eval_row(self, X):
+		return eval(self.expr)
+
 	def fit(self, X, y = None):
 		return self
 
 	def transform(self, X):
-		result = eval(self.expr)
-		return result.reshape(-1, 1)
+		func = lambda x: self._eval_row(x)
+		y = eval_rows(X, func)
+		if isinstance(y, Series):
+			y = y.values
+		return y.reshape(-1, 1)
 
 class LookupTransformer(BaseEstimator, TransformerMixin):
 

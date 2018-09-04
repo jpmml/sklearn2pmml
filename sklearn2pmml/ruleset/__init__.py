@@ -1,6 +1,5 @@
 from sklearn.base import BaseEstimator, ClassifierMixin
-
-import numpy
+from sklearn2pmml.util import eval_rows
 
 class RuleSetClassifier(BaseEstimator, ClassifierMixin):
 
@@ -13,10 +12,7 @@ class RuleSetClassifier(BaseEstimator, ClassifierMixin):
 		self.rules = rules
 		self.default_score = default_score
 
-	def fit(self, X, y = None):
-		return self
-
-	def score(self, X):
+	def _eval_row(self, X):
 		for rule in self.rules:
 			predicate = rule[0]
 			score = rule[1]
@@ -24,12 +20,9 @@ class RuleSetClassifier(BaseEstimator, ClassifierMixin):
 				return score
 		return self.default_score
 
+	def fit(self, X, y = None):
+		return self
+
 	def predict(self, X):
-		func = lambda x: self.score(x)
-		if hasattr(X, "apply"):
-			return X.apply(func, axis = 1)
-		nrow = X.shape[0]
-		y = numpy.empty(shape = (nrow, ), dtype = object)
-		for i in range(0, nrow):
-			y[i] = func(X[i])
-		return y
+		func = lambda x: self._eval_row(x)
+		eval_rows(X, func)
