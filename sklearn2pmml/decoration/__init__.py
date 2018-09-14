@@ -61,10 +61,21 @@ class Domain(BaseEstimator, TransformerMixin):
 
 	def _missing_value_mask(self, X):
 		if hasattr(self, "missing_values"):
-			# float("NaN") != float("NaN")
-			if isinstance(self.missing_values, float) and numpy.isnan(self.missing_values):
-				return pandas.isnull(X)
-			return X == self.missing_values
+			def is_missing(X, missing_value):
+				# float("NaN") != float("NaN")
+				if isinstance(missing_value, float) and numpy.isnan(missing_value):
+					return pandas.isnull(X)
+				return X == missing_value
+			if type(self.missing_values) is list:
+				mask = None
+				for missing_value in self.missing_values:
+					if mask is None:
+						mask = is_missing(X, missing_value)
+					else:
+						mask = numpy.logical_or(mask, is_missing(X, missing_value))
+				return mask
+			else:
+				return is_missing(X, self.missing_values)
 		else:
 			return pandas.isnull(X)
 
@@ -161,6 +172,8 @@ class ContinuousDomain(Domain):
 		if self.outlier_treatment == "as_missing_values":
 			mask = self._outlier_mask(X)
 			if hasattr(self, "missing_values"):
+				if type(self.missing_values) is list:
+					raise ValueError()
 				X[mask] = self.missing_values
 			else:
 				X[mask] = None
