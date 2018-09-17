@@ -25,4 +25,4 @@ class RuleSetClassifier(BaseEstimator, ClassifierMixin):
 
 	def predict(self, X):
 		func = lambda x: self._eval_row(x)
-		eval_rows(X, func)
+		return eval_rows(X, func)
