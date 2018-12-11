@@ -127,7 +127,7 @@ def make_pmml_pipeline(obj, active_fields = None, target_fields = None):
 		pipeline.target_fields = numpy.asarray(target_fields)
 	return pipeline
 
-def _java_version():
+def _java_version(java_encoding):
 	try:
 		process = Popen(["java", "-version"], stdout = PIPE, stderr = PIPE, bufsize = 1)
 	except:
@@ -136,7 +136,7 @@ def _java_version():
 	retcode = process.poll()
 	if retcode:
 		return None
-	match = re.match("^(.*)\sversion\s\"(.*)\"$", error.decode("UTF-8"), re.MULTILINE)
+	match = re.match("^(.*)\sversion\s\"(.*)\"(|\s\d\d\d\d\-\d\d\-\d\d)$", error.decode(java_encoding), re.MULTILINE)
 	if match:
 		return (match.group(1), match.group(2))
 	else:
@@ -172,7 +172,7 @@ def _dump(obj, prefix):
 		os.close(fd)
 	return path
 
-def sklearn2pmml(pipeline, pmml, user_classpath = [], with_repr = False, debug = False):
+def sklearn2pmml(pipeline, pmml, user_classpath = [], with_repr = False, debug = False, java_encoding = "UTF-8"):
 	"""Converts fitted Scikit-Learn pipeline to PMML.
 
 	Parameters:
@@ -193,9 +193,12 @@ def sklearn2pmml(pipeline, pmml, user_classpath = [], with_repr = False, debug =
 	debug: boolean, optional
 		If true, print information about the conversion operation.
 
+	java_encoding: string, optional
+		The character encoding to use for decoding Java output and error byte streams.
+
 	"""
 	if debug:
-		java_version = _java_version()
+		java_version = _java_version(java_encoding)
 		if java_version is None:
 			java_version = ("java", "N/A")
 		print("python: {0}".format(platform.python_version()))
@@ -232,11 +235,11 @@ def sklearn2pmml(pipeline, pmml, user_classpath = [], with_repr = False, debug =
 		retcode = process.poll()
 		if debug or retcode:
 			if(len(output) > 0):
-				print("Standard output:\n{0}".format(output.decode("UTF-8")))
+				print("Standard output:\n{0}".format(output.decode(java_encoding)))
 			else:
 				print("Standard output is empty")
 			if(len(error) > 0):
-				print("Standard error:\n{0}".format(error.decode("UTF-8")))
+				print("Standard error:\n{0}".format(error.decode(java_encoding)))
 			else:
 				print("Standard error is empty")
 		if retcode:
