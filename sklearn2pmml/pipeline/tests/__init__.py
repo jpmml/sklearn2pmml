@@ -31,8 +31,8 @@ class PMMLPipelineTest(TestCase):
 		pipeline.fit(X, y)
 		y_pred = [1.0, 1.0, 1.0]
 		y_predt = [1.0, 1.0, numpy.log10(1.0)]
-		self.assertEquals(y_pred, pipeline.predict(X).tolist())
-		self.assertEquals([y_predt for i in range(0, 3)], pipeline.predict_transform(X).tolist())
+		self.assertEqual(y_pred, pipeline.predict(X).tolist())
+		self.assertEqual([y_predt for i in range(0, 3)], pipeline.predict_transform(X).tolist())
 
 	def test_predict_proba_transform(self):
 		predict_proba_transformer = FunctionTransformer(numpy.log)
@@ -40,11 +40,11 @@ class PMMLPipelineTest(TestCase):
 		X = DataFrame([1.0, 1.0, 1.0, 1.0, 1.0, 1.0], columns = ["x"])
 		y = Series(["green", "red", "yellow", "green", "red", "green"], name = "y")
 		pipeline.fit(X, y)
-		self.assertEquals(["green", "red", "yellow"], pipeline._final_estimator.classes_.tolist())
+		self.assertEqual(["green", "red", "yellow"], pipeline._final_estimator.classes_.tolist())
 		y_proba = [3 / 6.0, 2 / 6.0, 1 / 6.0]
 		y_probat = [numpy.log(x) for x in y_proba]
-		self.assertEquals([y_proba for i in range(0, 6)], pipeline.predict_proba(X).tolist())
-		self.assertEquals([y_proba + y_probat for i in range(0, 6)], pipeline.predict_proba_transform(X).tolist())
+		self.assertEqual([y_proba for i in range(0, 6)], pipeline.predict_proba(X).tolist())
+		self.assertEqual([y_proba + y_probat for i in range(0, 6)], pipeline.predict_proba_transform(X).tolist())
 
 	def test_configure(self):
 		regressor = DecisionTreeRegressor()

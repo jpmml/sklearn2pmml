@@ -202,21 +202,21 @@ class PowerFunctionTransformerTest(TestCase):
 	def test_power(self):
 		X = numpy.asarray([-2, -1, 0, 1, 2])
 		pow = PowerFunctionTransformer(power = 1)
-		self.assertEquals(X.tolist(), pow.transform(X).tolist())
+		self.assertEqual(X.tolist(), pow.transform(X).tolist())
 		pow = PowerFunctionTransformer(power = 2)
-		self.assertEquals([4, 1, 0, 1, 4], pow.transform(X).tolist())
+		self.assertEqual([4, 1, 0, 1, 4], pow.transform(X).tolist())
 		pow = PowerFunctionTransformer(power = 3)
-		self.assertEquals([-8, -1, 0, 1, 8], pow.transform(X).tolist())
+		self.assertEqual([-8, -1, 0, 1, 8], pow.transform(X).tolist())
 
 class StringNormalizerTest(TestCase):
 
 	def test_normalize(self):
 		X = numpy.asarray([" One", " two ", "THRee "])
 		normalizer = StringNormalizer(function = None)
-		self.assertEquals(["One", "two", "THRee"], normalizer.transform(X).tolist())
+		self.assertEqual(["One", "two", "THRee"], normalizer.transform(X).tolist())
 		normalizer = StringNormalizer(function = "uppercase", trim_blanks = False)
-		self.assertEquals([" ONE", " TWO ", "THREE "], normalizer.transform(X).tolist())
+		self.assertEqual([" ONE", " TWO ", "THREE "], normalizer.transform(X).tolist())
 		normalizer = StringNormalizer(function = "lowercase")
-		self.assertEquals(["one", "two", "three"], normalizer.transform(X).tolist())
+		self.assertEqual(["one", "two", "three"], normalizer.transform(X).tolist())
 		X = Series(X, dtype = str)
-		self.assertEquals(["one", "two", "three"], normalizer.transform(X).tolist())
+		self.assertEqual(["one", "two", "three"], normalizer.transform(X).tolist())
