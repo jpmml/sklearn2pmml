@@ -4,7 +4,7 @@ from sklearn.preprocessing import Imputer
 from sklearn_pandas import DataFrameMapper
 from sklearn.pipeline import FeatureUnion, Pipeline
 from sklearn2pmml.decoration import Alias, DateDomain, DateTimeDomain
-from sklearn2pmml.preprocessing import Aggregator, CutTransformer, DaysSinceYear, ExpressionTransformer, LookupTransformer, MultiLookupTransformer, PMMLLabelBinarizer, PMMLLabelEncoder, PowerFunctionTransformer, SecondsSinceYear, StringNormalizer
+from sklearn2pmml.preprocessing import Aggregator, CutTransformer, DaysSinceYearTransformer, ExpressionTransformer, LookupTransformer, MultiLookupTransformer, PMMLLabelBinarizer, PMMLLabelEncoder, PowerFunctionTransformer, SecondsSinceYearTransformer, StringNormalizer
 from unittest import TestCase
 
 import math
@@ -45,13 +45,13 @@ class CutTransformerTest(TestCase):
 class DurationTransformerTest(TestCase):
 
 	def test_days_transform(self):
-		transformer = DaysSinceYear(year = 1960)
+		transformer = DaysSinceYearTransformer(year = 1960)
 		y = numpy.array([datetime(1960, 1, 1), datetime(1960, 1, 2), datetime(1960, 2, 1), datetime(1959, 12, 31), datetime(2003, 4, 1)])
 		yt = transformer.transform(y)
 		self.assertEqual([0, 1, 31, -1, 15796], yt.tolist())
 
 	def test_seconds_transform(self):
-		transformer = SecondsSinceYear(year = 1960)
+		transformer = SecondsSinceYearTransformer(year = 1960)
 		y = numpy.array([datetime(1960, 1, 1), datetime(1960, 1, 1, 0, 0, 1), datetime(1960, 1, 1, 0, 1, 0), datetime(1959, 12, 31, 23, 59, 59), datetime(1960, 1, 3, 3, 30, 3)])
 		yt = transformer.transform(y)
 		self.assertEqual([0, 1, 60, -1, 185403], yt.tolist())
@@ -61,10 +61,10 @@ class DurationTransformerTest(TestCase):
 		pipeline = Pipeline([
 			("union", FeatureUnion([
 				("left_mapper", DataFrameMapper([
-					("left", [DateDomain(), DaysSinceYear(year = 2010)])
+					("left", [DateDomain(), DaysSinceYearTransformer(year = 2010)])
 				])),
 				("right_mapper", DataFrameMapper([
-					("right", [DateDomain(), DaysSinceYear(year = 2010)])
+					("right", [DateDomain(), DaysSinceYearTransformer(year = 2010)])
 				]))
 			])),
 			("expression", Alias(ExpressionTransformer("X[0] - X[1]"), "delta(left, right)", prefit = True))
@@ -75,7 +75,7 @@ class DurationTransformerTest(TestCase):
 	def test_timedelta_seconds(self):
 		X = DataFrame([["2018-12-31T23:59:59", "2019-01-01T00:00:00"], ["2019-01-01T03:30:03", "2019-01-01T00:00:00"]], columns = ["left", "right"])
 		mapper = DataFrameMapper([
-			(["left", "right"], [DateTimeDomain(), SecondsSinceYear(year = 2010), ExpressionTransformer("X[0] - X[1]")])
+			(["left", "right"], [DateTimeDomain(), SecondsSinceYearTransformer(year = 2010), ExpressionTransformer("X[0] - X[1]")])
 		])
 		Xt = mapper.fit_transform(X)
 		self.assertEqual([[-1], [12603]], Xt.tolist())

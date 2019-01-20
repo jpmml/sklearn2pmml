@@ -67,18 +67,18 @@ class DurationTransformer(BaseEstimator, TransformerMixin):
 			y = y.reshape(shape)
 		return y
 
-class DaysSinceYear(DurationTransformer):
+class DaysSinceYearTransformer(DurationTransformer):
 
 	def __init__(self, year):
-		super(DaysSinceYear, self).__init__(year)
+		super(DaysSinceYearTransformer, self).__init__(year)
 
 	def _to_duration(self, td):
 		return (td.days).values
 
-class SecondsSinceYear(DurationTransformer):
+class SecondsSinceYearTransformer(DurationTransformer):
 
 	def __init__(self, year):
-		super(SecondsSinceYear, self).__init__(year)
+		super(SecondsSinceYearTransformer, self).__init__(year)
 
 	def _to_duration(self, td):
 		return ((td.total_seconds()).values).astype(int)
