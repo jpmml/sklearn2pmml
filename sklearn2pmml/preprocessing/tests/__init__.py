@@ -1,7 +1,8 @@
+from datetime import datetime
 from pandas import DataFrame, Series
 from sklearn.preprocessing import Imputer
 from sklearn_pandas import DataFrameMapper
-from sklearn2pmml.preprocessing import Aggregator, CutTransformer, ExpressionTransformer, LookupTransformer, MultiLookupTransformer, PMMLLabelBinarizer, PMMLLabelEncoder, PowerFunctionTransformer, StringNormalizer
+from sklearn2pmml.preprocessing import Aggregator, CutTransformer, DaysSinceYear, ExpressionTransformer, LookupTransformer, MultiLookupTransformer, PMMLLabelBinarizer, PMMLLabelEncoder, PowerFunctionTransformer, SecondsSinceYear, StringNormalizer
 from unittest import TestCase
 
 import math
@@ -38,6 +39,20 @@ class CutTransformerTest(TestCase):
 		self.assertTrue(numpy.isnan(transformer.transform(X)).tolist()[0])
 		X = numpy.array([5.0])
 		self.assertTrue(numpy.isnan(transformer.transform(X)).tolist()[0])
+
+class DurationTransformerTest(TestCase):
+
+	def test_days_transform(self):
+		transformer = DaysSinceYear(year = 1960)
+		y = numpy.array([datetime(1960, 1, 1), datetime(1960, 1, 2), datetime(1960, 2, 1), datetime(1959, 12, 31), datetime(2003, 4, 1)])
+		yt = transformer.transform(y)
+		self.assertEqual([0, 1, 31, -1, 15796], yt.tolist())
+
+	def test_seconds_transform(self):
+		transformer = SecondsSinceYear(year = 1960)
+		y = numpy.array([datetime(1960, 1, 1), datetime(1960, 1, 1, 0, 0, 1), datetime(1960, 1, 1, 0, 1, 0), datetime(1959, 12, 31, 23, 59, 59), datetime(1960, 1, 3, 3, 30, 3)])
+		yt = transformer.transform(y)
+		self.assertEqual([0, 1, 60, -1, 185403], yt.tolist())
 
 class ExpressionTransformerTest(TestCase):
 
