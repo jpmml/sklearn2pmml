@@ -1,7 +1,8 @@
+from datetime import datetime
 from pandas import DataFrame
 from sklearn.base import clone
 from sklearn.preprocessing import Imputer, LabelBinarizer, StandardScaler
-from sklearn2pmml.decoration import Alias, CategoricalDomain, ContinuousDomain, MultiDomain
+from sklearn2pmml.decoration import Alias, CategoricalDomain, ContinuousDomain, DateDomain, DateTimeDomain, MultiDomain
 from sklearn_pandas import DataFrameMapper
 from unittest import TestCase
 
@@ -200,6 +201,22 @@ class ContinuousDomainTest(TestCase):
 		self.assertEqual({"minimum" : [1.0, 0.5], "maximum" : [3.0, 3.5], "mean" : [2.0, 2.0]}, _array_to_list(dict((k, domain.numeric_info_[k]) for k in ["minimum", "maximum", "mean"])))
 		self.assertEqual([1.0, 0.5], domain.data_min_.tolist())
 		self.assertEqual([3.0, 3.5], domain.data_max_.tolist())
+
+class DateDomainTest(TestCase):
+
+	def test_fit(self):
+		domain = DateDomain()
+		X = numpy.array(["1960-01-01", "1960-01-02T00:00:00", "1960-02-01T00:00:00", "1959-12-31", "2003-04-01"])
+		Xt = domain.fit_transform(X)
+		self.assertEqual([datetime(1960, 1, 1), datetime(1960, 1, 2), datetime(1960, 2, 1), datetime(1959, 12, 31), datetime(2003, 4, 1)], Xt.tolist())
+
+class DateTimeDomainTest(TestCase):
+
+	def test_fit(self):
+		domain = DateTimeDomain()
+		X = numpy.array(["1960-01-01T00:00:00", "1960-01-01T00:00:01", "1960-01-01T00:01:00", "1959-12-31T23:59:59", "1960-01-03T03:30:03"])
+		Xt = domain.fit_transform(X)
+		self.assertEqual([datetime(1960, 1, 1, 0, 0, 0), datetime(1960, 1, 1, 0, 0, 1), datetime(1960, 1, 1, 0, 1, 0), datetime(1959, 12, 31, 23, 59, 59), datetime(1960, 1, 3, 3, 30, 3)], Xt.tolist())
 
 class MultiDomainTest(TestCase):
 
