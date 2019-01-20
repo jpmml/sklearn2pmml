@@ -41,7 +41,7 @@ class Domain(BaseEstimator, TransformerMixin):
 	def __init__(self, missing_values = None, missing_value_treatment = "as_is", missing_value_replacement = None, invalid_value_treatment = "return_invalid", invalid_value_replacement = None, with_data = True, with_statistics = True):
 		if missing_values is not None:
 			self.missing_values = missing_values
-		missing_value_treatments = ["as_is", "as_mean", "as_mode", "as_median", "as_value"]
+		missing_value_treatments = ["as_is", "as_mean", "as_mode", "as_median", "as_value", "return_invalid"]
 		if missing_value_treatment not in missing_value_treatments:
 			raise ValueError("Missing value treatment {0} not in {1}".format(missing_value_treatment, missing_value_treatments))
 		self.missing_value_treatment = missing_value_treatment
