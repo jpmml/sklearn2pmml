@@ -51,29 +51,37 @@ class DurationTransformer(BaseEstimator, TransformerMixin):
 			raise ValueError("Year {0} is earlier than 1900".format(year))
 		self.epoch = datetime(year, 1, 1, tzinfo = None)
 
+	def _to_duration(self, td):
+		return td
+
 	def fit(self, y):
-		y = column_or_1d(y, warn = True)
 		return self
+
+	def transform(self, y):
+		shape = y.shape
+		if len(shape) > 1:
+			y = y.ravel()
+		y = pandas.to_timedelta(y - self.epoch)
+		y = self._to_duration(y)
+		if len(shape) > 1:
+			y = y.reshape(shape)
+		return y
 
 class DaysSinceYear(DurationTransformer):
 
 	def __init__(self, year):
 		super(DaysSinceYear, self).__init__(year)
 
-	def transform(self, y):
-		y = column_or_1d(y, warn = True)
-		td = pandas.to_timedelta(y - self.epoch)
-		return td.days
+	def _to_duration(self, td):
+		return (td.days).values
 
 class SecondsSinceYear(DurationTransformer):
 
 	def __init__(self, year):
 		super(SecondsSinceYear, self).__init__(year)
 
-	def transform(self, y):
-		y = column_or_1d(y, warn = True)
-		td = pandas.to_timedelta(y - self.epoch)
-		return (td.total_seconds()).astype(int)
+	def _to_duration(self, td):
+		return ((td.total_seconds()).values).astype(int)
 
 class ExpressionTransformer(BaseEstimator, TransformerMixin):
 
