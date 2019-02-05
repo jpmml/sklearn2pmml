@@ -173,7 +173,7 @@ def _dump(obj, prefix):
 	return path
 
 def sklearn2pmml(pipeline, pmml, user_classpath = [], with_repr = False, debug = False, java_encoding = "UTF-8"):
-	"""Converts fitted Scikit-Learn pipeline to PMML.
+	"""Converts a fitted Scikit-Learn pipeline to PMML.
 
 	Parameters:
 	----------
@@ -191,7 +191,7 @@ def sklearn2pmml(pipeline, pmml, user_classpath = [], with_repr = False, debug =
 		If true, insert the string representation of pipeline into the PMML document.
 
 	debug: boolean, optional
-		If true, print information about the conversion operation.
+		If true, print information about the conversion process.
 
 	java_encoding: string, optional
 		The character encoding to use for decoding Java output and error byte streams.
