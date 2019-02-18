@@ -1,7 +1,7 @@
 SkLearn2PMML
 ============
 
-Python library for converting [Scikit-Learn](http://scikit-learn.org/) pipelines to PMML.
+Python library for converting [Scikit-Learn](https://scikit-learn.org/) pipelines to PMML.
 
 # Features #
 
@@ -95,7 +95,7 @@ pip uninstall sklearn2pmml
 
 # License #
 
-SkLearn2PMML is dual-licensed under the [GNU Affero General Public License (AGPL) version 3.0](http://www.gnu.org/licenses/agpl-3.0.html), and a commercial license.
+SkLearn2PMML is dual-licensed under the [GNU Affero General Public License (AGPL) version 3.0](https://www.gnu.org/licenses/agpl-3.0.html), and a commercial license.
 
 # Additional information #
 
