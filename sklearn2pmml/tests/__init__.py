@@ -3,7 +3,7 @@ from sklearn.dummy import DummyRegressor
 from sklearn.feature_selection import f_regression, SelectFromModel, SelectKBest
 from sklearn.pipeline import Pipeline
 from sklearn.tree import DecisionTreeRegressor
-from sklearn2pmml import _classpath, _filter, _filter_steps, _strip_module, _supported_classes, make_pmml_pipeline, make_tpot_pmml_config, EstimatorProxy, SelectorProxy
+from sklearn2pmml import _classpath, _filter, _filter_steps, _java_version, _strip_module, _supported_classes, make_pmml_pipeline, make_tpot_pmml_config, EstimatorProxy, SelectorProxy
 from sklearn2pmml.pipeline import PMMLPipeline
 from unittest import TestCase
 
@@ -66,6 +66,13 @@ class SelectorProxyTest(TestCase):
 		self.assertIsInstance(selector.estimator, EstimatorProxy)
 		self.assertFalse(hasattr(selector, "estimator_"))
 		self.assertEqual([0, 1], selector._get_support_mask().tolist())
+
+class JavaTest(TestCase):
+
+	def test_java_version(self):
+		version = _java_version("UTF-8")
+		self.assertIsInstance(version, tuple)
+		self.assertTrue(2, len(version))
 
 class ClasspathTest(TestCase):
 

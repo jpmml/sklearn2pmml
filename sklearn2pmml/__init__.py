@@ -127,6 +127,12 @@ def make_pmml_pipeline(obj, active_fields = None, target_fields = None):
 		pipeline.target_fields = numpy.asarray(target_fields)
 	return pipeline
 
+def _decode(data, encoding):
+	try:
+		return data.decode(encoding, errors = "ignore")
+	except ValueError:
+		return ""
+
 def _java_version(java_encoding):
 	try:
 		process = Popen(["java", "-version"], stdout = PIPE, stderr = PIPE, bufsize = 1)
@@ -136,7 +142,7 @@ def _java_version(java_encoding):
 	retcode = process.poll()
 	if retcode:
 		return None
-	match = re.match("^(.*)\sversion\s\"(.*)\"(|\s\d\d\d\d\-\d\d\-\d\d)$", error.decode(java_encoding), re.MULTILINE)
+	match = re.match("^(.*)\sversion\s\"(.*)\"(|\s\d\d\d\d\-\d\d\-\d\d)$", _decode(error, java_encoding), re.MULTILINE)
 	if match:
 		return (match.group(1), match.group(2))
 	else:
@@ -235,11 +241,11 @@ def sklearn2pmml(pipeline, pmml, user_classpath = [], with_repr = False, debug =
 		retcode = process.poll()
 		if debug or retcode:
 			if(len(output) > 0):
-				print("Standard output:\n{0}".format(output.decode(java_encoding)))
+				print("Standard output:\n{0}".format(_decode(output, java_encoding)))
 			else:
 				print("Standard output is empty")
 			if(len(error) > 0):
-				print("Standard error:\n{0}".format(error.decode(java_encoding)))
+				print("Standard error:\n{0}".format(_decode(error, java_encoding)))
 			else:
 				print("Standard error is empty")
 		if retcode:
