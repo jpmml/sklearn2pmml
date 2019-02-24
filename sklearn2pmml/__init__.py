@@ -215,7 +215,7 @@ def sklearn2pmml(pipeline, pmml, user_classpath = [], with_repr = False, debug =
 		print("sklearn2pmml: {0}".format(__version__))
 		print("{0}: {1}".format(java_version[0], java_version[1]))
 	if not isinstance(pipeline, PMMLPipeline):
-		raise TypeError("The pipeline object is not an instance of " + PMMLPipeline.__name__)
+		raise TypeError("The pipeline object is not an instance of " + PMMLPipeline.__name__ + ". Use the 'sklearn2pmml.make_pmml_pipeline(obj)' utility function to translate a regular Scikit-Learn estimator or pipeline to a PMML pipeline")
 	estimator = pipeline._final_estimator
 	cmd = ["java", "-cp", os.pathsep.join(_classpath(user_classpath)), "org.jpmml.sklearn.Main"]
 	dumps = []
