@@ -4,7 +4,7 @@ from sklearn.preprocessing import Imputer
 from sklearn_pandas import DataFrameMapper
 from sklearn.pipeline import FeatureUnion, Pipeline
 from sklearn2pmml.decoration import Alias, DateDomain, DateTimeDomain
-from sklearn2pmml.preprocessing import Aggregator, ConcatTransformer, CutTransformer, DaysSinceYearTransformer, ExpressionTransformer, LookupTransformer, MultiLookupTransformer, PMMLLabelBinarizer, PMMLLabelEncoder, PowerFunctionTransformer, SecondsSinceYearTransformer, StringNormalizer
+from sklearn2pmml.preprocessing import Aggregator, ConcatTransformer, CutTransformer, DaysSinceYearTransformer, ExpressionTransformer, LookupTransformer, MultiLookupTransformer, PMMLLabelBinarizer, PMMLLabelEncoder, PowerFunctionTransformer, SecondsSinceYearTransformer, StringNormalizer, SubstringTransformer
 from unittest import TestCase
 
 import math
@@ -255,3 +255,12 @@ class StringNormalizerTest(TestCase):
 		self.assertEqual(["one", "two", "three"], normalizer.transform(X).tolist())
 		X = Series(X, dtype = str)
 		self.assertEqual(["one", "two", "three"], normalizer.transform(X).tolist())
+
+class SubstringTransformerTest(TestCase):
+
+	def test_transform(self):
+		transformer = SubstringTransformer(1, 4)
+		X = numpy.asarray(["", "a", "aB", "aBc", "aBc9", "aBc9x"])
+		self.assertEqual(["", "", "B", "Bc", "Bc9", "Bc9"], transformer.transform(X).tolist())
+		X = DataFrame(X, columns = ["input"])
+		self.assertEqual(["", "", "B", "Bc", "Bc9", "Bc9"], transformer.transform(X).tolist())

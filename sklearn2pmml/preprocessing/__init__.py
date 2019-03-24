@@ -213,6 +213,25 @@ class ConcatTransformer(BaseEstimator, TransformerMixin):
 			y = y.values
 		return y.reshape(-1, 1)
 
+class SubstringTransformer(BaseEstimator, TransformerMixin):
+
+	def __init__(self, start, stop):
+		if start < 0:
+			raise ValueError("Start position {0} is negative".format(start))
+		if stop < start:
+			raise ValueError("Stop position {0} is smaller than start position {1}".format(stop, start))
+		self.start = start
+		self.stop = stop
+
+	def fit(self, y):
+		y = column_or_1d(y, warn = True)
+		return self
+
+	def transform(self, y):
+		y = column_or_1d(y, warn = True)
+		func = lambda x: x[self.start:self.stop]
+		return eval_rows(y, func)
+
 class StringNormalizer(BaseEstimator, TransformerMixin):
 
 	def __init__(self, function = None, trim_blanks = True):
