@@ -4,7 +4,7 @@ from sklearn.preprocessing import Imputer
 from sklearn_pandas import DataFrameMapper
 from sklearn.pipeline import FeatureUnion, Pipeline
 from sklearn2pmml.decoration import Alias, DateDomain, DateTimeDomain
-from sklearn2pmml.preprocessing import Aggregator, CutTransformer, DaysSinceYearTransformer, ExpressionTransformer, LookupTransformer, MultiLookupTransformer, PMMLLabelBinarizer, PMMLLabelEncoder, PowerFunctionTransformer, SecondsSinceYearTransformer, StringNormalizer
+from sklearn2pmml.preprocessing import Aggregator, ConcatTransformer, CutTransformer, DaysSinceYearTransformer, ExpressionTransformer, LookupTransformer, MultiLookupTransformer, PMMLLabelBinarizer, PMMLLabelEncoder, PowerFunctionTransformer, SecondsSinceYearTransformer, StringNormalizer
 from unittest import TestCase
 
 import math
@@ -23,6 +23,15 @@ class AggregatorTest(TestCase):
 		self.assertEqual([0.5, 0], min.transform(X).tolist())
 		X = X.reshape((6, 1))
 		self.assertEqual([1, 0.5, 2, 3.0, 0, 1.0], min.transform(X).tolist())
+
+class ConcatTransformerTest(TestCase):
+
+	def test_transform(self):
+		transformer = ConcatTransformer()
+		X = numpy.asarray([["A", 1, "C"], [1, 2, 3], ["x", "y", "z"]])
+		self.assertEqual([["A1C"], ["123"], ["xyz"]], transformer.transform(X).tolist())
+		X = DataFrame([["L", str(-1)], ["R", str(1)]], columns = ["left", "right"])
+		self.assertEqual([["L-1"], ["R1"]], transformer.transform(X).tolist())
 
 class CutTransformerTest(TestCase):
 

@@ -198,6 +198,21 @@ class PowerFunctionTransformer(BaseEstimator, TransformerMixin):
 	def transform(self, X):
 		return numpy.power(X, self.power)
 
+class ConcatTransformer(BaseEstimator, TransformerMixin):
+
+	def __init__(self):
+		pass
+
+	def fit(self, X, y = None):
+		return self
+
+	def transform(self, X):
+		func = lambda x: "".join(x)
+		y = eval_rows(X, func)
+		if isinstance(y, Series):
+			y = y.values
+		return y.reshape(-1, 1)
+
 class StringNormalizer(BaseEstimator, TransformerMixin):
 
 	def __init__(self, function = None, trim_blanks = True):
