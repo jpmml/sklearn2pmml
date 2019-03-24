@@ -4,7 +4,7 @@ from sklearn.preprocessing import Imputer
 from sklearn_pandas import DataFrameMapper
 from sklearn.pipeline import FeatureUnion, Pipeline
 from sklearn2pmml.decoration import Alias, DateDomain, DateTimeDomain
-from sklearn2pmml.preprocessing import Aggregator, ConcatTransformer, CutTransformer, DaysSinceYearTransformer, ExpressionTransformer, LookupTransformer, MultiLookupTransformer, PMMLLabelBinarizer, PMMLLabelEncoder, PowerFunctionTransformer, SecondsSinceYearTransformer, StringNormalizer, SubstringTransformer
+from sklearn2pmml.preprocessing import Aggregator, ConcatTransformer, CutTransformer, DaysSinceYearTransformer, ExpressionTransformer, LookupTransformer, MatchesTransformer, MultiLookupTransformer, PMMLLabelBinarizer, PMMLLabelEncoder, PowerFunctionTransformer, ReplaceTransformer, SecondsSinceYearTransformer, StringNormalizer, SubstringTransformer
 from unittest import TestCase
 
 import math
@@ -23,15 +23,6 @@ class AggregatorTest(TestCase):
 		self.assertEqual([0.5, 0], aggregator.transform(X).tolist())
 		X = X.reshape((6, 1))
 		self.assertEqual([1, 0.5, 2, 3.0, 0, 1.0], aggregator.transform(X).tolist())
-
-class ConcatTransformerTest(TestCase):
-
-	def test_transform(self):
-		transformer = ConcatTransformer()
-		X = numpy.asarray([["A", 1, "C"], [1, 2, 3], ["x", "y", "z"]])
-		self.assertEqual([["A1C"], ["123"], ["xyz"]], transformer.transform(X).tolist())
-		X = DataFrame([["L", str(-1)], ["R", str(1)]], columns = ["left", "right"])
-		self.assertEqual([["L-1"], ["R1"]], transformer.transform(X).tolist())
 
 class CutTransformerTest(TestCase):
 
@@ -252,6 +243,38 @@ class PowerFunctionTransformerTest(TestCase):
 		self.assertEqual([4, 1, 0, 1, 4], transformer.transform(X).tolist())
 		transformer = PowerFunctionTransformer(power = 3)
 		self.assertEqual([-8, -1, 0, 1, 8], transformer.transform(X).tolist())
+
+class ConcatTransformerTest(TestCase):
+
+	def test_transform(self):
+		transformer = ConcatTransformer()
+		X = numpy.asarray([["A", 1, "C"], [1, 2, 3], ["x", "y", "z"]])
+		self.assertEqual([["A1C"], ["123"], ["xyz"]], transformer.transform(X).tolist())
+		X = DataFrame([["L", str(-1)], ["R", str(1)]], columns = ["left", "right"])
+		self.assertEqual([["L-1"], ["R1"]], transformer.transform(X).tolist())
+
+class MatchesTransformerTest(TestCase):
+
+	def test_transform(self):
+		transformer = MatchesTransformer("ar?y")
+		X = numpy.asarray(["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"])
+		Xt = transformer.transform(X)
+		self.assertEqual([True, True, False, False, True, False, False, False, False, False, False, False], Xt.tolist())
+		X = DataFrame(X.reshape(-1, 1), columns = ["month"])
+		Xt = transformer.transform(X)
+		self.assertTrue((12, 1), Xt.shape)
+		self.assertEqual([True, True, False, False, True, False, False, False, False, False, False, False], Xt.tolist())
+
+class ReplaceTransformerTest(TestCase):
+
+	def test_transform(self):
+		transformer = ReplaceTransformer("B+", "c")
+		X = numpy.asarray(["A", "B", "BA", "BB", "BAB", "ABBA", "BBBB"])
+		Xt = transformer.transform(X)
+		self.assertEqual(["A", "c", "cA", "c", "cAc", "AcA", "c"], Xt.tolist())
+		X = DataFrame(X.reshape(-1, 1), columns = ["input"])
+		self.assertTrue((7, 1), Xt.shape)
+		self.assertEqual(["A", "c", "cA", "c", "cAc", "AcA", "c"], Xt.tolist())
 
 class StringNormalizerTest(TestCase):
 

@@ -7,6 +7,16 @@ from sklearn2pmml.util import eval_rows
 
 import numpy
 import pandas
+import warnings
+
+def _regex_engine(pattern):
+	try:
+		import pcre
+		return pcre.compile(pattern)
+	except ImportError:
+		warnings.warn("Perl Compatible Regular Expressions (PCRE) library is not available, falling back to built-in Regular Expressions (RE) library. Transformation results might not be reproducible between Python and PMML environments when using more complex patterns", Warning)
+		import re
+		return re.compile(pattern)
 
 class Aggregator(BaseEstimator, TransformerMixin):
 
@@ -213,15 +223,10 @@ class ConcatTransformer(BaseEstimator, TransformerMixin):
 			Xt = Xt.values
 		return Xt.reshape(-1, 1)
 
-class SubstringTransformer(BaseEstimator, TransformerMixin):
+class MatchesTransformer(BaseEstimator, TransformerMixin):
 
-	def __init__(self, start, stop):
-		if start < 0:
-			raise ValueError("Start position {0} is negative".format(start))
-		if stop < start:
-			raise ValueError("Stop position {0} is smaller than start position {1}".format(stop, start))
-		self.start = start
-		self.stop = stop
+	def __init__(self, pattern):
+		self.pattern = pattern
 
 	def fit(self, X, y = None):
 		X = column_or_1d(X, warn = True)
@@ -229,7 +234,43 @@ class SubstringTransformer(BaseEstimator, TransformerMixin):
 
 	def transform(self, X):
 		X = column_or_1d(X, warn = True)
-		func = lambda x: x[self.start:self.stop]
+		engine = _regex_engine(self.pattern)
+		func = lambda x: bool(engine.search(x))
+		return eval_rows(X, func)
+
+class ReplaceTransformer(BaseEstimator, TransformerMixin):
+
+	def __init__(self, pattern, replacement):
+		self.pattern = pattern
+		self.replacement = replacement
+
+	def fit(self, X, y = None):
+		X = column_or_1d(X, warn = True)
+		return self
+
+	def transform(self, X):
+		X = column_or_1d(X, warn = True)
+		engine = _regex_engine(self.pattern)
+		func = lambda x: engine.sub(self.replacement, x)
+		return eval_rows(X, func)
+
+class SubstringTransformer(BaseEstimator, TransformerMixin):
+
+	def __init__(self, begin, end):
+		if begin < 0:
+			raise ValueError("Begin position {0} is negative".format(begin))
+		if end < begin:
+			raise ValueError("End position {0} is smaller than begin position {1}".format(end, begin))
+		self.begin = begin
+		self.end = end
+
+	def fit(self, X, y = None):
+		X = column_or_1d(X, warn = True)
+		return self
+
+	def transform(self, X):
+		X = column_or_1d(X, warn = True)
+		func = lambda x: x[self.begin:self.end]
 		return eval_rows(X, func)
 
 class StringNormalizer(BaseEstimator, TransformerMixin):
