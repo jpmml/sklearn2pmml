@@ -36,13 +36,13 @@ class CutTransformer(BaseEstimator, TransformerMixin):
 		self.labels = labels
 		self.include_lowest = include_lowest
 
-	def fit(self, y):
-		y = column_or_1d(y, warn = True)
+	def fit(self, X, y = None):
+		X = column_or_1d(X, warn = True)
 		return self
 
-	def transform(self, y):
-		y = column_or_1d(y, warn = True)
-		return pandas.cut(y, bins = self.bins, right = self.right, labels = self.labels, include_lowest = self.include_lowest)
+	def transform(self, X):
+		X = column_or_1d(X, warn = True)
+		return pandas.cut(X, bins = self.bins, right = self.right, labels = self.labels, include_lowest = self.include_lowest)
 
 class DurationTransformer(BaseEstimator, TransformerMixin):
 
@@ -54,18 +54,18 @@ class DurationTransformer(BaseEstimator, TransformerMixin):
 	def _to_duration(self, td):
 		return td
 
-	def fit(self, y):
+	def fit(self, X, y = None):
 		return self
 
-	def transform(self, y):
-		shape = y.shape
+	def transform(self, X):
+		shape = X.shape
 		if len(shape) > 1:
-			y = y.ravel()
-		y = pandas.to_timedelta(y - self.epoch)
-		y = self._to_duration(y)
+			X = X.ravel()
+		Xt = pandas.to_timedelta(X - self.epoch)
+		Xt = self._to_duration(Xt)
 		if len(shape) > 1:
-			y = y.reshape(shape)
-		return y
+			Xt = Xt.reshape(shape)
+		return Xt
 
 class DaysSinceYearTransformer(DurationTransformer):
 
@@ -96,10 +96,10 @@ class ExpressionTransformer(BaseEstimator, TransformerMixin):
 
 	def transform(self, X):
 		func = lambda x: self._eval_row(x)
-		y = eval_rows(X, func)
-		if isinstance(y, Series):
-			y = y.values
-		return y.reshape(-1, 1)
+		Xt = eval_rows(X, func)
+		if isinstance(Xt, Series):
+			Xt = Xt.values
+		return Xt.reshape(-1, 1)
 
 class LookupTransformer(BaseEstimator, TransformerMixin):
 
@@ -117,17 +117,17 @@ class LookupTransformer(BaseEstimator, TransformerMixin):
 		transform_dict.update(self.mapping)
 		return transform_dict
 
-	def fit(self, y):
-		y = column_or_1d(y, warn = True)
+	def fit(self, X, y = None):
+		X = column_or_1d(X, warn = True)
 		return self
 
-	def transform(self, y):
-		y = column_or_1d(y, warn = True)
+	def transform(self, X):
+		X = column_or_1d(X, warn = True)
 		transform_dict = self._transform_dict()
 		func = lambda k: transform_dict[k]
-		if hasattr(y, "apply"):
-			return y.apply(func)
-		return numpy.vectorize(func)(y)
+		if hasattr(X, "apply"):
+			return X.apply(func)
+		return numpy.vectorize(func)(X)
 
 class MultiLookupTransformer(LookupTransformer):
 
@@ -143,47 +143,47 @@ class MultiLookupTransformer(LookupTransformer):
 			if length != len(k):
 				raise ValueError("Keys contain variable number of elements")
 
-	def fit(self, Y):
+	def fit(self, X, y = None):
 		return self
 
-	def transform(self, Y):
+	def transform(self, X):
 		transform_dict = self._transform_dict()
 		func = lambda k: transform_dict[tuple(k)]
-		if hasattr(Y, "apply"):
-			return Y.apply(func, axis = 1)
+		if hasattr(X, "apply"):
+			return X.apply(func, axis = 1)
 		# See https://stackoverflow.com/a/3338368
-		return numpy.array([func((numpy.squeeze(numpy.asarray(row))).tolist()) for row in Y])
+		return numpy.array([func((numpy.squeeze(numpy.asarray(row))).tolist()) for row in X])
 
 class PMMLLabelBinarizer(BaseEstimator, TransformerMixin):
 
-	def fit(self, y):
-		y = column_or_1d(y, warn = True)
-		self.classes_ = numpy.unique(y[~pandas.isnull(y)])
+	def fit(self, X, y = None):
+		X = column_or_1d(X, warn = True)
+		self.classes_ = numpy.unique(X[~pandas.isnull(X)])
 		return self
 
-	def transform(self, y):
-		y = column_or_1d(y, warn = True)
+	def transform(self, X):
+		X = column_or_1d(X, warn = True)
 		index = list(self.classes_)
-		Y = numpy.zeros((len(y), len(index)), dtype = numpy.int)
-		for i, v in enumerate(y):
+		Xt = numpy.zeros((len(X), len(index)), dtype = numpy.int)
+		for i, v in enumerate(X):
 			if not pandas.isnull(v):
-				Y[i, index.index(v)] = 1
-		return Y
+				Xt[i, index.index(v)] = 1
+		return Xt
 
 class PMMLLabelEncoder(BaseEstimator, TransformerMixin):
 
 	def __init__(self, missing_values = None):
 		self.missing_values = missing_values
 
-	def fit(self, y):
-		y = column_or_1d(y, warn = True)
-		self.classes_ = numpy.unique(y[~pandas.isnull(y)])
+	def fit(self, X, y = None):
+		X = column_or_1d(X, warn = True)
+		self.classes_ = numpy.unique(X[~pandas.isnull(X)])
 		return self
 
-	def transform(self, y):
-		y = column_or_1d(y, warn = True)
+	def transform(self, X):
+		X = column_or_1d(X, warn = True)
 		index = list(self.classes_)
-		return numpy.array([self.missing_values if pandas.isnull(v) else index.index(v) for v in y])
+		return numpy.array([self.missing_values if pandas.isnull(v) else index.index(v) for v in X])
 
 class PowerFunctionTransformer(BaseEstimator, TransformerMixin):
 
@@ -208,10 +208,10 @@ class ConcatTransformer(BaseEstimator, TransformerMixin):
 
 	def transform(self, X):
 		func = lambda x: "".join(x)
-		y = eval_rows(X, func)
-		if isinstance(y, Series):
-			y = y.values
-		return y.reshape(-1, 1)
+		Xt = eval_rows(X, func)
+		if isinstance(Xt, Series):
+			Xt = Xt.values
+		return Xt.reshape(-1, 1)
 
 class SubstringTransformer(BaseEstimator, TransformerMixin):
 
@@ -223,14 +223,14 @@ class SubstringTransformer(BaseEstimator, TransformerMixin):
 		self.start = start
 		self.stop = stop
 
-	def fit(self, y):
-		y = column_or_1d(y, warn = True)
+	def fit(self, X, y = None):
+		X = column_or_1d(X, warn = True)
 		return self
 
-	def transform(self, y):
-		y = column_or_1d(y, warn = True)
+	def transform(self, X):
+		X = column_or_1d(X, warn = True)
 		func = lambda x: x[self.start:self.stop]
-		return eval_rows(y, func)
+		return eval_rows(X, func)
 
 class StringNormalizer(BaseEstimator, TransformerMixin):
 
@@ -247,11 +247,13 @@ class StringNormalizer(BaseEstimator, TransformerMixin):
 	def transform(self, X):
 		if hasattr(X, "values"):
 			X = X.values
-		X = X.astype("U")
+		Xt = X.astype("U")
+		# Transform
 		if self.function == "lowercase":
-			X = numpy.char.lower(X)
+			Xt = numpy.char.lower(Xt)
 		elif self.function == "uppercase":
-			X = numpy.char.upper(X)
+			Xt = numpy.char.upper(Xt)
+		# Trim blanks
 		if self.trim_blanks:
-			X = numpy.char.strip(X)
-		return X
+			Xt = numpy.char.strip(Xt)
+		return Xt

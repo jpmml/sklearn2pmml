@@ -15,10 +15,10 @@ class PMMLPipelineTest(TestCase):
 		self.assertEqual(["1", "2"], _get_column_names(X).tolist())
 		X.columns = numpy.asarray([1.0, 2.0])
 		self.assertEqual(["1.0", "2.0"], _get_column_names(X).tolist())
-		x = Series([1, 2, 3], name = 1)
-		self.assertEqual("1", _get_column_names(x).tolist())
-		x.name = 1.0
-		self.assertEqual("1.0", _get_column_names(x).tolist())
+		X = Series([1, 2, 3], name = 1)
+		self.assertEqual("1", _get_column_names(X).tolist())
+		X.name = 1.0
+		self.assertEqual("1.0", _get_column_names(X).tolist())
 
 	def test_predict_transform(self):
 		predict_transformer = FeatureUnion([

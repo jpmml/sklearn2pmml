@@ -199,11 +199,11 @@ class TemporalDomain(Domain):
 		shape = X.shape
 		if len(shape) > 1:
 			X = X.ravel()
-		X = pandas.to_datetime(X, yearfirst = True, origin = "unix")
-		X = self._to_instant(X)
+		Xt = pandas.to_datetime(X, yearfirst = True, origin = "unix")
+		Xt = self._to_instant(Xt)
 		if len(shape) > 1:
-			X = X.reshape(shape)
-		return X
+			Xt = Xt.reshape(shape)
+		return Xt
 
 class DateDomain(TemporalDomain):
 

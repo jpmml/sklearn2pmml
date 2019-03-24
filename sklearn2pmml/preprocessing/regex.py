@@ -30,15 +30,15 @@ class MatchesTransformer(BaseEstimator, TransformerMixin):
 	def __init__(self, pattern):
 		self.pattern = pattern
 
-	def fit(self, y):
-		y = column_or_1d(y, warn = True)
+	def fit(self, X, y = None):
+		X = column_or_1d(X, warn = True)
 		return self
 
-	def transform(self, y):
-		y = column_or_1d(y, warn = True)
+	def transform(self, X):
+		X = column_or_1d(X, warn = True)
 		engine = _regex_engine(self.pattern)
 		func = lambda x: engine.matches(x)
-		return eval_rows(y, func)
+		return eval_rows(X, func)
 
 class ReplaceTransformer(BaseEstimator, TransformerMixin):
 
@@ -46,12 +46,12 @@ class ReplaceTransformer(BaseEstimator, TransformerMixin):
 		self.pattern = pattern
 		self.replacement = replacement
 
-	def fit(self, y):
-		y = column_or_1d(y, warn = True)
+	def fit(self, X, y = None):
+		X = column_or_1d(X, warn = True)
 		return self
 
-	def transform(self, y):
-		y = column_or_1d(y, warn = True)
+	def transform(self, X):
+		X = column_or_1d(X, warn = True)
 		engine = _regex_engine(self.pattern)
 		func = lambda x: engine.replace(self.replacement, x)
-		return eval_rows(y, func)
+		return eval_rows(X, func)

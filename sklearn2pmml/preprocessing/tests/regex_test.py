@@ -8,21 +8,21 @@ class MatchesTransformerTest(TestCase):
 
 	def test_transform(self):
 		transformer = MatchesTransformer("ar?y")
-		y = numpy.asarray(["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"])
-		yt = transformer.transform(y)
-		self.assertEqual([True, True, False, False, True, False, False, False, False, False, False, False], yt.tolist())
-		y = DataFrame(y.reshape(-1, 1), columns = ["month"])
-		yt = transformer.transform(y)
-		self.assertTrue((12, 1), yt.shape)
-		self.assertEqual([True, True, False, False, True, False, False, False, False, False, False, False], yt.tolist())
+		X = numpy.asarray(["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"])
+		Xt = transformer.transform(X)
+		self.assertEqual([True, True, False, False, True, False, False, False, False, False, False, False], Xt.tolist())
+		X = DataFrame(X.reshape(-1, 1), columns = ["month"])
+		Xt = transformer.transform(X)
+		self.assertTrue((12, 1), Xt.shape)
+		self.assertEqual([True, True, False, False, True, False, False, False, False, False, False, False], Xt.tolist())
 
 class ReplaceTransformerTest(TestCase):
 
 	def test_transform(self):
 		transformer = ReplaceTransformer("B+", "c")
-		y = numpy.asarray(["A", "B", "BA", "BB", "BAB", "ABBA", "BBBB"])
-		yt = transformer.transform(y)
-		self.assertEqual(["A", "c", "cA", "c", "cAc", "AcA", "c"], yt.tolist())
-		y = DataFrame(y.reshape(-1, 1), columns = ["input"])
-		self.assertTrue((7, 1), yt.shape)
-		self.assertEqual(["A", "c", "cA", "c", "cAc", "AcA", "c"], yt.tolist())
+		X = numpy.asarray(["A", "B", "BA", "BB", "BAB", "ABBA", "BBBB"])
+		Xt = transformer.transform(X)
+		self.assertEqual(["A", "c", "cA", "c", "cAc", "AcA", "c"], Xt.tolist())
+		X = DataFrame(X.reshape(-1, 1), columns = ["input"])
+		self.assertTrue((7, 1), Xt.shape)
+		self.assertEqual(["A", "c", "cA", "c", "cAc", "AcA", "c"], Xt.tolist())
