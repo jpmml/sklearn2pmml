@@ -210,14 +210,14 @@ class PowerFunctionTransformer(BaseEstimator, TransformerMixin):
 
 class ConcatTransformer(BaseEstimator, TransformerMixin):
 
-	def __init__(self):
-		pass
+	def __init__(self, separator = ""):
+		self.separator = separator
 
 	def fit(self, X, y = None):
 		return self
 
 	def transform(self, X):
-		func = lambda x: "".join(x)
+		func = lambda x: self.separator.join([str(v) for v in x])
 		Xt = eval_rows(X, func)
 		if isinstance(Xt, Series):
 			Xt = Xt.values

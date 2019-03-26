@@ -247,34 +247,36 @@ class PowerFunctionTransformerTest(TestCase):
 class ConcatTransformerTest(TestCase):
 
 	def test_transform(self):
-		transformer = ConcatTransformer()
 		X = numpy.asarray([["A", 1, "C"], [1, 2, 3], ["x", "y", "z"]])
+		transformer = ConcatTransformer()
 		self.assertEqual([["A1C"], ["123"], ["xyz"]], transformer.transform(X).tolist())
-		X = DataFrame([["L", str(-1)], ["R", str(1)]], columns = ["left", "right"])
-		self.assertEqual([["L-1"], ["R1"]], transformer.transform(X).tolist())
+		X = DataFrame([["L", -1], ["R", 1]], columns = ["left", "right"])
+		transformer = ConcatTransformer("/")
+		self.assertEqual([["L/-1"], ["R/1"]], transformer.transform(X).tolist())
 
 class MatchesTransformerTest(TestCase):
 
 	def test_transform(self):
-		transformer = MatchesTransformer("ar?y")
 		X = numpy.asarray(["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"])
-		Xt = transformer.transform(X)
-		self.assertEqual([True, True, False, False, True, False, False, False, False, False, False, False], Xt.tolist())
+		Xt_exp = [True, True, False, False, True, False, False, False, False, False, False, False]
+		transformer = MatchesTransformer("ar?y")
+		self.assertEqual(Xt_exp, transformer.transform(X).tolist())
 		X = DataFrame(X.reshape(-1, 1), columns = ["month"])
 		Xt = transformer.transform(X)
 		self.assertTrue((12, 1), Xt.shape)
-		self.assertEqual([True, True, False, False, True, False, False, False, False, False, False, False], Xt.tolist())
+		self.assertEqual(Xt_exp, Xt.tolist())
 
 class ReplaceTransformerTest(TestCase):
 
 	def test_transform(self):
-		transformer = ReplaceTransformer("B+", "c")
 		X = numpy.asarray(["A", "B", "BA", "BB", "BAB", "ABBA", "BBBB"])
-		Xt = transformer.transform(X)
-		self.assertEqual(["A", "c", "cA", "c", "cAc", "AcA", "c"], Xt.tolist())
+		Xt_exp = ["A", "c", "cA", "c", "cAc", "AcA", "c"]
+		transformer = ReplaceTransformer("B+", "c")
+		self.assertEqual(Xt_exp, transformer.transform(X).tolist())
 		X = DataFrame(X.reshape(-1, 1), columns = ["input"])
+		Xt = transformer.transform(X)
 		self.assertTrue((7, 1), Xt.shape)
-		self.assertEqual(["A", "c", "cA", "c", "cAc", "AcA", "c"], Xt.tolist())
+		self.assertEqual(Xt_exp, Xt.tolist())
 
 class StringNormalizerTest(TestCase):
 
