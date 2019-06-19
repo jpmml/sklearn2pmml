@@ -1,4 +1,4 @@
-from sklearn.base import clone, BaseEstimator
+from sklearn.base import clone, BaseEstimator, ClassifierMixin
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import OneHotEncoder
 
@@ -28,7 +28,7 @@ def _step_params(name, params):
 			del params[k]
 	return step_params
 
-class GBDTLR(BaseEstimator):
+class GBDTLRClassifier(BaseEstimator, ClassifierMixin):
 
 	def __init__(self, gbdt, lr):
 		self.gbdt = _checkGBDT(gbdt)
