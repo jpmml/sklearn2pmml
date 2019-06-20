@@ -7,7 +7,7 @@ class RuleSetClassifier(BaseEstimator, ClassifierMixin):
 		for rule in rules:
 			if type(rule) is not tuple:
 				raise ValueError("Rule is not a tuple")
-			if len(rule) < 2:
+			if len(rule) != 2:
 				raise ValueError("Rule is not a two-element (predicate, score) tuple")
 		self.rules = rules
 		self.default_score = default_score

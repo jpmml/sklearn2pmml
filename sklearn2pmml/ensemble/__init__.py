@@ -1,6 +1,7 @@
 from sklearn.base import clone, BaseEstimator, ClassifierMixin, RegressorMixin
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.preprocessing import OneHotEncoder
+from sklearn2pmml.util import eval_rows
 
 def _checkGBDTRegressor(gbdt):
 	if hasattr(gbdt, "apply"):
@@ -112,3 +113,30 @@ class GBDTLRClassifier(GBDTEstimator, ClassifierMixin):
 	def predict_proba(self, X):
 		idt = self._encoded_leaf_indices(X)
 		return self.lr_.predict_proba(idt)
+
+class SelectFirstEstimator(BaseEstimator):
+
+	def __init__(self, steps):
+		for step in steps:
+			if type(step) is not tuple:
+				raise ValueError("Step is not a tuple")
+			if len(step) != 2:
+				raise ValueError("Step is not a two-element (predicate, estimator) tuple")
+		self.steps = steps
+
+	def _eval_row(self, X):
+		for step in self.steps:
+			predicate = step[0]
+			estimator = step[1]
+			if eval(predicate):
+				Xt = X.reshape(1, -1)
+				y = estimator.predict(Xt)
+				return y.item()
+		return None
+
+	def fit(self, X, y, **fit_params):
+		raise NotImplementedError()
+
+	def predict(self, X):
+		func = lambda x: self._eval_row(x)
+		return eval_rows(X, func)
