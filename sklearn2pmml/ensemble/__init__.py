@@ -1,7 +1,10 @@
 from sklearn.base import clone, BaseEstimator, ClassifierMixin, RegressorMixin
-from sklearn.linear_model import LinearRegression, LogisticRegression
+from sklearn.linear_model.base import SparseCoefMixin, LinearClassifierMixin, LinearModel, LinearRegression
 from sklearn.preprocessing import OneHotEncoder
 from sklearn2pmml.util import eval_rows
+
+def _class_name(x):
+	return str(x.__class__)
 
 def _checkGBDTRegressor(gbdt):
 	if hasattr(gbdt, "apply"):
@@ -13,12 +16,12 @@ def _checkGBDTRegressor(gbdt):
 				return gbdt
 		except ImportError:
 			pass
-	raise ValueError("GBDT class " + gbdt.__class__ + " is not supported")
+	raise ValueError("GBDT class " + _class_name(gbdt) + " is not supported")
 
 def _checkLM(lm):
-	if isinstance(lm, LinearRegression):
+	if isinstance(lm, LinearModel) or isinstance(lm, LinearRegression) or isinstance(lm, SparseCoefMixin):
 		return lm
-	raise ValueError("LM class " + lm.__class__ + " is not supported")
+	raise ValueError("LM class " + _class_name(lm) + " is not supported")
 
 def _checkGBDTClassifier(gbdt):
 	if hasattr(gbdt, "apply"):
@@ -30,12 +33,12 @@ def _checkGBDTClassifier(gbdt):
 				return gbdt
 		except ImportError:
 			pass
-	raise ValueError("GBDT class " + gbdt.__class__ + " is not supported")
+	raise ValueError("GBDT class " + _class_name(gbdt) + " is not supported")
 
 def _checkLR(lr):
-	if isinstance(lr, LogisticRegression):
+	if isinstance(lr, LinearClassifierMixin):
 		return lr
-	raise ValueError("LR class " + lr.__class__ + " is not supported")
+	raise ValueError("LR class " + _class_name(lr) + " is not supported")
 
 def _step_params(name, params):
 	prefix = name + "__"

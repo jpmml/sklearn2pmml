@@ -1,8 +1,20 @@
-from sklearn2pmml.ensemble import _step_params
+from sklearn.linear_model import ElasticNet, LinearRegression, LogisticRegression, SGDClassifier, SGDRegressor
+from sklearn.svm import LinearSVC
+from sklearn2pmml.ensemble import _checkLM, _checkLR, _step_params
 
 from unittest import TestCase
 
 class GBDTLRTest(TestCase):
+
+	def test_lm(self):
+		_checkLM(ElasticNet())
+		_checkLM(LinearRegression())
+		_checkLM(SGDRegressor())
+
+	def test_lr(self):
+		_checkLR(LinearSVC())
+		_checkLR(LogisticRegression())
+		_checkLR(SGDClassifier())
 
 	def test_step_params(self):
 		params = {
