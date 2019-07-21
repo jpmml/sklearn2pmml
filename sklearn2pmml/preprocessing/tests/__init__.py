@@ -4,7 +4,7 @@ from sklearn.preprocessing import Imputer
 from sklearn_pandas import DataFrameMapper
 from sklearn.pipeline import FeatureUnion, Pipeline
 from sklearn2pmml.decoration import Alias, DateDomain, DateTimeDomain
-from sklearn2pmml.preprocessing import Aggregator, ConcatTransformer, CutTransformer, DaysSinceYearTransformer, ExpressionTransformer, LookupTransformer, MatchesTransformer, MultiLookupTransformer, PMMLLabelBinarizer, PMMLLabelEncoder, PowerFunctionTransformer, ReplaceTransformer, SecondsSinceYearTransformer, StringNormalizer, SubstringTransformer
+from sklearn2pmml.preprocessing import Aggregator, CastTransformer, ConcatTransformer, CutTransformer, DaysSinceYearTransformer, ExpressionTransformer, LookupTransformer, MatchesTransformer, MultiLookupTransformer, PMMLLabelBinarizer, PMMLLabelEncoder, PowerFunctionTransformer, ReplaceTransformer, SecondsSinceYearTransformer, StringNormalizer, SubstringTransformer
 from unittest import TestCase
 
 import math
@@ -23,6 +23,21 @@ class AggregatorTest(TestCase):
 		self.assertEqual([0.5, 0], aggregator.transform(X).tolist())
 		X = X.reshape((6, 1))
 		self.assertEqual([1, 0.5, 2, 3.0, 0, 1.0], aggregator.transform(X).tolist())
+
+class CastTransformerTest(TestCase):
+
+	def test_transform(self):
+		X = numpy.asarray([False, "1", float(1.0), 0], dtype = object)
+		transformer = CastTransformer(dtype = str)
+		self.assertEqual(["False", "1", "1.0", "0"], transformer.transform(X).tolist())
+		transformer = CastTransformer(dtype = int)
+		self.assertEqual([0, 1, 1, 0], transformer.transform(X).tolist())
+		transformer = CastTransformer(dtype = float)
+		self.assertEqual([0.0, 1.0, 1.0, 0.0], transformer.transform(X).tolist())
+		transformer = CastTransformer(dtype = numpy.float)
+		self.assertEqual([0.0, 1.0, 1.0, 0.0], transformer.transform(X).tolist())
+		transformer = CastTransformer(dtype = bool)
+		self.assertEqual([False, True, True, False], transformer.transform(X).tolist())
 
 class CutTransformerTest(TestCase):
 

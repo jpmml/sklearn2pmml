@@ -38,6 +38,17 @@ class Aggregator(BaseEstimator, TransformerMixin):
 			return numpy.mean(X, axis = 1)
 		return X
 
+class CastTransformer(BaseEstimator, TransformerMixin):
+
+	def __init__(self, dtype):
+		self.dtype = dtype
+
+	def fit(self, X, y = None):
+		return self
+
+	def transform(self, X):
+		return X.astype(self.dtype)
+
 class CutTransformer(BaseEstimator, TransformerMixin):
 
 	def __init__(self, bins, right = True, labels = None, include_lowest = True):
