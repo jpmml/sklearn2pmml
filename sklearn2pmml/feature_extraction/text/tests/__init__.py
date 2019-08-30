@@ -1,7 +1,8 @@
 from io import BytesIO
-from sklearn.externals import joblib
 from sklearn2pmml.feature_extraction.text import Splitter
 from unittest import TestCase
+
+import joblib
 
 class SplitterTest(TestCase):
 

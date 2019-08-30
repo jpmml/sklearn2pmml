@@ -1,6 +1,5 @@
 from sklearn.base import BaseEstimator
 from sklearn.exceptions import NotFittedError
-from sklearn.externals import joblib
 from sklearn.feature_selection.base import SelectorMixin
 from sklearn.feature_selection import SelectFromModel
 from sklearn.pipeline import FeatureUnion, Pipeline
@@ -8,6 +7,7 @@ from sklearn_pandas import DataFrameMapper
 from subprocess import PIPE, Popen
 from zipfile import ZipFile
 
+import joblib
 import numpy
 import os
 import pandas
@@ -209,10 +209,11 @@ def sklearn2pmml(pipeline, pmml, user_classpath = [], with_repr = False, debug =
 			java_version = ("java", "N/A")
 		print("python: {0}".format(platform.python_version()))
 		print("sklearn: {0}".format(sklearn.__version__))
-		print("sklearn.externals.joblib: {0}".format(joblib.__version__))
-		print("pandas: {0}".format(pandas.__version__))
-		print("sklearn_pandas: {0}".format(sklearn_pandas.__version__))
 		print("sklearn2pmml: {0}".format(__version__))
+		print("joblib: {0}".format(joblib.__version__))
+		print("sklearn_pandas: {0}".format(sklearn_pandas.__version__))
+		print("pandas: {0}".format(pandas.__version__))
+		print("numpy: {0}".format(numpy.__version__))
 		print("{0}: {1}".format(java_version[0], java_version[1]))
 	if not isinstance(pipeline, PMMLPipeline):
 		raise TypeError("The pipeline object is not an instance of " + PMMLPipeline.__name__ + ". Use the 'sklearn2pmml.make_pmml_pipeline(obj)' utility function to translate a regular Scikit-Learn estimator or pipeline to a PMML pipeline")

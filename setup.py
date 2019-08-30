@@ -36,6 +36,7 @@ setup(
 		"sklearn2pmml.resources" : ["*.jar"]
 	},
 	install_requires = [
+		"joblib>=0.13.0",
 		"scikit-learn>=0.18.0",
 		"sklearn-pandas>=0.0.10"
 	]
