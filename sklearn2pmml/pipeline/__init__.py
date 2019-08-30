@@ -65,8 +65,8 @@ class PMMLPipeline(Pipeline):
 			self.target_fields = target_fields
 		return super(PMMLPipeline, self)._fit(X = X, y = y, **fit_params)
 
-	def predict_transform(self, X):
-		y_pred = self.predict(X)
+	def predict_transform(self, X, **predict_params):
+		y_pred = self.predict(X, **predict_params)
 		if self.predict_transformer is not None:
 			nrow = len(y_pred)
 			y_pred = y_pred.reshape(nrow, -1)
@@ -87,14 +87,14 @@ class PMMLPipeline(Pipeline):
 			estimator.pmml_options_ = dict()
 			estimator.pmml_options_.update(pmml_options)
 
-	def verify(self, X, precision = 1e-13, zeroThreshold = 1e-13):
+	def verify(self, X, predict_params = {}, precision = 1e-13, zeroThreshold = 1e-13):
 		active_fields = _get_column_names(X)
 		if self.active_fields is None or active_fields is None:
 			raise ValueError("Cannot perform model validation with anonymous data")
 		if self.active_fields.tolist() != active_fields.tolist():
 			raise ValueError("The columns between training data {} and verification data {} do not match".format(self.active_fields, active_fields))
 		active_values = _get_values(X)
-		y = self.predict(X)
+		y = self.predict(X, **predict_params)
 		target_values = _get_values(y)
 		estimator = self._final_estimator
 		if isinstance(estimator, BaseEstimator):
