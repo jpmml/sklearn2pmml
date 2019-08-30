@@ -65,6 +65,17 @@ class PMMLPipeline(Pipeline):
 			self.target_fields = target_fields
 		return super(PMMLPipeline, self)._fit(X = X, y = y, **fit_params)
 
+	def predict_proba(self, X, **predict_proba_params):
+		Xt = X
+		if hasattr(self, "_iter"):
+			for _, name, transform in self._iter(with_final = False):
+				Xt = transform.transform(Xt)
+		else:
+			for name, transform in self.steps[:-1]:
+				if transform is not None:
+					Xt = transform.transform(Xt)
+		return self.steps[-1][-1].predict_proba(Xt, **predict_proba_params)
+
 	def predict_transform(self, X, **predict_params):
 		y_pred = self.predict(X, **predict_params)
 		if self.predict_transformer is not None:
@@ -74,8 +85,8 @@ class PMMLPipeline(Pipeline):
 			return numpy.hstack((y_pred, y_predt))
 		return y_pred
 
-	def predict_proba_transform(self, X):
-		y_proba = self.predict_proba(X)
+	def predict_proba_transform(self, X, **predict_proba_params):
+		y_proba = self.predict_proba(X, **predict_proba_params)
 		if self.predict_proba_transformer is not None:
 			y_probat = self.predict_proba_transformer.transform(y_proba)
 			return numpy.hstack((y_proba, y_probat))
@@ -87,7 +98,7 @@ class PMMLPipeline(Pipeline):
 			estimator.pmml_options_ = dict()
 			estimator.pmml_options_.update(pmml_options)
 
-	def verify(self, X, predict_params = {}, precision = 1e-13, zeroThreshold = 1e-13):
+	def verify(self, X, predict_params = {}, predict_proba_params = {}, precision = 1e-13, zeroThreshold = 1e-13):
 		active_fields = _get_column_names(X)
 		if self.active_fields is None or active_fields is None:
 			raise ValueError("Cannot perform model validation with anonymous data")
@@ -104,7 +115,7 @@ class PMMLPipeline(Pipeline):
 				self.verification = _Verification(active_values, target_values, precision, zeroThreshold)
 				if hasattr(estimator, "predict_proba"):
 					try:
-						y_proba = self.predict_proba(X)
+						y_proba = self.predict_proba(X, **predict_proba_params)
 						self.verification.probability_values = _get_values(y_proba)
 					except AttributeError:
 						pass
