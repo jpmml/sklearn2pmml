@@ -1,8 +1,9 @@
 from datetime import datetime
 from pandas import DataFrame, Series
-from sklearn.preprocessing import Imputer
 from sklearn_pandas import DataFrameMapper
+from sklearn.base import clone
 from sklearn.pipeline import FeatureUnion, Pipeline
+from sklearn.preprocessing import Imputer
 from sklearn2pmml.decoration import Alias, DateDomain, DateTimeDomain
 from sklearn2pmml.preprocessing import Aggregator, CastTransformer, ConcatTransformer, CutTransformer, DaysSinceYearTransformer, ExpressionTransformer, LookupTransformer, MatchesTransformer, MultiLookupTransformer, PMMLLabelBinarizer, PMMLLabelEncoder, PowerFunctionTransformer, ReplaceTransformer, SecondsSinceYearTransformer, StringNormalizer, SubstringTransformer
 from unittest import TestCase
@@ -71,7 +72,7 @@ class DurationTransformerTest(TestCase):
 
 	def test_timedelta_days(self):
 		X = DataFrame([["2018-12-31", "2019-01-01"], ["2019-01-31", "2019-01-01"]], columns = ["left", "right"])
-		pipeline = Pipeline([
+		pipeline = clone(Pipeline([
 			("union", FeatureUnion([
 				("left_mapper", DataFrameMapper([
 					("left", [DateDomain(), DaysSinceYearTransformer(year = 2010)])
@@ -81,7 +82,7 @@ class DurationTransformerTest(TestCase):
 				]))
 			])),
 			("expression", Alias(ExpressionTransformer("X[0] - X[1]"), "delta(left, right)", prefit = True))
-		])
+		]))
 		Xt = pipeline.fit_transform(X)
 		self.assertEqual([[-1], [30]], Xt.tolist())
 

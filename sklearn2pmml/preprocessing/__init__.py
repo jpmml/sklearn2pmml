@@ -70,6 +70,7 @@ class DurationTransformer(BaseEstimator, TransformerMixin):
 	def __init__(self, year):
 		if year < 1900:
 			raise ValueError("Year {0} is earlier than 1900".format(year))
+		self.year = year
 		self.epoch = datetime(year, 1, 1, tzinfo = None)
 
 	def _to_duration(self, td):
