@@ -232,10 +232,12 @@ class MultiDomain(BaseEstimator, TransformerMixin):
 			raise ValueError("The number of columns {0} is not equal to the number of domain objects {1}".format(columns, len(self.domains)))
 		if isinstance(X, DataFrame):
 			for domain, column in zip(self.domains, X.columns):
-				domain.fit(X[column].values)
+				if domain is not None:
+					domain.fit(X[column].values)
 		else:
 			for domain, column in zip(self.domains, range(0, columns)):
-				domain.fit(X[:, column])
+				if domain is not None:
+					domain.fit(X[:, column])
 		return self
 
 	def transform(self, X):
@@ -244,8 +246,10 @@ class MultiDomain(BaseEstimator, TransformerMixin):
 			raise ValueError("The number of columns {0} is not equal to the number of domain objects {1}".format(columns, len(self.domains)))
 		if isinstance(X, DataFrame):
 			for domain, column in zip(self.domains, X.columns):
-				X[column] = domain.transform(X[column].values)
+				if domain is not None:
+					X[column] = domain.transform(X[column].values)
 		else:
 			for domain, column in zip(self.domains, range(0, columns)):
-				X[:, column] = domain.transform(X[:, column])
+				if domain is not None:
+					X[:, column] = domain.transform(X[:, column])
 		return X

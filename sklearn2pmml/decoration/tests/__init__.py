@@ -214,14 +214,16 @@ class DateTimeDomainTest(TestCase):
 class MultiDomainTest(TestCase):
 
 	def test_fit_transform(self):
-		domain = clone(MultiDomain([ContinuousDomain(missing_value_replacement = 0.0), CategoricalDomain(missing_value_replacement = "zero")]))
-		X = DataFrame([[-1.0, "minus one"], [float("NaN"), None], [1.0, "one"]], columns = ["x1", "x2"])
+		domain = clone(MultiDomain([ContinuousDomain(missing_value_replacement = 0.0), None, CategoricalDomain(missing_value_replacement = "zero")]))
+		X = DataFrame([[-1.0, -1, "minus one"], [float("NaN"), 0, None], [1.0, 1, "one"]], columns = ["x1", "x2", "x3"])
 		Xt = domain.fit_transform(X)
 		self.assertTrue(isinstance(Xt, DataFrame))
 		self.assertEqual([-1.0, 0.0, 1.0], Xt["x1"].tolist())
-		self.assertEqual(["minus one", "zero", "one"], Xt["x2"].tolist())
-		X = numpy.array([[float("NaN"), None]])
+		self.assertEqual([-1, 0, 1], Xt["x2"].tolist())
+		self.assertEqual(["minus one", "zero", "one"], Xt["x3"].tolist())
+		X = numpy.array([[float("NaN"), 0, None]])
 		Xt = domain.transform(X)
 		self.assertTrue(isinstance(Xt, numpy.ndarray))
 		self.assertTrue([0.0], Xt[:, 0].tolist())
-		self.assertTrue(["zero"], Xt[:, 1].tolist())
+		self.assertTrue([0], Xt[:, 1].tolist())
+		self.assertTrue(["zero"], Xt[:, 2].tolist())
