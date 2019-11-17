@@ -46,13 +46,17 @@ class Domain(BaseEstimator, TransformerMixin):
 			raise ValueError("Missing value treatment {0} not in {1}".format(missing_value_treatment, missing_value_treatments))
 		self.missing_value_treatment = missing_value_treatment
 		if missing_value_replacement is not None:
+			if missing_value_treatment == "return_invalid":
+				raise ValueError("Missing value treatment {0} does not support missing_value_replacement attribute", missing_value_treatment)
 			self.missing_value_replacement = missing_value_replacement
 		invalid_value_treatments = ["return_invalid", "as_is", "as_missing"]
 		if invalid_value_treatment not in invalid_value_treatments:
 			raise ValueError("Invalid value treatment {0} not in {1}".format(invalid_value_treatment, invalid_value_treatments))
-		if invalid_value_replacement is not None:
-			self.invalid_value_replacement = invalid_value_replacement
 		self.invalid_value_treatment = invalid_value_treatment
+		if invalid_value_replacement is not None:
+			if invalid_value_treatment == "return_invalid" or invalid_value_treatment == "as_missing":
+				raise ValueError("Invalid value treatment {0} does not support invalid_value_replacement attribute", invalid_value_treatment)
+			self.invalid_value_replacement = invalid_value_replacement
 		self.with_data = with_data
 		self.with_statistics = with_statistics
 
@@ -127,8 +131,6 @@ class ContinuousDomain(Domain):
 				raise ValueError("Outlier treatment {0} requires low_value and high_value attributes".format(outlier_treatment))
 			self.low_value = low_value
 			self.high_value = high_value
-		else:
-			raise ValueError("Outlier treatment {0} not in {1}".format(outlier_treatment, outlier_treatments))
 
 	def fit(self, X, y = None):
 		if self._empty_fit():

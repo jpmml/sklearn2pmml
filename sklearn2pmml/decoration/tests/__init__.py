@@ -2,7 +2,7 @@ from datetime import datetime
 from pandas import DataFrame
 from sklearn.base import clone
 from sklearn.preprocessing import Imputer, LabelBinarizer, StandardScaler
-from sklearn2pmml.decoration import Alias, CategoricalDomain, ContinuousDomain, DateDomain, DateTimeDomain, MultiDomain
+from sklearn2pmml.decoration import Alias, CategoricalDomain, ContinuousDomain, DateDomain, DateTimeDomain, Domain, MultiDomain
 from sklearn_pandas import DataFrameMapper
 from unittest import TestCase
 
@@ -25,6 +25,14 @@ def _value_count(stats):
 
 def _array_to_list(info):
 	return dict((k, v.tolist()) for k, v in info.items())
+
+class DomainTest(TestCase):
+
+	def test_init(self):
+		with self.assertRaises(ValueError):
+			Domain(missing_value_treatment = "return_invalid", missing_value_replacement = 0)
+		with self.assertRaises(ValueError):
+			Domain(invalid_value_replacement = 0)
 
 class CategoricalDomainTest(TestCase):
 
