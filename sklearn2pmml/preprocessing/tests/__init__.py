@@ -39,6 +39,11 @@ class CastTransformerTest(TestCase):
 		self.assertEqual([0.0, 1.0, 1.0, 0.0], transformer.transform(X).tolist())
 		transformer = CastTransformer(dtype = bool)
 		self.assertEqual([False, True, True, False], transformer.transform(X).tolist())
+		X = numpy.asarray(["1960-01-01T00:00:00", "1960-01-03T03:30:03"])
+		transformer = CastTransformer(dtype = "datetime64[D]")
+		self.assertEqual([datetime(1960, 1, 1), datetime(1960, 1, 3)], transformer.transform(X).tolist())
+		transformer = CastTransformer(dtype = "datetime64[s]")
+		self.assertEqual([datetime(1960, 1, 1, 0, 0, 0), datetime(1960, 1, 3, 3, 30, 3)], transformer.transform(X).tolist())
 
 class CutTransformerTest(TestCase):
 

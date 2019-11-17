@@ -189,8 +189,8 @@ class TemporalDomain(Domain):
 	def __init__(self, missing_values = None, missing_value_treatment = "as_is", missing_value_replacement = None, invalid_value_treatment = "return_invalid", invalid_value_replacement = None):
 		super(TemporalDomain, self).__init__(missing_values = missing_values, missing_value_treatment = missing_value_treatment, missing_value_replacement = missing_value_replacement, invalid_value_treatment = invalid_value_treatment, invalid_value_replacement = invalid_value_replacement, with_data = False, with_statistics = False)
 
-	def _to_instant(self, X):
-		return X.to_pydatetime()
+	def _floor(self, X):
+		raise NotImplementedError()
 
 	def fit(self, X, y = None):
 		return self
@@ -200,7 +200,8 @@ class TemporalDomain(Domain):
 		if len(shape) > 1:
 			X = X.ravel()
 		Xt = pandas.to_datetime(X, yearfirst = True, origin = "unix")
-		Xt = self._to_instant(Xt)
+		Xt = self._floor(Xt)
+		Xt = Xt.to_pydatetime()
 		if len(shape) > 1:
 			Xt = Xt.reshape(shape)
 		return Xt
@@ -210,16 +211,16 @@ class DateDomain(TemporalDomain):
 	def __init__(self, missing_values = None, missing_value_treatment = "as_is", missing_value_replacement = None, invalid_value_treatment = "return_invalid", invalid_value_replacement = None):
 		super(DateDomain, self).__init__(missing_values = missing_values, missing_value_treatment = missing_value_treatment, missing_value_replacement = missing_value_replacement, invalid_value_treatment = invalid_value_treatment, invalid_value_replacement = invalid_value_replacement)
 
-	def _to_instant(self, X):
-		return super(DateDomain, self)._to_instant(X.floor("D"))
+	def _floor(self, X):
+		return X.floor("D")
 
 class DateTimeDomain(TemporalDomain):
 
 	def __init__(self, missing_values = None, missing_value_treatment = "as_is", missing_value_replacement = None, invalid_value_treatment = "return_invalid", invalid_value_replacement = None):
 		super(DateTimeDomain, self).__init__(missing_values = missing_values, missing_value_treatment = missing_value_treatment, missing_value_replacement = missing_value_replacement, invalid_value_treatment = invalid_value_treatment, invalid_value_replacement = invalid_value_replacement)
 
-	def _to_instant(self, X):
-		return super(DateTimeDomain, self)._to_instant(X.floor("S"))
+	def _floor(self, X):
+		return X.floor("S")
 
 class MultiDomain(BaseEstimator, TransformerMixin):
 

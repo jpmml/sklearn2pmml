@@ -41,13 +41,31 @@ class Aggregator(BaseEstimator, TransformerMixin):
 class CastTransformer(BaseEstimator, TransformerMixin):
 
 	def __init__(self, dtype):
+		if isinstance(dtype, str) and dtype.startswith("datetime64"):
+			dtypes = ["datetime64[D]", "datetime64[s]"]
+			if dtype not in dtypes:
+				raise ValueError("Temporal data type {0} not in {1}".format(dtype, dtypes))
 		self.dtype = dtype
 
 	def fit(self, X, y = None):
 		return self
 
 	def transform(self, X):
-		return X.astype(self.dtype)
+		if isinstance(self.dtype, str) and self.dtype.startswith("datetime64"):
+			shape = X.shape
+			if len(shape) > 1:
+				X = X.ravel()
+			Xt = pandas.to_datetime(X, yearfirst = True, origin = "unix")
+			if self.dtype == "datetime64[D]":
+				Xt = Xt.floor("D")
+			elif self.dtype == "datetime64[s]":
+				Xt = Xt.floor("S")
+			Xt = Xt.to_pydatetime()
+			if len(shape) > 1:
+				Xt = Xt.reshape(shape)
+		else:
+			Xt = X.astype(self.dtype)
+		return Xt
 
 class CutTransformer(BaseEstimator, TransformerMixin):
 
