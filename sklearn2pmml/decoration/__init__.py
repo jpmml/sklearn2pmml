@@ -101,7 +101,10 @@ class CategoricalDomain(Domain):
 		mask = self._missing_value_mask(X)
 		values, counts = numpy.unique(X[~mask], return_counts = True)
 		if self.with_data:
-			self.data_ = values
+			if hasattr(self, "missing_value_replacement") and sum(mask) > 0:
+				self.data_ = numpy.unique(numpy.append(values, self.missing_value_replacement))
+			else:
+				self.data_ = values
 		if self.with_statistics:
 			self.counts_ = _count(mask)
 			self.discr_stats_ = (values, counts)
