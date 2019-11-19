@@ -21,7 +21,7 @@ def _regex_engine(pattern):
 class Aggregator(BaseEstimator, TransformerMixin):
 
 	def __init__(self, function):
-		functions = ["min", "max", "mean"]
+		functions = ["min", "max", "sum", "prod", "mean"]
 		if function not in functions:
 			raise ValueError("Function {0} not in {1}".format(function, functions))
 		self.function = function
@@ -34,9 +34,14 @@ class Aggregator(BaseEstimator, TransformerMixin):
 			return numpy.nanmin(X, axis = 1) 
 		elif self.function == "max":
 			return numpy.nanmax(X, axis = 1)
+		elif self.function == "sum":
+			return numpy.nansum(X, axis = 1)
+		elif self.function == "prod":
+			return numpy.nanprod(X, axis = 1)
 		elif self.function == "mean":
 			return numpy.nanmean(X, axis = 1)
-		return X
+		else:
+			raise ValueError(self.function)
 
 class CastTransformer(BaseEstimator, TransformerMixin):
 
@@ -60,6 +65,8 @@ class CastTransformer(BaseEstimator, TransformerMixin):
 				Xt = Xt.floor("D")
 			elif self.dtype == "datetime64[s]":
 				Xt = Xt.floor("S")
+			else:
+				raise ValueError(self.dtype)
 			Xt = Xt.to_pydatetime()
 			if len(shape) > 1:
 				Xt = Xt.reshape(shape)
@@ -320,10 +327,14 @@ class StringNormalizer(BaseEstimator, TransformerMixin):
 			X = X.values
 		Xt = X.astype("U")
 		# Transform
-		if self.function == "lowercase":
+		if self.function is None:
+			pass
+		elif self.function == "lowercase":
 			Xt = numpy.char.lower(Xt)
 		elif self.function == "uppercase":
 			Xt = numpy.char.upper(Xt)
+		else:
+			raise ValueError(self.function)
 		# Trim blanks
 		if self.trim_blanks:
 			Xt = numpy.char.strip(Xt)
