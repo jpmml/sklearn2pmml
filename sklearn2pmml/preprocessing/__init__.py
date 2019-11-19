@@ -31,11 +31,11 @@ class Aggregator(BaseEstimator, TransformerMixin):
 
 	def transform(self, X):
 		if self.function == "min":
-			return numpy.amin(X, axis = 1) 
+			return numpy.nanmin(X, axis = 1) 
 		elif self.function == "max":
-			return numpy.amax(X, axis = 1)
+			return numpy.nanmax(X, axis = 1)
 		elif self.function == "mean":
-			return numpy.mean(X, axis = 1)
+			return numpy.nanmean(X, axis = 1)
 		return X
 
 class CastTransformer(BaseEstimator, TransformerMixin):
