@@ -21,7 +21,7 @@ def _regex_engine(pattern):
 class Aggregator(BaseEstimator, TransformerMixin):
 
 	def __init__(self, function):
-		functions = ["min", "max", "sum", "prod", "mean"]
+		functions = ["min", "max", "sum", "prod", "product", "mean", "avg"]
 		if function not in functions:
 			raise ValueError("Function {0} not in {1}".format(function, functions))
 		self.function = function
@@ -36,9 +36,9 @@ class Aggregator(BaseEstimator, TransformerMixin):
 			return numpy.nanmax(X, axis = 1)
 		elif self.function == "sum":
 			return numpy.nansum(X, axis = 1)
-		elif self.function == "prod":
+		elif self.function == "prod" or self.function == "product":
 			return numpy.nanprod(X, axis = 1)
-		elif self.function == "mean":
+		elif self.function == "mean" or self.function == "avg":
 			return numpy.nanmean(X, axis = 1)
 		else:
 			raise ValueError(self.function)
@@ -296,7 +296,7 @@ class SubstringTransformer(BaseEstimator, TransformerMixin):
 class StringNormalizer(BaseEstimator, TransformerMixin):
 
 	def __init__(self, function = None, trim_blanks = True):
-		functions = ["lowercase", "uppercase"]
+		functions = ["lower", "lowercase", "upper", "uppercase"]
 		if (function is not None) and (function not in functions):
 			raise ValueError("Function {0} not in {1}".format(function, functions))
 		self.function = function
@@ -312,9 +312,9 @@ class StringNormalizer(BaseEstimator, TransformerMixin):
 		# Transform
 		if self.function is None:
 			pass
-		elif self.function == "lowercase":
+		elif self.function == "lower" or self.function == "lowercase":
 			Xt = numpy.char.lower(Xt)
-		elif self.function == "uppercase":
+		elif self.function == "upper" or self.function == "uppercase":
 			Xt = numpy.char.upper(Xt)
 		else:
 			raise ValueError(self.function)
