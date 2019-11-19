@@ -3,7 +3,7 @@ from datetime import datetime
 from pandas import Series
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils import column_or_1d
-from sklearn2pmml.util import eval_rows
+from sklearn2pmml.util import eval_rows, flat_transform, to_pydatetime
 
 import numpy
 import pandas
@@ -57,22 +57,10 @@ class CastTransformer(BaseEstimator, TransformerMixin):
 
 	def transform(self, X):
 		if isinstance(self.dtype, str) and self.dtype.startswith("datetime64"):
-			shape = X.shape
-			if len(shape) > 1:
-				X = X.ravel()
-			Xt = pandas.to_datetime(X, yearfirst = True, origin = "unix")
-			if self.dtype == "datetime64[D]":
-				Xt = Xt.floor("D")
-			elif self.dtype == "datetime64[s]":
-				Xt = Xt.floor("S")
-			else:
-				raise ValueError(self.dtype)
-			Xt = Xt.to_pydatetime()
-			if len(shape) > 1:
-				Xt = Xt.reshape(shape)
+			func = lambda x: to_pydatetime(x, self.dtype)
+			return flat_transform(X, func)
 		else:
-			Xt = X.astype(self.dtype)
-		return Xt
+			return X.astype(self.dtype)
 
 class CutTransformer(BaseEstimator, TransformerMixin):
 
@@ -105,14 +93,9 @@ class DurationTransformer(BaseEstimator, TransformerMixin):
 		return self
 
 	def transform(self, X):
-		shape = X.shape
-		if len(shape) > 1:
-			X = X.ravel()
-		Xt = pandas.to_timedelta(X - self.epoch)
-		Xt = self._to_duration(Xt)
-		if len(shape) > 1:
-			Xt = Xt.reshape(shape)
-		return Xt
+		def to_duration(X):
+			return self._to_duration(pandas.to_timedelta(X - self.epoch))
+		return flat_transform(X, to_duration)
 
 class DaysSinceYearTransformer(DurationTransformer):
 

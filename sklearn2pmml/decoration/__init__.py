@@ -1,6 +1,7 @@
 from pandas import DataFrame
 from sklearn.base import clone, BaseEstimator, TransformerMixin
 from sklearn.utils import column_or_1d
+from sklearn2pmml.util import eval_rows, flat_transform, to_pydatetime
 
 import numpy
 import pandas
@@ -191,41 +192,26 @@ class ContinuousDomain(Domain):
 
 class TemporalDomain(Domain):
 
-	def __init__(self, missing_values = None, missing_value_treatment = "as_is", missing_value_replacement = None, invalid_value_treatment = "return_invalid", invalid_value_replacement = None):
+	def __init__(self, dtype, missing_values = None, missing_value_treatment = "as_is", missing_value_replacement = None, invalid_value_treatment = "return_invalid", invalid_value_replacement = None):
 		super(TemporalDomain, self).__init__(missing_values = missing_values, missing_value_treatment = missing_value_treatment, missing_value_replacement = missing_value_replacement, invalid_value_treatment = invalid_value_treatment, invalid_value_replacement = invalid_value_replacement, with_data = False, with_statistics = False)
-
-	def _floor(self, X):
-		raise NotImplementedError()
+		self.dtype = dtype
 
 	def fit(self, X, y = None):
 		return self
 
 	def transform(self, X):
-		shape = X.shape
-		if len(shape) > 1:
-			X = X.ravel()
-		Xt = pandas.to_datetime(X, yearfirst = True, origin = "unix")
-		Xt = self._floor(Xt)
-		Xt = Xt.to_pydatetime()
-		if len(shape) > 1:
-			Xt = Xt.reshape(shape)
-		return Xt
+		func = lambda x: to_pydatetime(x, self.dtype)
+		return flat_transform(X, func)
 
 class DateDomain(TemporalDomain):
 
 	def __init__(self, missing_values = None, missing_value_treatment = "as_is", missing_value_replacement = None, invalid_value_treatment = "return_invalid", invalid_value_replacement = None):
-		super(DateDomain, self).__init__(missing_values = missing_values, missing_value_treatment = missing_value_treatment, missing_value_replacement = missing_value_replacement, invalid_value_treatment = invalid_value_treatment, invalid_value_replacement = invalid_value_replacement)
-
-	def _floor(self, X):
-		return X.floor("D")
+		super(DateDomain, self).__init__("datetime64[D]", missing_values = missing_values, missing_value_treatment = missing_value_treatment, missing_value_replacement = missing_value_replacement, invalid_value_treatment = invalid_value_treatment, invalid_value_replacement = invalid_value_replacement)
 
 class DateTimeDomain(TemporalDomain):
 
 	def __init__(self, missing_values = None, missing_value_treatment = "as_is", missing_value_replacement = None, invalid_value_treatment = "return_invalid", invalid_value_replacement = None):
-		super(DateTimeDomain, self).__init__(missing_values = missing_values, missing_value_treatment = missing_value_treatment, missing_value_replacement = missing_value_replacement, invalid_value_treatment = invalid_value_treatment, invalid_value_replacement = invalid_value_replacement)
-
-	def _floor(self, X):
-		return X.floor("S")
+		super(DateTimeDomain, self).__init__("datetime64[s]", missing_values = missing_values, missing_value_treatment = missing_value_treatment, missing_value_replacement = missing_value_replacement, invalid_value_treatment = invalid_value_treatment, invalid_value_replacement = invalid_value_replacement)
 
 class MultiDomain(BaseEstimator, TransformerMixin):
 
