@@ -19,7 +19,7 @@ def _checkGBDTRegressor(gbdt):
 	raise ValueError("GBDT class " + _class_name(gbdt) + " is not supported")
 
 def _checkLM(lm):
-	if isinstance(lm, LinearModel) or isinstance(lm, LinearRegression) or isinstance(lm, SparseCoefMixin):
+	if isinstance(lm, (LinearModel, LinearRegression, SparseCoefMixin)):
 		return lm
 	raise ValueError("LM class " + _class_name(lm) + " is not supported")
 

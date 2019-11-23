@@ -1,6 +1,15 @@
 import numpy
 import pandas
 
+def cast(X, dtype):
+	if isinstance(dtype, str) and dtype.startswith("datetime64"):
+		func = lambda x: to_pydatetime(x, dtype)
+		return flat_transform(X, func)
+	else:
+		if not hasattr(X, "astype"):
+			X = numpy.asarray(X)
+		return X.astype(dtype)
+
 def eval_rows(X, func, dtype = object):
 	if hasattr(X, "apply"):
 		return X.apply(func, axis = 1)
