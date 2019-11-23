@@ -1,6 +1,6 @@
 from collections import defaultdict
 from datetime import datetime
-from pandas import Series
+from pandas import Categorical, Series
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils import column_or_1d
 from sklearn2pmml.util import cast, eval_rows, flat_transform
@@ -17,6 +17,11 @@ def _regex_engine(pattern):
 		warnings.warn("Perl Compatible Regular Expressions (PCRE) library is not available, falling back to built-in Regular Expressions (RE) library. Transformation results might not be reproducible between Python and PMML environments when using more complex patterns", Warning)
 		import re
 		return re.compile(pattern)
+
+def _col2d(X):
+	if isinstance(X, Series):
+		X = X.values
+	return X.reshape(-1, 1)
 
 class Aggregator(BaseEstimator, TransformerMixin):
 
@@ -72,7 +77,10 @@ class CutTransformer(BaseEstimator, TransformerMixin):
 
 	def transform(self, X):
 		X = column_or_1d(X, warn = True)
-		return pandas.cut(X, bins = self.bins, right = self.right, labels = self.labels, include_lowest = self.include_lowest)
+		Xt = pandas.cut(X, bins = self.bins, right = self.right, labels = self.labels, include_lowest = self.include_lowest)
+		if isinstance(Xt, Categorical):
+			Xt = numpy.asarray(Xt)
+		return _col2d(Xt)
 
 class DurationTransformer(BaseEstimator, TransformerMixin):
 
@@ -127,9 +135,7 @@ class ExpressionTransformer(BaseEstimator, TransformerMixin):
 		Xt = eval_rows(X, func)
 		if hasattr(self, "dtype"):
 			Xt = cast(Xt, self.dtype)
-		if isinstance(Xt, Series):
-			Xt = Xt.values
-		return Xt.reshape(-1, 1)
+		return _col2d(Xt)
 
 class LookupTransformer(BaseEstimator, TransformerMixin):
 
@@ -156,8 +162,10 @@ class LookupTransformer(BaseEstimator, TransformerMixin):
 		transform_dict = self._transform_dict()
 		func = lambda k: transform_dict[k]
 		if hasattr(X, "apply"):
-			return X.apply(func)
-		return numpy.vectorize(func)(X)
+			Xt = X.apply(func)
+		else:
+			Xt = numpy.vectorize(func)(X)
+		return _col2d(Xt)
 
 class MultiLookupTransformer(LookupTransformer):
 
@@ -180,9 +188,11 @@ class MultiLookupTransformer(LookupTransformer):
 		transform_dict = self._transform_dict()
 		func = lambda k: transform_dict[tuple(k)]
 		if hasattr(X, "apply"):
-			return X.apply(func, axis = 1)
-		# See https://stackoverflow.com/a/3338368
-		return numpy.array([func((numpy.squeeze(numpy.asarray(row))).tolist()) for row in X])
+			Xt = X.apply(func, axis = 1)
+		else:
+			# See https://stackoverflow.com/a/3338368
+			Xt = numpy.array([func((numpy.squeeze(numpy.asarray(row))).tolist()) for row in X])
+		return _col2d(Xt)
 
 class PMMLLabelBinarizer(BaseEstimator, TransformerMixin):
 
@@ -213,7 +223,8 @@ class PMMLLabelEncoder(BaseEstimator, TransformerMixin):
 	def transform(self, X):
 		X = column_or_1d(X, warn = True)
 		index = list(self.classes_)
-		return numpy.array([self.missing_values if pandas.isnull(v) else index.index(v) for v in X])
+		Xt = numpy.array([self.missing_values if pandas.isnull(v) else index.index(v) for v in X])
+		return _col2d(Xt)
 
 class PowerFunctionTransformer(BaseEstimator, TransformerMixin):
 
@@ -239,9 +250,7 @@ class ConcatTransformer(BaseEstimator, TransformerMixin):
 	def transform(self, X):
 		func = lambda x: self.separator.join([str(v) for v in x])
 		Xt = eval_rows(X, func)
-		if isinstance(Xt, Series):
-			Xt = Xt.values
-		return Xt.reshape(-1, 1)
+		return _col2d(Xt)
 
 class MatchesTransformer(BaseEstimator, TransformerMixin):
 
@@ -256,7 +265,8 @@ class MatchesTransformer(BaseEstimator, TransformerMixin):
 		X = column_or_1d(X, warn = True)
 		engine = _regex_engine(self.pattern)
 		func = lambda x: bool(engine.search(x))
-		return eval_rows(X, func)
+		Xt = eval_rows(X, func)
+		return _col2d(Xt)
 
 class ReplaceTransformer(BaseEstimator, TransformerMixin):
 
@@ -272,7 +282,8 @@ class ReplaceTransformer(BaseEstimator, TransformerMixin):
 		X = column_or_1d(X, warn = True)
 		engine = _regex_engine(self.pattern)
 		func = lambda x: engine.sub(self.replacement, x)
-		return eval_rows(X, func)
+		Xt = eval_rows(X, func)
+		return _col2d(Xt)
 
 class SubstringTransformer(BaseEstimator, TransformerMixin):
 
@@ -291,7 +302,8 @@ class SubstringTransformer(BaseEstimator, TransformerMixin):
 	def transform(self, X):
 		X = column_or_1d(X, warn = True)
 		func = lambda x: x[self.begin:self.end]
-		return eval_rows(X, func)
+		Xt = eval_rows(X, func)
+		return _col2d(Xt)
 
 class StringNormalizer(BaseEstimator, TransformerMixin):
 

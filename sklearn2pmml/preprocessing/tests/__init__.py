@@ -93,13 +93,13 @@ class CutTransformerTest(TestCase):
 		bins = [float("-inf"), -1.0, 0.0, 1.0, float("+inf")]
 		transformer = CutTransformer(bins, labels = False, right = True)
 		X = numpy.array([-2.0, -1.0, -0.5, 0.0, 0.5, 1.0, 2.0])
-		self.assertEqual([0, 0, 1, 1, 2, 2, 3], transformer.transform(X).tolist())
+		self.assertEqual([[0], [0], [1], [1], [2], [2], [3]], transformer.transform(X).tolist())
 		transformer = CutTransformer(bins, labels = False, right = False)
-		self.assertEqual([0, 1, 1, 2, 2, 3, 3], transformer.transform(X).tolist())
+		self.assertEqual([[0], [1], [1], [2], [2], [3], [3]], transformer.transform(X).tolist())
 		bins = [-3.0, -1.0, 1.0, 3.0]
 		transformer = CutTransformer(bins, labels = False, right = True, include_lowest = True)
 		X = numpy.array([-3.0, -2.0, 2.0, 3.0])
-		self.assertEqual([0, 0, 2, 2], transformer.transform(X).tolist())
+		self.assertEqual([[0], [0], [2], [2]], transformer.transform(X).tolist())
 		X = numpy.array([-5.0])
 		self.assertTrue(numpy.isnan(transformer.transform(X)).tolist()[0])
 		X = numpy.array([5.0])
@@ -188,9 +188,12 @@ class LookupTransformerTest(TestCase):
 			90.0 : math.cos(90.0)
 		}
 		transformer = LookupTransformer(mapping, float("NaN"))
-		self.assertEqual([math.cos(0.0), math.cos(90.0)], transformer.transform([0.0, 90.0]).tolist())
-		self.assertTrue(math.isnan(transformer.transform([180.0])))
-		self.assertEqual([math.cos(0.0), math.cos(45.0), math.cos(90.0)], transformer.transform(Series(numpy.array([0.0, 45.0, 90.0]))).tolist())
+		X = numpy.array([[0.0], [90.0]])
+		self.assertEqual([[math.cos(0.0)], [math.cos(90.0)]], transformer.transform(X).tolist())
+		X = numpy.array([180.0])
+		self.assertTrue(math.isnan(transformer.transform(X)))
+		X = Series([0.0, 45.0, 90.0])
+		self.assertEqual([[math.cos(0.0)], [math.cos(45.0)], [math.cos(90.0)]], transformer.transform(X).tolist())
 
 	def test_transform_string(self):
 		mapping = {
@@ -203,8 +206,10 @@ class LookupTransformerTest(TestCase):
 			LookupTransformer(mapping, None)
 		mapping.pop(None)
 		transformer = LookupTransformer(mapping, None)
-		self.assertEqual([None, "ein"], transformer.transform(["zero", "one"]).tolist())
-		self.assertEqual(["ein", "zwei", "drei"], transformer.transform(Series(numpy.array(["one", "two", "three"]))).tolist())
+		X = numpy.array([["zero"], ["one"]])
+		self.assertEqual([[None], ["ein"]], transformer.transform(X).tolist())
+		X = Series(["one", "two", "three"])
+		self.assertEqual([["ein"], ["zwei"], ["drei"]], transformer.transform(X).tolist())
 
 class MultiLookupTransformerTest(TestCase):
 
@@ -216,7 +221,7 @@ class MultiLookupTransformerTest(TestCase):
 		}
 		transformer = MultiLookupTransformer(mapping, None)
 		X = DataFrame([[1, 0], [1, 1], [2, 0], [2, 1], [2, 2], [3, 0], [3, 1], [3, 2], [3, 3]])
-		self.assertEqual([None, "one", None, None, "two", None, None, None, "three"], transformer.transform(X).tolist())
+		self.assertEqual([[None], ["one"], [None], [None], ["two"], [None], [None], [None], ["three"]], transformer.transform(X).tolist())
 
 	def test_transform_object(self):
 		mapping = {
@@ -230,9 +235,9 @@ class MultiLookupTransformerTest(TestCase):
 		mapping.pop(tuple(["zero"]))
 		transformer = MultiLookupTransformer(mapping, None)
 		X = DataFrame([["one", None], ["one", True], [None, True], ["two", True], ["three", True]])
-		self.assertEqual([None, "ein", None, "zwei", "drei"], transformer.transform(X).tolist())
+		self.assertEqual([[None], ["ein"], [None], ["zwei"], ["drei"]], transformer.transform(X).tolist())
 		X = numpy.matrix([["one", True], ["one", None], ["two", True]], dtype = "O")
-		self.assertEqual(["ein", None, "zwei"], transformer.transform(X).tolist())
+		self.assertEqual([["ein"], [None], ["zwei"]], transformer.transform(X).tolist())
 
 class PMMLLabelBinarizerTest(TestCase):
 
@@ -295,15 +300,15 @@ class PMMLLabelEncoderTest(TestCase):
 		X = [1.0, float("NaN"), 2.0, 3.0]
 		encoder = PMMLLabelEncoder(missing_values = -999)
 		encoder.fit(X)
-		self.assertEqual([0, 2, -999, 1], encoder.transform([1.0, 3.0, float("NaN"), 2.0]).tolist())
+		self.assertEqual([[0], [2], [-999], [1]], encoder.transform([1.0, 3.0, float("NaN"), 2.0]).tolist())
 
 	def test_transform_string(self):
 		X = ["A", None, "B", "C"]
 		encoder = PMMLLabelEncoder()
 		encoder.fit(X)
-		self.assertEqual([0, 2, None, 1], encoder.transform(["A", "C", None, "B"]).tolist())
-		self.assertEqual([None], encoder.transform(numpy.array([None])).tolist())
-		self.assertEqual([0, 1, 2], encoder.transform(Series(numpy.array(["A", "B", "C"]))).tolist())
+		self.assertEqual([[0], [2], [None], [1]], encoder.transform(["A", "C", None, "B"]).tolist())
+		self.assertEqual([[None]], encoder.transform(numpy.array([None])).tolist())
+		self.assertEqual([[0], [1], [2]], encoder.transform(Series(numpy.array(["A", "B", "C"]))).tolist())
 
 class PowerFunctionTransformerTest(TestCase):
 
@@ -330,25 +335,15 @@ class MatchesTransformerTest(TestCase):
 
 	def test_transform(self):
 		X = numpy.asarray(["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"])
-		Xt_exp = [True, True, False, False, True, False, False, False, False, False, False, False]
 		transformer = MatchesTransformer("ar?y")
-		self.assertEqual(Xt_exp, transformer.transform(X).tolist())
-		X = DataFrame(X.reshape(-1, 1), columns = ["month"])
-		Xt = transformer.transform(X)
-		self.assertTrue((12, 1), Xt.shape)
-		self.assertEqual(Xt_exp, Xt.tolist())
+		self.assertEqual([[True], [True], [False], [False], [True], [False], [False], [False], [False], [False], [False], [False]], transformer.transform(X).tolist())
 
 class ReplaceTransformerTest(TestCase):
 
 	def test_transform(self):
 		X = numpy.asarray(["A", "B", "BA", "BB", "BAB", "ABBA", "BBBB"])
-		Xt_exp = ["A", "c", "cA", "c", "cAc", "AcA", "c"]
 		transformer = ReplaceTransformer("B+", "c")
-		self.assertEqual(Xt_exp, transformer.transform(X).tolist())
-		X = DataFrame(X.reshape(-1, 1), columns = ["input"])
-		Xt = transformer.transform(X)
-		self.assertTrue((7, 1), Xt.shape)
-		self.assertEqual(Xt_exp, Xt.tolist())
+		self.assertEqual([["A"], ["c"], ["cA"], ["c"], ["cAc"], ["AcA"], ["c"]], transformer.transform(X).tolist())
 
 class StringNormalizerTest(TestCase):
 
@@ -360,14 +355,12 @@ class StringNormalizerTest(TestCase):
 		self.assertEqual([" ONE", " TWO ", "THREE "], normalizer.transform(X).tolist())
 		normalizer = StringNormalizer(function = "lowercase")
 		self.assertEqual(["one", "two", "three"], normalizer.transform(X).tolist())
-		X = Series(X, dtype = str)
-		self.assertEqual(["one", "two", "three"], normalizer.transform(X).tolist())
+		X = X.reshape(3, 1)
+		self.assertEqual([["one"], ["two"], ["three"]], normalizer.transform(X).tolist())
 
 class SubstringTransformerTest(TestCase):
 
 	def test_transform(self):
 		X = numpy.asarray(["", "a", "aB", "aBc", "aBc9", "aBc9x"])
 		transformer = SubstringTransformer(1, 4)
-		self.assertEqual(["", "", "B", "Bc", "Bc9", "Bc9"], transformer.transform(X).tolist())
-		X = DataFrame(X, columns = ["input"])
-		self.assertEqual(["", "", "B", "Bc", "Bc9", "Bc9"], transformer.transform(X).tolist())
+		self.assertEqual([[""], [""], ["B"], ["Bc"], ["Bc9"], ["Bc9"]], transformer.transform(X).tolist())
