@@ -14,8 +14,10 @@ import pandas
 import pkg_resources
 import platform
 import re
+import shutil
 import sklearn
 import sklearn_pandas
+import sys
 import tempfile
 
 from .metadata import __copyright__, __license__, __version__
@@ -179,15 +181,15 @@ def _dump(obj, prefix):
 	return path
 
 def sklearn2pmml(pipeline, pmml, user_classpath = [], with_repr = False, debug = False, java_encoding = "UTF-8"):
-	"""Converts a fitted Scikit-Learn pipeline to PMML.
+	"""Converts a fitted PMML pipeline object to PMML file.
 
 	Parameters:
 	----------
 	pipeline: PMMLPipeline
-		The pipeline.
+		The input PMML pipeline object.
 
 	pmml: string
-		The path to where the PMML document should be stored.
+		The output PMML file.
 
 	user_classpath: list of strings, optional
 		The paths to JAR files that provide custom Transformer, Selector and/or Estimator converter classes.
@@ -257,6 +259,42 @@ def sklearn2pmml(pipeline, pmml, user_classpath = [], with_repr = False, debug =
 		else:
 			for dump in dumps:
 				os.remove(dump)
+
+def pmml2jar(pmml, jar = None, **transpiler_params):
+	"""Converts a PMML file to a PMML service provider JAR file.
+
+	Parameters:
+	-----------
+	pmml: string
+		The input PMML file.
+
+	jar: string, optional
+		The output PMML service provider JAR file.
+
+	transpiler_params: dict, optional
+		Transpiler parameters.
+
+	"""
+	if "requests" not in sys.modules:
+		import requests
+	if jar is None:
+		jar = pmml + ".jar"
+	with open(pmml, "rb") as pmmlstream:
+		kwargs = {
+			"data" : pmmlstream,
+			"headers" : {"content-type" : "application/xml"},
+			"params" : transpiler_params,
+			"stream" : True
+		}
+		response = requests.post("https://service.openscoring.io/api/jpmml-transpiler", **kwargs)
+		try:
+			response.raise_for_status()
+			if "content-encoding" in response.headers:
+				response.raw.decode_content = True
+			with open(jar, "wb") as jarstream:
+				shutil.copyfileobj(response.raw, jarstream)
+		finally:
+			response.close()
 
 def _parse_properties(lines):
 	splitter = re.compile("\s*=\s*")
