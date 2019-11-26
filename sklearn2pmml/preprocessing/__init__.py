@@ -164,7 +164,7 @@ class LookupTransformer(BaseEstimator, TransformerMixin):
 		if hasattr(X, "apply"):
 			Xt = X.apply(func)
 		else:
-			Xt = numpy.vectorize(func)(X)
+			Xt = numpy.array([func(row) for row in X])
 		return _col2d(Xt)
 
 class MultiLookupTransformer(LookupTransformer):
