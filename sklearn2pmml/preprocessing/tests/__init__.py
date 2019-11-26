@@ -10,6 +10,7 @@ from unittest import TestCase
 
 import math
 import numpy
+import scipy
 
 def nan_eq(left, right):
 	for i, j in zip(left, right):
@@ -262,17 +263,31 @@ class PMMLLabelBinarizerTest(TestCase):
 
 	def test_transform_float(self):
 		X = [1.0, float("NaN"), 2.0, 3.0]
-		binarizer = PMMLLabelBinarizer()
-		binarizer.fit(X)
-		self.assertEqual([[1, 0, 0], [0, 0, 1], [0, 0, 0], [0, 1, 0]], binarizer.transform([1.0, 3.0, float("NaN"), 2.0]).tolist())
+		dense_binarizer = PMMLLabelBinarizer()
+		dense_binarizer.fit(X)
+		Xt_dense = dense_binarizer.transform([1.0, 3.0, float("NaN"), 2.0])
+		self.assertIsInstance(Xt_dense, numpy.ndarray)
+		self.assertEqual([[1, 0, 0], [0, 0, 1], [0, 0, 0], [0, 1, 0]], Xt_dense.tolist())
+		sparse_binarizer = PMMLLabelBinarizer(sparse_output = True)
+		sparse_binarizer.fit(X)
+		Xt_sparse = sparse_binarizer.transform([1.0, 3.0, float("NaN"), 2.0])
+		self.assertIsInstance(Xt_sparse, scipy.sparse.csr_matrix)
+		self.assertEqual(Xt_dense.tolist(), Xt_sparse.toarray().tolist())
 
 	def test_transform_string(self):
 		X = ["A", None, "B", "C"]
-		binarizer = PMMLLabelBinarizer()
-		binarizer.fit(X)
-		self.assertEqual([[1, 0, 0], [0, 0, 1], [0, 0, 0], [0, 1, 0]], binarizer.transform(["A", "C", None, "B"]).tolist())
-		self.assertEqual([[0, 0, 0]], binarizer.transform([None]).tolist())
-		self.assertEqual([[1, 0, 0], [0, 1, 0], [0, 0, 1]], binarizer.transform(["A", "B", "C"]).tolist())
+		dense_binarizer = PMMLLabelBinarizer()
+		dense_binarizer.fit(X)
+		Xt_dense = dense_binarizer.transform(["A", "C", None, "B"])
+		self.assertIsInstance(Xt_dense, numpy.ndarray)
+		self.assertEqual([[1, 0, 0], [0, 0, 1], [0, 0, 0], [0, 1, 0]], Xt_dense.tolist())
+		self.assertEqual([[0, 0, 0]], dense_binarizer.transform([None]).tolist())
+		self.assertEqual([[1, 0, 0], [0, 1, 0], [0, 0, 1]], dense_binarizer.transform(["A", "B", "C"]).tolist())
+		sparse_binarizer = PMMLLabelBinarizer(sparse_output = True)
+		sparse_binarizer.fit(X)
+		Xt_sparse = sparse_binarizer.transform(["A", "C", None, "B"])
+		self.assertIsInstance(Xt_sparse, scipy.sparse.csr_matrix)
+		self.assertEqual(Xt_dense.tolist(), Xt_sparse.toarray().tolist())
 
 class PMMLLabelEncoderTest(TestCase):
 

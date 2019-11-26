@@ -1,6 +1,7 @@
 from collections import defaultdict
 from datetime import datetime
 from pandas import Categorical, Series
+from scipy.sparse import lil_matrix
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils import column_or_1d
 from sklearn2pmml.util import cast, eval_rows, flat_transform
@@ -196,6 +197,9 @@ class MultiLookupTransformer(LookupTransformer):
 
 class PMMLLabelBinarizer(BaseEstimator, TransformerMixin):
 
+	def __init__(self, sparse_output = False):
+		self.sparse_output = sparse_output
+
 	def fit(self, X, y = None):
 		X = column_or_1d(X, warn = True)
 		self.classes_ = numpy.unique(X[~pandas.isnull(X)])
@@ -204,10 +208,15 @@ class PMMLLabelBinarizer(BaseEstimator, TransformerMixin):
 	def transform(self, X):
 		X = column_or_1d(X, warn = True)
 		index = list(self.classes_)
-		Xt = numpy.zeros((len(X), len(index)), dtype = numpy.int)
+		if self.sparse_output:
+			Xt = lil_matrix((len(X), len(index)), dtype = numpy.int)
+		else:
+			Xt = numpy.zeros((len(X), len(index)), dtype = numpy.int)
 		for i, v in enumerate(X):
 			if not pandas.isnull(v):
 				Xt[i, index.index(v)] = 1
+		if self.sparse_output:
+			Xt = Xt.tocsr()
 		return Xt
 
 class PMMLLabelEncoder(BaseEstimator, TransformerMixin):
