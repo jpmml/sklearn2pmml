@@ -23,6 +23,13 @@ import tempfile
 from .metadata import __copyright__, __license__, __version__
 from .pipeline import PMMLPipeline
 
+def _is_categorical(dtype):
+	if dtype == object or dtype == str or dtype == bool:
+		return True
+	elif hasattr(dtype, "name") and dtype.name == "category":
+		return True
+	return False
+
 class EstimatorProxy(BaseEstimator):
 
 	def __init__(self, estimator_, attr_names_ = ["feature_importances_"]):

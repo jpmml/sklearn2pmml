@@ -3,11 +3,25 @@ from sklearn.dummy import DummyRegressor
 from sklearn.feature_selection import f_regression, SelectFromModel, SelectKBest
 from sklearn.pipeline import Pipeline
 from sklearn.tree import DecisionTreeRegressor
-from sklearn2pmml import _classpath, _filter, _filter_steps, _java_version, _strip_module, _supported_classes, make_pmml_pipeline, make_tpot_pmml_config, EstimatorProxy, SelectorProxy
+from sklearn2pmml import _classpath, _filter, _filter_steps, _is_categorical, _java_version, _strip_module, _supported_classes, make_pmml_pipeline, make_tpot_pmml_config, EstimatorProxy, SelectorProxy
 from sklearn2pmml.pipeline import PMMLPipeline
 from unittest import TestCase
 
 import numpy
+
+class DTypeTest(TestCase):
+
+	def test_is_categorical(self):
+		x = Series(["True", "False", "True"], name = "x", dtype = str)
+		self.assertTrue(_is_categorical(x.dtype))
+		x = x.astype(bool)
+		self.assertTrue(_is_categorical(x.dtype))
+		x = x.astype(float)
+		self.assertFalse(_is_categorical(x.dtype))
+		x = x.astype("category")
+		self.assertTrue(_is_categorical(x.dtype))
+		x = x.astype(int)
+		self.assertFalse(_is_categorical(x.dtype))
 
 class EstimatorProxyTest(TestCase):
 

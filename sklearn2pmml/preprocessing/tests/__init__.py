@@ -2,15 +2,27 @@ from datetime import datetime
 from pandas import DataFrame, Series
 from sklearn_pandas import DataFrameMapper
 from sklearn.base import clone
+from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import FeatureUnion, Pipeline
 from sklearn.preprocessing import Imputer
 from sklearn2pmml.decoration import Alias, DateDomain, DateTimeDomain
 from sklearn2pmml.preprocessing import Aggregator, CastTransformer, ConcatTransformer, CutTransformer, DaysSinceYearTransformer, ExpressionTransformer, LookupTransformer, MatchesTransformer, MultiLookupTransformer, PMMLLabelBinarizer, PMMLLabelEncoder, PowerFunctionTransformer, ReplaceTransformer, SecondsSinceYearTransformer, StringNormalizer, SubstringTransformer
+from sklearn2pmml.preprocessing.lightgbm import make_lightgbm_column_transformer, make_lightgbm_dataframe_mapper
+from sklearn2pmml.preprocessing.xgboost import make_xgboost_column_transformer, make_xgboost_dataframe_mapper
 from unittest import TestCase
 
 import math
 import numpy
+import pandas
 import scipy
+
+def _data():
+	strings = Series(["0", "1", "2"], name = "string", dtype = str)
+	booleans = Series([False, True, True], name = "boolean", dtype = bool)
+	cont_ints = Series([0, 1, 2], name = "cont_int", dtype = int)
+	cat_ints = Series([0, 1, 2], name = "cat_int", dtype = int).astype("category")
+	floats = Series([0.0, 1.0, 2.0], name = "float", dtype = float)
+	return pandas.concat([strings, booleans, cont_ints, cat_ints, floats], axis = 1)
 
 def nan_eq(left, right):
 	for i, j in zip(left, right):
@@ -379,3 +391,29 @@ class SubstringTransformerTest(TestCase):
 		X = numpy.asarray(["", "a", "aB", "aBc", "aBc9", "aBc9x"])
 		transformer = SubstringTransformer(1, 4)
 		self.assertEqual([[""], [""], ["B"], ["Bc"], ["Bc9"], ["Bc9"]], transformer.transform(X).tolist())
+
+class LightGBMTest(TestCase):
+
+	def test_fit_transform(self):
+		X = _data()
+		ct, ct_categorical_feature = make_lightgbm_column_transformer(X.dtypes, missing_value_aware = False)
+		dfm, dfm_categorical_feature = make_lightgbm_dataframe_mapper(X.dtypes, missing_value_aware = False)
+		self.assertEqual(ct.fit_transform(X).tolist(), dfm.fit_transform(X).tolist())
+		self.assertEqual([0, 1, 3], ct_categorical_feature)
+		self.assertEqual([0, 1, 3], dfm_categorical_feature)
+		ct, ct_categorical_feature = make_lightgbm_column_transformer(X.dtypes, missing_value_aware = True)
+		dfm, dfm_categorical_feature = make_lightgbm_dataframe_mapper(X.dtypes, missing_value_aware = True)
+		self.assertEqual(ct.fit_transform(X).tolist(), dfm.fit_transform(X).tolist())
+		self.assertEqual([0, 1, 3], ct_categorical_feature)
+		self.assertEqual([0, 1, 3], dfm_categorical_feature)
+
+class XGBoostTest(TestCase):
+
+	def test_fit_transform(self):
+		X = _data()
+		ct = make_xgboost_column_transformer(X.dtypes, missing_value_aware = False)
+		dfm = make_xgboost_column_transformer(X.dtypes, missing_value_aware = False)
+		self.assertEqual(ct.fit_transform(X).tolist(), dfm.fit_transform(X).tolist())
+		ct = make_xgboost_column_transformer(X.dtypes, missing_value_aware = True)
+		dfm = make_xgboost_column_transformer(X.dtypes, missing_value_aware = True)
+		self.assertEqual(ct.fit_transform(X).tolist(), dfm.fit_transform(X).tolist())
