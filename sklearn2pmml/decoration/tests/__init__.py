@@ -1,7 +1,8 @@
 from datetime import datetime
 from pandas import DataFrame
 from sklearn.base import clone
-from sklearn.preprocessing import Imputer, LabelBinarizer, StandardScaler
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import LabelBinarizer, StandardScaler
 from sklearn2pmml.decoration import Alias, CategoricalDomain, ContinuousDomain, DateDomain, DateTimeDomain, Domain, MultiDomain
 from sklearn_pandas import DataFrameMapper
 from unittest import TestCase
@@ -194,7 +195,7 @@ class ContinuousDomainTest(TestCase):
 		domain = ContinuousDomain()
 		df = DataFrame([{"X1" : 2.0, "X2" : 2, "y" : 2.0}, {"X1" : 1.0, "X2" : 0.5}, {"X1" : 2}, {"X2" : 2}, {"X1" : 2.0, "y" : 1}, {"X1" : 3.0, "X2" : 3.5}])
 		mapper = DataFrameMapper([
-			(["X1", "X2"], [domain, Imputer(), StandardScaler()]),
+			(["X1", "X2"], [domain, SimpleImputer(), StandardScaler()]),
 			("y", None)
 		])
 		mapper.fit_transform(df)

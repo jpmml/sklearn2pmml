@@ -4,7 +4,7 @@ from sklearn_pandas import DataFrameMapper
 from sklearn.base import clone
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import FeatureUnion, Pipeline
-from sklearn.preprocessing import Imputer
+from sklearn.impute import SimpleImputer
 from sklearn2pmml.decoration import Alias, DateDomain, DateTimeDomain
 from sklearn2pmml.preprocessing import Aggregator, CastTransformer, ConcatTransformer, CutTransformer, DaysSinceYearTransformer, ExpressionTransformer, LookupTransformer, MatchesTransformer, MultiLookupTransformer, PMMLLabelBinarizer, PMMLLabelEncoder, PowerFunctionTransformer, ReplaceTransformer, SecondsSinceYearTransformer, StringNormalizer, SubstringTransformer
 from sklearn2pmml.preprocessing.lightgbm import make_lightgbm_column_transformer, make_lightgbm_dataframe_mapper
@@ -187,7 +187,7 @@ class ExpressionTransformerTest(TestCase):
 	def test_sequence_transform(self):
 		X = DataFrame([[None], [1], [None]], columns = ["a"])
 		mapper = DataFrameMapper([
-			(["a"], [ExpressionTransformer("0 if pandas.isnull(X[0]) else X[0]"), Imputer(missing_values = 0)])
+			(["a"], [ExpressionTransformer("0 if pandas.isnull(X[0]) else X[0]"), SimpleImputer(missing_values = 0)])
 		])
 		Xt = mapper.fit_transform(X)
 		self.assertEqual([[1], [1], [1]], Xt.tolist())
