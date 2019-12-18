@@ -1,6 +1,8 @@
+from pandas import DataFrame
+from sklearn.dummy import DummyClassifier
 from sklearn.linear_model import ElasticNet, LinearRegression, LogisticRegression, SGDClassifier, SGDRegressor
 from sklearn.svm import LinearSVC
-from sklearn2pmml.ensemble import _checkLM, _checkLR, _step_params
+from sklearn2pmml.ensemble import _checkLM, _checkLR, _step_params, SelectFirstEstimator
 
 from unittest import TestCase
 
@@ -29,3 +31,14 @@ class GBDTLRTest(TestCase):
 		lr_params = _step_params("lr", params)
 		self.assertEqual({"first" : 1.0}, lr_params)
 		self.assertEqual({"any__any" : None}, params)
+
+class SelectFirstEstimatorTest(TestCase):
+
+	def test_fit(self):
+		df = DataFrame([[-1, 0], [0, 0], [-1, 1], [1, 1], [-1, 0]], columns = ["X", "y"])
+		estimator = SelectFirstEstimator([
+			("X[0] < 0", DummyClassifier(strategy = "most_frequent")),
+			("X[0] > 0", DummyClassifier(strategy = "most_frequent")),
+			(str(True), DummyClassifier(strategy = "constant", constant = 0))
+		])
+		estimator.fit(df[["X"]], df["y"])

@@ -3,6 +3,8 @@ from sklearn.linear_model.base import SparseCoefMixin, LinearClassifierMixin, Li
 from sklearn.preprocessing import OneHotEncoder
 from sklearn2pmml.util import eval_rows
 
+import numpy
+
 def _class_name(x):
 	return str(x.__class__)
 
@@ -138,7 +140,16 @@ class SelectFirstEstimator(BaseEstimator):
 		return None
 
 	def fit(self, X, y, **fit_params):
-		raise NotImplementedError()
+		mask = numpy.zeros(X.shape[0], dtype = bool)
+		for step in self.steps:
+			predicate = step[0]
+			estimator = step[1]
+			func = lambda X: eval(predicate)
+			step_mask = eval_rows(X, func)
+			step_mask[mask] = False
+			estimator.fit(X[step_mask], y[step_mask], **fit_params)
+			mask = numpy.logical_or(mask, step_mask)
+		return self
 
 	def predict(self, X):
 		func = lambda x: self._eval_row(x)
