@@ -129,16 +129,6 @@ class SelectFirstEstimator(BaseEstimator):
 				raise ValueError("Step is not a two-element (predicate, estimator) tuple")
 		self.steps = steps
 
-	def _eval_row(self, X):
-		for step in self.steps:
-			predicate = step[0]
-			estimator = step[1]
-			if eval(predicate):
-				Xt = X.reshape(1, -1)
-				y = estimator.predict(Xt)
-				return y.item()
-		return None
-
 	def fit(self, X, y, **fit_params):
 		mask = numpy.zeros(X.shape[0], dtype = bool)
 		for step in self.steps:
@@ -152,5 +142,15 @@ class SelectFirstEstimator(BaseEstimator):
 		return self
 
 	def predict(self, X):
-		func = lambda x: self._eval_row(x)
-		return eval_rows(X, func)
+		mask = numpy.zeros(X.shape[0], dtype = bool)
+		result = numpy.empty(X.shape[0], dtype = object)
+		for step in self.steps:
+			predicate = step[0]
+			estimator = step[1]
+			func = lambda X: eval(predicate)
+			step_mask = eval_rows(X, func)
+			step_mask[mask] = False
+			yt = estimator.predict(X[step_mask])
+			result[step_mask.ravel()] = yt
+			mask = numpy.logical_or(mask, step_mask)
+		return result.reshape(-1, 1)
