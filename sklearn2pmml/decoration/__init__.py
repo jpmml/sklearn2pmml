@@ -1,7 +1,7 @@
 from pandas import DataFrame
 from sklearn.base import clone, BaseEstimator, TransformerMixin
 from sklearn.utils import column_or_1d
-from sklearn2pmml.util import cast, eval_rows
+from sklearn2pmml.util import cast
 
 import numpy
 import pandas

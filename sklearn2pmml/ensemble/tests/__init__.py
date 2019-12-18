@@ -35,7 +35,7 @@ class GBDTLRTest(TestCase):
 class SelectFirstEstimatorTest(TestCase):
 
 	def test_fit_predict(self):
-		df = DataFrame([[-1, 0], [0, 0], [-1, 1], [1, 1], [-1, 0]], columns = ["X", "y"])
+		df = DataFrame([[-1, 0], [0, 0], [-1, -1], [1, 1], [-1, -1]], columns = ["X", "y"])
 		X = df[["X"]]
 		y = df["y"]
 		estimator = SelectFirstEstimator([
@@ -44,5 +44,5 @@ class SelectFirstEstimatorTest(TestCase):
 			(str(True), DummyClassifier(strategy = "constant", constant = 0))
 		])
 		estimator.fit(X, y)
-		yt = estimator.predict(X)
-		self.assertEqual([[0], [0], [0], [1], [0]], yt.tolist())
+		preds = estimator.predict(X)
+		self.assertEqual([-1, 0, -1, 1, -1], preds.tolist())

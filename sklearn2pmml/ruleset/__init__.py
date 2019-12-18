@@ -13,9 +13,7 @@ class RuleSetClassifier(BaseEstimator, ClassifierMixin):
 		self.default_score = default_score
 
 	def _eval_row(self, X):
-		for rule in self.rules:
-			predicate = rule[0]
-			score = rule[1]
+		for predicate, score in self.rules:
 			if eval(predicate):
 				return score
 		return self.default_score

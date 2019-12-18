@@ -131,26 +131,20 @@ class SelectFirstEstimator(BaseEstimator):
 
 	def fit(self, X, y, **fit_params):
 		mask = numpy.zeros(X.shape[0], dtype = bool)
-		for step in self.steps:
-			predicate = step[0]
-			estimator = step[1]
-			func = lambda X: eval(predicate)
-			step_mask = eval_rows(X, func)
+		for predicate, estimator in self.steps:
+			step_mask = eval_rows(X, lambda X: eval(predicate), dtype = bool)
 			step_mask[mask] = False
 			estimator.fit(X[step_mask], y[step_mask], **fit_params)
 			mask = numpy.logical_or(mask, step_mask)
 		return self
 
 	def predict(self, X):
+		result = numpy.empty((X.shape[0], ), dtype = object)
 		mask = numpy.zeros(X.shape[0], dtype = bool)
-		result = numpy.empty(X.shape[0], dtype = object)
-		for step in self.steps:
-			predicate = step[0]
-			estimator = step[1]
-			func = lambda X: eval(predicate)
-			step_mask = eval_rows(X, func)
+		for predicate, estimator in self.steps:
+			step_mask = eval_rows(X, lambda X: eval(predicate), dtype = bool)
 			step_mask[mask] = False
-			yt = estimator.predict(X[step_mask])
-			result[step_mask.ravel()] = yt
+			step_result = estimator.predict(X[step_mask])
+			result[step_mask.ravel()] = step_result
 			mask = numpy.logical_or(mask, step_mask)
-		return result.reshape(-1, 1)
+		return result
