@@ -90,7 +90,7 @@ class Domain(BaseEstimator, TransformerMixin):
 	def _transform_missing_values(self, X, where):
 		if self.missing_value_treatment == "return_invalid":
 			if numpy.any(where) > 0:
-				raise ValueError("Data contains missing values")
+				raise ValueError("Data contains {0} missing values".format(numpy.count_nonzero(where)))
 		if hasattr(self, "missing_value_replacement"):
 			X[where] = self.missing_value_replacement
 
@@ -100,7 +100,7 @@ class Domain(BaseEstimator, TransformerMixin):
 	def _transform_invalid_values(self, X, where):
 		if self.invalid_value_treatment == "return_invalid":
 			if numpy.any(where) > 0:
-				raise ValueError("Data contains invalid values")
+				raise ValueError("Data contains {0} invalid values".format(numpy.count_nonzero(where)))
 		elif self.invalid_value_treatment == "as_is":
 			if hasattr(self, "invalid_value_replacement"):
 				X[where] = self.invalid_value_replacement
@@ -131,6 +131,7 @@ class CategoricalDomain(Domain):
 					return x.isin(self.data_)
 				return x in self.data_
 			mask = eval_rows(X, is_valid, dtype = bool)
+			mask = (numpy.asarray(mask, dtype = bool)).reshape(X.shape)
 			return numpy.logical_and(mask, where)
 		return super(CategoricalDomain, self)._valid_value_mask(X, where)
 
@@ -175,7 +176,7 @@ class ContinuousDomain(Domain):
 
 	def _valid_value_mask(self, X, where):
 		if hasattr(self, "data_min_") and hasattr(self, "data_max_"):
-			mask = (numpy.greater_equal(X, self.data_min_) & numpy.less_equal(X, self.data_max_))
+			mask = (numpy.greater_equal(X, self.data_min_, where = where) & numpy.less_equal(X, self.data_max_, where = where))
 			return numpy.logical_and(mask, where)
 		return super(ContinuousDomain, self)._valid_value_mask(X, where)
 
@@ -205,15 +206,15 @@ class ContinuousDomain(Domain):
 		return self
 
 	def _outlier_mask(self, X, where):
-		mask = (numpy.less(X, self.low_value) | numpy.greater(X, self.high_value))
+		mask = (numpy.less(X, self.low_value, where = where) | numpy.greater(X, self.high_value, where = where))
 		return numpy.logical_and(mask, where)
 
 	def _negative_outlier_mask(self, X, where):
-		mask = numpy.less(X, self.low_value)
+		mask = numpy.less(X, self.low_value, where = where)
 		return numpy.logical_and(mask, where)
 
 	def _positive_outlier_mask(self, X, where):
-		mask = numpy.greater(X, self.high_value)
+		mask = numpy.greater(X, self.high_value, where = where)
 		return numpy.logical_and(mask, where)
 
 	def _transform_valid_values(self, X, where):
