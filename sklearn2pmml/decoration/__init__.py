@@ -1,7 +1,7 @@
 from pandas import DataFrame
 from sklearn.base import clone, BaseEstimator, TransformerMixin
 from sklearn.utils import column_or_1d
-from sklearn2pmml.util import cast
+from sklearn2pmml.util import cast, eval_rows
 
 import numpy
 import pandas
@@ -74,28 +74,65 @@ class Domain(BaseEstimator, TransformerMixin):
 					return pandas.isnull(X)
 				return X == missing_value
 			if type(self.missing_values) is list:
-				mask = None
+				mask = numpy.full(X.shape, False, dtype = bool)
 				for missing_value in self.missing_values:
-					if mask is None:
-						mask = is_missing(X, missing_value)
-					else:
-						mask = numpy.logical_or(mask, is_missing(X, missing_value))
+					mask = numpy.logical_or(mask, is_missing(X, missing_value))
 				return mask
 			else:
 				return is_missing(X, self.missing_values)
 		else:
 			return pandas.isnull(X)
 
-	def transform(self, X):
+	def _valid_value_mask(self, X, where):
+		mask = numpy.full(X.shape, True, dtype = bool)
+		return numpy.logical_and(mask, where)
+
+	def _transform_missing_values(self, X, where):
+		if self.missing_value_treatment == "return_invalid":
+			if numpy.any(where) > 0:
+				raise ValueError("Data contains missing values")
 		if hasattr(self, "missing_value_replacement"):
-			mask = self._missing_value_mask(X)
-			X[mask] = self.missing_value_replacement
+			X[where] = self.missing_value_replacement
+
+	def _transform_valid_values(self, X, where):
+		pass
+
+	def _transform_invalid_values(self, X, where):
+		if self.invalid_value_treatment == "return_invalid":
+			if numpy.any(where) > 0:
+				raise ValueError("Data contains invalid values")
+		elif self.invalid_value_treatment == "as_is":
+			if hasattr(self, "invalid_value_replacement"):
+				X[where] = self.invalid_value_replacement
+		elif self.invalid_value_treatment == "as_missing":
+			self._transform_missing_values(X, where)
+
+	def transform(self, X):
+		if hasattr(self, "dtype"):
+			X = cast(X, self.dtype)
+		missing_value_mask = self._missing_value_mask(X)
+		nonmissing_value_mask = ~missing_value_mask
+		valid_value_mask = self._valid_value_mask(X, nonmissing_value_mask)
+		invalid_value_mask = ~numpy.logical_or(missing_value_mask, valid_value_mask)
+		self._transform_missing_values(X, missing_value_mask)
+		self._transform_valid_values(X, valid_value_mask)
+		self._transform_invalid_values(X, invalid_value_mask)
 		return X
 
 class CategoricalDomain(Domain):
 
 	def __init__(self, missing_values = None, missing_value_treatment = "as_is", missing_value_replacement = None, invalid_value_treatment = "return_invalid", invalid_value_replacement = None, with_data = True, with_statistics = True, dtype = None):
 		super(CategoricalDomain, self).__init__(missing_values = missing_values, missing_value_treatment = missing_value_treatment, missing_value_replacement = missing_value_replacement, invalid_value_treatment = invalid_value_treatment, invalid_value_replacement = invalid_value_replacement, with_data = with_data, with_statistics = with_statistics, dtype = dtype)
+
+	def _valid_value_mask(self, X, where):
+		if hasattr(self, "data_"):
+			def is_valid(x):
+				if hasattr(x, "isin"):
+					return x.isin(self.data_)
+				return x in self.data_
+			mask = eval_rows(X, is_valid, dtype = bool)
+			return numpy.logical_and(mask, where)
+		return super(CategoricalDomain, self)._valid_value_mask(X, where)
 
 	def fit(self, X, y = None):
 		X = column_or_1d(X, warn = True)
@@ -106,7 +143,7 @@ class CategoricalDomain(Domain):
 		mask = self._missing_value_mask(X)
 		values, counts = numpy.unique(X[~mask], return_counts = True)
 		if self.with_data:
-			if hasattr(self, "missing_value_replacement") and sum(mask) > 0:
+			if hasattr(self, "missing_value_replacement") and numpy.any(mask) > 0:
 				self.data_ = numpy.unique(numpy.append(values, self.missing_value_replacement))
 			else:
 				self.data_ = values
@@ -115,18 +152,9 @@ class CategoricalDomain(Domain):
 			self.discr_stats_ = (values, counts)
 		return self
 
-	def transform(self, X):
-		if hasattr(self, "dtype"):
-			X = cast(X, self.dtype)
-		return super(CategoricalDomain, self).transform(X)
-
 def _interquartile_range(X, axis):
 	quartiles = numpy.nanpercentile(X, [25, 75], axis = axis)
 	return (quartiles[1] - quartiles[0])
-
-def _abjunction(outlier_mask, missing_value_mask):
-	outlier_mask[missing_value_mask] = False
-	return outlier_mask
 
 class ContinuousDomain(Domain):
 
@@ -144,6 +172,12 @@ class ContinuousDomain(Domain):
 				raise ValueError("Outlier treatment {0} requires low_value and high_value attributes".format(outlier_treatment))
 			self.low_value = low_value
 			self.high_value = high_value
+
+	def _valid_value_mask(self, X, where):
+		if hasattr(self, "data_min_") and hasattr(self, "data_max_"):
+			mask = (numpy.greater_equal(X, self.data_min_) & numpy.less_equal(X, self.data_max_))
+			return numpy.logical_and(mask, where)
+		return super(ContinuousDomain, self)._valid_value_mask(X, where)
 
 	def fit(self, X, y = None):
 		if self._empty_fit():
@@ -170,38 +204,33 @@ class ContinuousDomain(Domain):
 			}
 		return self
 
-	def _outlier_mask(self, X):
-		mask = self._missing_value_mask(X)
-		result = (numpy.less(X, self.low_value, where = ~mask) | numpy.greater(X, self.high_value, where = ~mask))
-		return _abjunction(result, mask)
+	def _outlier_mask(self, X, where):
+		mask = (numpy.less(X, self.low_value) | numpy.greater(X, self.high_value))
+		return numpy.logical_and(mask, where)
 
-	def _negative_outlier_mask(self, X):
-		mask = self._missing_value_mask(X)
-		result = numpy.less(X, self.low_value, where = ~mask)
-		return _abjunction(result, mask)
+	def _negative_outlier_mask(self, X, where):
+		mask = numpy.less(X, self.low_value)
+		return numpy.logical_and(mask, where)
 
-	def _positive_outlier_mask(self, X):
-		mask = self._missing_value_mask(X)
-		result = numpy.greater(X, self.high_value, where = ~mask)
-		return _abjunction(result, mask)
+	def _positive_outlier_mask(self, X, where):
+		mask = numpy.greater(X, self.high_value)
+		return numpy.logical_and(mask, where)
 
-	def transform(self, X):
-		if hasattr(self, "dtype"):
-			X = cast(X, self.dtype)
+	def _transform_valid_values(self, X, where):
 		if self.outlier_treatment == "as_missing_values":
-			mask = self._outlier_mask(X)
+			mask = self._outlier_mask(X, where)
 			if hasattr(self, "missing_values"):
 				if type(self.missing_values) is list:
 					raise ValueError()
 				X[mask] = self.missing_values
 			else:
 				X[mask] = None
+			self._transform_missing_values(X, mask)
 		elif self.outlier_treatment == "as_extreme_values":
-			mask = self._negative_outlier_mask(X)
+			mask = self._negative_outlier_mask(X, where)
 			X[mask] = self.low_value
-			mask = self._positive_outlier_mask(X)
+			mask = self._positive_outlier_mask(X, where)
 			X[mask] = self.high_value
-		return super(ContinuousDomain, self).transform(X)
 
 class TemporalDomain(Domain):
 
@@ -213,11 +242,6 @@ class TemporalDomain(Domain):
 
 	def fit(self, X, y = None):
 		return self
-
-	def transform(self, X):
-		if hasattr(self, "dtype"):
-			X = cast(X, self.dtype)
-		return super(TemporalDomain, self).transform(X)
 
 class DateDomain(TemporalDomain):
 
