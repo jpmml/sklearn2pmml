@@ -48,7 +48,7 @@ def make_xgboost_column_transformer(dtypes, missing_value_aware = True):
 	transformers = list()
 	for column, dtype in dtypes.items():
 		if _is_categorical(dtype):
-			transformers.append((column, PMMLLabelBinarizer(sparse_output = True) if missing_value_aware else Pipeline([("ordinal_encoder", OrdinalEncoder()), ("one_hot_encoder", OneHotEncoder())]), [column]))
+			transformers.append((str(column), PMMLLabelBinarizer(sparse_output = True) if missing_value_aware else Pipeline([("ordinal_encoder", OrdinalEncoder()), ("one_hot_encoder", OneHotEncoder())]), [column]))
 		else:
-			transformers.append((column, "passthrough", [column]))
+			transformers.append((str(column), "passthrough", [column]))
 	return ColumnTransformer(transformers, remainder = "drop")

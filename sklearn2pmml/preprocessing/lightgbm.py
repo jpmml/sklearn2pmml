@@ -52,9 +52,9 @@ def make_lightgbm_column_transformer(dtypes, missing_value_aware = True):
 	i = 0
 	for column, dtype in dtypes.items():
 		if _is_categorical(dtype):
-			transformers.append((column, PMMLLabelEncoder(missing_values = -1) if missing_value_aware else OrdinalEncoder(), [column]))
+			transformers.append((str(column), PMMLLabelEncoder(missing_values = -1) if missing_value_aware else OrdinalEncoder(), [column]))
 			categorical_features.append(i)
 		else:
-			transformers.append((column, "passthrough", [column]))
+			transformers.append((str(column), "passthrough", [column]))
 		i += 1
 	return (ColumnTransformer(transformers, remainder = "drop"), categorical_features)
