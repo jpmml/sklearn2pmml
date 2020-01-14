@@ -5,7 +5,9 @@ Python library for converting [Scikit-Learn](https://scikit-learn.org/) pipeline
 
 # Features #
 
-This library is a thin wrapper around the [JPMML-SkLearn](https://github.com/jpmml/jpmml-sklearn) command-line application. For a list of supported Scikit-Learn Estimator and Transformer types, please refer to the documentation of the JPMML-SkLearn project.
+This library is a thin wrapper around the JPMML-SkLearn command-line application.
+
+For a list of supported Estimator and Transformer types, please refer to [JPMML-SkLearn features](https://github.com/jpmml/jpmml-sklearn#features).
 
 # Prerequisites #
 
@@ -14,10 +16,16 @@ This library is a thin wrapper around the [JPMML-SkLearn](https://github.com/jpm
 
 # Installation #
 
-Installing the latest version from GitHub:
+Installing the latest release version from PyPI:
 
 ```
-pip install --user --upgrade git+https://github.com/jpmml/sklearn2pmml.git
+pip install sklearn2pmml
+```
+
+Alternatively, installing a snapshot version from GitHub:
+
+```
+pip install git+https://github.com/jpmml/sklearn2pmml.git
 ```
 
 # Usage #
@@ -81,7 +89,18 @@ from sklearn2pmml import sklearn2pmml
 sklearn2pmml(pipeline, "LogisticRegressionIris.pmml", with_repr = True)
 ```
 
-Please refer to the following resources for more ideas and code examples:
+# Documentation #
+
+Up-to-date:
+
+* [Stacking Scikit-Learn, LightGBM and XGBoost models](https://openscoring.io/blog/2020/01/02/stacking_sklearn_lightgbm_xgboost/)
+* [Converting Scikit-Learn hyperparameter-tuned pipelines to PMML documents](https://openscoring.io/blog/2019/12/25/converting_sklearn_gridsearchcv_pipeline_pmml/)
+* [Extending Scikit-Learn with GBDT plus LR ensemble (GBDT+LR) model type](https://openscoring.io/blog/2019/06/19/sklearn_gbdt_lr_ensemble/)
+* [Converting Scikit-Learn based TPOT automated machine learning (AutoML) pipelines to PMML documents](https://openscoring.io/blog/2019/06/10/converting_sklearn_tpot_pipeline_pmml/)
+* [Converting Scikit-Learn based LightGBM pipelines to PMML documents](https://openscoring.io/blog/2019/04/07/converting_sklearn_lightgbm_pipeline_pmml/)
+* [Extending Scikit-Learn with business rules (BR) model type](https://openscoring.io/blog/2018/09/17/sklearn_business_rules/)
+
+Slightly outdated:
 
 * [Converting Scikit-Learn to PMML](https://www.slideshare.net/VilluRuusmann/converting-scikitlearn-to-pmml)
 
