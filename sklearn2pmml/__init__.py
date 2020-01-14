@@ -187,7 +187,7 @@ def _dump(obj, prefix):
 		os.close(fd)
 	return path
 
-def sklearn2pmml(pipeline, pmml, user_classpath = [], with_repr = False, with_jar = False, debug = False, java_encoding = "UTF-8"):
+def sklearn2pmml(pipeline, pmml, user_classpath = [], with_repr = False, debug = False, java_encoding = "UTF-8"):
 	"""Converts a fitted PMML pipeline object to PMML file.
 
 	Parameters:
@@ -204,9 +204,6 @@ def sklearn2pmml(pipeline, pmml, user_classpath = [], with_repr = False, with_ja
 
 	with_repr: boolean, optional
 		If true, insert the string representation of pipeline into the PMML document.
-
-	with_jar: boolean or dict, optional
-		If true (boolean) or non-null (dict), convert the PMML file additionally to a PMML service provider JAR file.
 
 	debug: boolean, optional
 		If true, print information about the conversion process.
@@ -269,12 +266,6 @@ def sklearn2pmml(pipeline, pmml, user_classpath = [], with_repr = False, with_ja
 		else:
 			for dump in dumps:
 				os.remove(dump)
-	if with_jar:
-		jar = pmml + ".jar"
-		if debug:
-			print("Transpiling {0} to {1}".format(pmml, jar))
-		transpiler_params = with_jar if isinstance(with_jar, dict) else {}
-		pmml2jar(pmml, jar, **transpiler_params)
 
 def pmml2jar(pmml, jar = None, **transpiler_params):
 	"""Converts a PMML file to a PMML service provider JAR file.
