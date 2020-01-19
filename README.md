@@ -16,13 +16,13 @@ For a list of supported Estimator and Transformer types, please refer to [JPMML-
 
 # Installation #
 
-Installing the latest release version from PyPI:
+Installing a release version from PyPI:
 
 ```
 pip install sklearn2pmml
 ```
 
-Alternatively, installing a snapshot version from GitHub:
+Alternatively, installing the latest snapshot version from GitHub:
 
 ```
 pip install git+https://github.com/jpmml/sklearn2pmml.git
@@ -93,6 +93,7 @@ sklearn2pmml(pipeline, "LogisticRegressionIris.pmml", with_repr = True)
 
 Up-to-date:
 
+* [Converting logistic regression models to PMML documents](https://openscoring.io/blog/2020/01/19/converting_logistic_regression_pmml/)
 * [Stacking Scikit-Learn, LightGBM and XGBoost models](https://openscoring.io/blog/2020/01/02/stacking_sklearn_lightgbm_xgboost/)
 * [Converting Scikit-Learn hyperparameter-tuned pipelines to PMML documents](https://openscoring.io/blog/2019/12/25/converting_sklearn_gridsearchcv_pipeline_pmml/)
 * [Extending Scikit-Learn with GBDT plus LR ensemble (GBDT+LR) model type](https://openscoring.io/blog/2019/06/19/sklearn_gbdt_lr_ensemble/)
