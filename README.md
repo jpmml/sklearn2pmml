@@ -25,7 +25,7 @@ pip install sklearn2pmml
 Alternatively, installing the latest snapshot version from GitHub:
 
 ```
-pip install git+https://github.com/jpmml/sklearn2pmml.git
+pip install --upgrade git+https://github.com/jpmml/sklearn2pmml.git
 ```
 
 # Usage #
