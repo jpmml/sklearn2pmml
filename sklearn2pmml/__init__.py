@@ -1,6 +1,9 @@
 from sklearn.base import BaseEstimator
 from sklearn.exceptions import NotFittedError
-from sklearn.feature_selection.base import SelectorMixin
+try:
+	from sklearn.feature_selection._base import SelectorMixin
+except ImportError:
+	from sklearn.feature_selection.base import SelectorMixin
 from sklearn.feature_selection import SelectFromModel
 from sklearn.pipeline import FeatureUnion, Pipeline
 from sklearn_pandas import DataFrameMapper
