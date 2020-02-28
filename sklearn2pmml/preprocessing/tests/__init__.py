@@ -6,7 +6,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import FeatureUnion, Pipeline
 from sklearn.impute import SimpleImputer
 from sklearn2pmml.decoration import Alias, DateDomain, DateTimeDomain
-from sklearn2pmml.preprocessing import Aggregator, CastTransformer, ConcatTransformer, CutTransformer, DaysSinceYearTransformer, ExpressionTransformer, LookupTransformer, MatchesTransformer, MultiLookupTransformer, PMMLLabelBinarizer, PMMLLabelEncoder, PowerFunctionTransformer, ReplaceTransformer, SecondsSinceYearTransformer, StringNormalizer, SubstringTransformer
+from sklearn2pmml.preprocessing import Aggregator, CastTransformer, ConcatTransformer, CutTransformer, DaysSinceYearTransformer, ExpressionTransformer, IdentityTransformer, LookupTransformer, MatchesTransformer, MultiLookupTransformer, PMMLLabelBinarizer, PMMLLabelEncoder, PowerFunctionTransformer, ReplaceTransformer, SecondsSinceYearTransformer, StringNormalizer, SubstringTransformer
 from sklearn2pmml.preprocessing.lightgbm import make_lightgbm_column_transformer, make_lightgbm_dataframe_mapper
 from sklearn2pmml.preprocessing.xgboost import make_xgboost_column_transformer, make_xgboost_dataframe_mapper
 from unittest import TestCase
@@ -192,6 +192,15 @@ class ExpressionTransformerTest(TestCase):
 		])
 		Xt = mapper.fit_transform(X)
 		self.assertEqual([[1], [1], [1]], Xt.tolist())
+
+class IdentityTransformerTest(TestCase):
+
+	def test_transform(self):
+		transformer = IdentityTransformer()
+		X = DataFrame(["A", "B", "C"])
+		Xt = transformer.fit_transform(X)
+		self.assertIsInstance(Xt, DataFrame)
+		self.assertEqual([["A"], ["B"], ["C"]], Xt.values.tolist())
 
 class LookupTransformerTest(TestCase):
 
