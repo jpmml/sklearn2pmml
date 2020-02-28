@@ -122,8 +122,7 @@ class ExpressionTransformer(BaseEstimator, TransformerMixin):
 
 	def __init__(self, expr, dtype = None):
 		self.expr = expr
-		if dtype is not None:
-			self.dtype = dtype
+		self.dtype = dtype
 
 	def _eval_row(self, X):
 		return eval(self.expr)
@@ -134,7 +133,7 @@ class ExpressionTransformer(BaseEstimator, TransformerMixin):
 	def transform(self, X):
 		func = lambda x: self._eval_row(x)
 		Xt = eval_rows(X, func)
-		if hasattr(self, "dtype"):
+		if self.dtype is not None:
 			Xt = cast(Xt, self.dtype)
 		return _col2d(Xt)
 

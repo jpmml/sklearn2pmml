@@ -7,12 +7,12 @@ import numpy
 class _Verification(object):
 
 	def __init__(self, active_values, target_values, precision, zeroThreshold):
+		self.active_values = active_values
+		self.target_values = target_values
 		if precision < 0:
 			raise ValueError("Precision cannot be negative")
 		if zeroThreshold < 0:
 			raise ValueError("Zero threshold cannot be negative")
-		self.active_values = active_values
-		self.target_values = target_values
 		self.precision = precision
 		self.zeroThreshold = zeroThreshold
 
