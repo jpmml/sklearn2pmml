@@ -117,10 +117,10 @@ class Domain(BaseEstimator, TransformerMixin):
 		self._transform_invalid_values(X, invalid_value_mask)
 		return X
 
-class CategoricalDomain(Domain):
+class DiscreteDomain(Domain):
 
 	def __init__(self, missing_values = None, missing_value_treatment = "as_is", missing_value_replacement = None, invalid_value_treatment = "return_invalid", invalid_value_replacement = None, with_data = True, with_statistics = True, dtype = None):
-		super(CategoricalDomain, self).__init__(missing_values = missing_values, missing_value_treatment = missing_value_treatment, missing_value_replacement = missing_value_replacement, invalid_value_treatment = invalid_value_treatment, invalid_value_replacement = invalid_value_replacement, with_data = with_data, with_statistics = with_statistics, dtype = dtype)
+		super(DiscreteDomain, self).__init__(missing_values = missing_values, missing_value_treatment = missing_value_treatment, missing_value_replacement = missing_value_replacement, invalid_value_treatment = invalid_value_treatment, invalid_value_replacement = invalid_value_replacement, with_data = with_data, with_statistics = with_statistics, dtype = dtype)
 
 	def _valid_value_mask(self, X, where):
 		if hasattr(self, "data_"):
@@ -131,7 +131,7 @@ class CategoricalDomain(Domain):
 			mask = eval_rows(X, is_valid, dtype = bool)
 			mask = (numpy.asarray(mask, dtype = bool)).reshape(X.shape)
 			return numpy.logical_and(mask, where)
-		return super(CategoricalDomain, self)._valid_value_mask(X, where)
+		return super(DiscreteDomain, self)._valid_value_mask(X, where)
 
 	def fit(self, X, y = None):
 		X = column_or_1d(X, warn = True)
@@ -150,6 +150,16 @@ class CategoricalDomain(Domain):
 			self.counts_ = _count(mask)
 			self.discr_stats_ = (values, counts)
 		return self
+
+class CategoricalDomain(DiscreteDomain):
+
+	def __init__(self, missing_values = None, missing_value_treatment = "as_is", missing_value_replacement = None, invalid_value_treatment = "return_invalid", invalid_value_replacement = None, with_data = True, with_statistics = True, dtype = None):
+		super(CategoricalDomain, self).__init__(missing_values = missing_values, missing_value_treatment = missing_value_treatment, missing_value_replacement = missing_value_replacement, invalid_value_treatment = invalid_value_treatment, invalid_value_replacement = invalid_value_replacement, with_data = with_data, with_statistics = with_statistics, dtype = dtype)
+
+class OrdinalDomain(DiscreteDomain):
+
+	def __init__(self, missing_values = None, missing_value_treatment = "as_is", missing_value_replacement = None, invalid_value_treatment = "return_invalid", invalid_value_replacement = None, with_data = True, with_statistics = True, dtype = None):
+		super(OrdinalDomain, self).__init__(missing_values = missing_values, missing_value_treatment = missing_value_treatment, missing_value_replacement = missing_value_replacement, invalid_value_treatment = invalid_value_treatment, invalid_value_replacement = invalid_value_replacement, with_data = with_data, with_statistics = with_statistics, dtype = dtype)
 
 def _interquartile_range(X, axis):
 	quartiles = numpy.nanpercentile(X, [25, 75], axis = axis)
@@ -231,7 +241,7 @@ class ContinuousDomain(Domain):
 			mask = self._positive_outlier_mask(X, where)
 			X[mask] = self.high_value
 
-class TemporalDomain(Domain):
+class TemporalDomain(DiscreteDomain):
 
 	def __init__(self, missing_values = None, missing_value_treatment = "as_is", missing_value_replacement = None, invalid_value_treatment = "return_invalid", invalid_value_replacement = None, dtype = None):
 		super(TemporalDomain, self).__init__(missing_values = missing_values, missing_value_treatment = missing_value_treatment, missing_value_replacement = missing_value_replacement, invalid_value_treatment = invalid_value_treatment, invalid_value_replacement = invalid_value_replacement, with_data = False, with_statistics = False, dtype = dtype)
