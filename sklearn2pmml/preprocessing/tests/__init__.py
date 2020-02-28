@@ -2,7 +2,6 @@ from datetime import datetime
 from pandas import DataFrame, Series
 from sklearn_pandas import DataFrameMapper
 from sklearn.base import clone
-from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import FeatureUnion, Pipeline
 from sklearn.impute import SimpleImputer
 from sklearn2pmml.decoration import Alias, DateDomain, DateTimeDomain

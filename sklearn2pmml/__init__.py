@@ -1,6 +1,11 @@
 from sklearn.base import BaseEstimator
 from sklearn.exceptions import NotFittedError
 try:
+	from sklearn.compose import ColumnTransformer
+except ImportError:
+	class ColumnTransformer:
+		pass
+try:
 	from sklearn.feature_selection._base import SelectorMixin
 except ImportError:
 	from sklearn.feature_selection.base import SelectorMixin
@@ -96,6 +101,11 @@ def _filter(obj):
 		if hasattr(obj, "built_features"):
 			if obj.built_features is not None:
 				obj.built_features = _filter_steps(obj.built_features)
+	elif isinstance(obj, ColumnTransformer):
+		obj.transformers = _filter_steps(obj.transformers)
+		obj.remainder = _filter(obj.remainder)
+		if hasattr(obj, "transformers_"):
+			obj.transformers_ = _filter_steps(obj.transformers_)
 	elif isinstance(obj, FeatureUnion):
 		obj.transformer_list = _filter_steps(obj.transformer_list)
 	elif isinstance(obj, Pipeline):
