@@ -38,54 +38,52 @@ def _is_categorical(dtype):
 
 class EstimatorProxy(BaseEstimator):
 
-	def __init__(self, estimator_, attr_names_ = ["feature_importances_"]):
-		self.estimator_ = estimator_
-		self.attr_names_ = attr_names_
+	def __init__(self, estimator, attr_names = ["feature_importances_"]):
+		self.estimator = estimator
+		self.attr_names = attr_names
 		try:
 			self._copy_attrs()
 		except NotFittedError:
 			pass
 
-	def __getattr__(self, name):
-		return getattr(self.estimator_, name)
-
 	def _copy_attrs(self):
-		for attr_name_ in self.attr_names_:
-			if hasattr(self.estimator_, attr_name_):
-				setattr(self, attr_name_, getattr(self.estimator_, attr_name_))
+		for attr_name in self.attr_names:
+			if hasattr(self.estimator, attr_name):
+				setattr(self, attr_name, getattr(self.estimator, attr_name))
 
 	def fit(self, X, y = None, **fit_params):
-		self.estimator_.fit(X, y, **fit_params)
+		self.estimator.fit(X, y, **fit_params)
 		self._copy_attrs()
 		return self
 
+	def predict(self, X, **predict_params):
+		return self.estimator.predict(X, **predict_params)
+
+	def predict_proba(self, X, **predict_proba_params):
+		return self.estimator.predict_proba(X, **predict_proba_params)
+
 class SelectorProxy(BaseEstimator):
 
-	def __init__(self, selector_):
-		self.selector_ = selector_
+	def __init__(self, selector):
+		self.selector = selector
 		try:
 			self._copy_attrs()
 		except NotFittedError:
 			pass
 
-	def __getattr__(self, name):
-		return getattr(self.selector_, name)
-
 	def _copy_attrs(self):
 		try:
-			setattr(self, "support_mask_", self.selector_._get_support_mask())
+			setattr(self, "support_mask_", self.selector._get_support_mask())
 		except ValueError:
 			pass
 
 	def fit(self, X, y = None, **fit_params):
-		self.selector_.fit(X, y, **fit_params)
+		self.selector.fit(X, y, **fit_params)
 		self._copy_attrs()
 		return self
 
-	def fit_transform(self, X, y = None, **fit_params):
-		Xt = self.selector_.fit_transform(X, y, **fit_params)
-		self._copy_attrs()
-		return Xt
+	def transform(self, X):
+		return self.selector.transform(X)
 
 def _get_steps(obj):
 	if isinstance(obj, Pipeline):
@@ -111,11 +109,6 @@ def _filter(obj):
 	elif isinstance(obj, Pipeline):
 		obj.steps = _filter_steps(obj.steps)
 	elif isinstance(obj, SelectorMixin):
-		if isinstance(obj, SelectFromModel):
-			if hasattr(obj, "estimator"):
-				setattr(obj, "estimator", EstimatorProxy(obj.estimator))
-			if hasattr(obj, "estimator_"):
-				setattr(obj, "estimator_", EstimatorProxy(obj.estimator_))
 		return SelectorProxy(obj)
 	elif isinstance(obj, list):
 		return [_filter(e) for e in obj]

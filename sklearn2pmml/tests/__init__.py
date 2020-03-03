@@ -29,12 +29,12 @@ class EstimatorProxyTest(TestCase):
 		regressor = DummyRegressor()
 		regressor.fit(numpy.array([[0], [0]]), numpy.array([0.0, 2.0]))
 		self.assertEqual(1.0, regressor.constant_)
-		regressor_proxy = EstimatorProxy(regressor, attr_names_ = ["constant_"])
+		regressor_proxy = EstimatorProxy(regressor, attr_names = ["constant_"])
 		self.assertEqual(1.0, regressor_proxy.constant_)
 
 	def test_fit(self):
 		regressor = DummyRegressor()
-		regressor_proxy = EstimatorProxy(regressor, attr_names_ = ["constant_"])
+		regressor_proxy = EstimatorProxy(regressor, attr_names = ["constant_"])
 		self.assertFalse(hasattr(regressor_proxy, "constant_"))
 		regressor_proxy.fit(numpy.array([[0], [0]]), numpy.array([0.0, 2.0]))
 		self.assertEqual(1.0, regressor.constant_)
@@ -62,12 +62,10 @@ class SelectorProxyTest(TestCase):
 		self.assertIsInstance(selector, SelectFromModel)
 		self.assertIsInstance(selector.estimator, DecisionTreeRegressor)
 		self.assertFalse(hasattr(selector, "estimator_"))
-		selector = _filter_steps([("selector", selector)])[0][1]
-		self.assertIsInstance(selector, SelectorProxy)
-		selector.fit(numpy.array([[0, 1], [0, 2], [0, 3]]), numpy.array([0.5, 1.0, 1.5]))
-		self.assertIsInstance(selector.estimator, EstimatorProxy)
-		self.assertIsInstance(selector.estimator_, EstimatorProxy)
-		self.assertEqual([0, 1], selector._get_support_mask().tolist())
+		selector_proxy = _filter_steps([("selector", selector)])[0][1]
+		self.assertIsInstance(selector_proxy, SelectorProxy)
+		selector_proxy.fit(numpy.array([[0, 1], [0, 2], [0, 3]]), numpy.array([0.5, 1.0, 1.5]))
+		self.assertEqual([0, 1], selector_proxy.support_mask_.tolist())
 
 	def test_filter_prefit(self):
 		regressor = DecisionTreeRegressor()
@@ -75,11 +73,9 @@ class SelectorProxyTest(TestCase):
 		selector = SelectFromModel(regressor, prefit = True)
 		self.assertTrue(hasattr(selector, "estimator"))
 		self.assertFalse(hasattr(selector, "estimator_"))
-		selector = _filter_steps([("selector", selector, {})])[0][1]
-		self.assertIsInstance(selector, SelectorProxy)
-		self.assertIsInstance(selector.estimator, EstimatorProxy)
-		self.assertFalse(hasattr(selector, "estimator_"))
-		self.assertEqual([0, 1], selector._get_support_mask().tolist())
+		selector_proxy = _filter_steps([("selector", selector, {})])[0][1]
+		self.assertIsInstance(selector_proxy, SelectorProxy)
+		self.assertEqual([0, 1], selector_proxy.support_mask_.tolist())
 
 class JavaTest(TestCase):
 
