@@ -172,3 +172,8 @@ class SelectFirstEstimator(_BaseComposition):
 			result[step_mask.ravel()] = step_result
 			mask = numpy.logical_or(mask, step_mask)
 		return result
+
+class SelectFirstRegressor(SelectFirstEstimator, RegressorMixin):
+
+	def __init__(self, steps):
+		super(SelectFirstRegressor, self).__init__(steps)
