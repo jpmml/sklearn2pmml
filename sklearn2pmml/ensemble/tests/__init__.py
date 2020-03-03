@@ -1,4 +1,5 @@
 from pandas import DataFrame
+from sklearn.base import clone
 from sklearn.dummy import DummyClassifier
 from sklearn.linear_model import ElasticNet, LinearRegression, LogisticRegression, SGDClassifier, SGDRegressor
 from sklearn.svm import LinearSVC
@@ -38,11 +39,16 @@ class SelectFirstEstimatorTest(TestCase):
 		df = DataFrame([[-1, 0], [0, 0], [-1, -1], [1, 1], [-1, -1]], columns = ["X", "y"])
 		X = df[["X"]]
 		y = df["y"]
-		estimator = SelectFirstEstimator([
-			("X[0] < 0", DummyClassifier(strategy = "most_frequent")),
-			("X[0] > 0", DummyClassifier(strategy = "most_frequent")),
-			(str(True), DummyClassifier(strategy = "constant", constant = 0))
-		])
+		estimator = clone(SelectFirstEstimator([
+			("negative", DummyClassifier(strategy = "most_frequent"), "X[0] < 0"),
+			("positive", DummyClassifier(strategy = "most_frequent"), "X[0] > 0"),
+			("zero", DummyClassifier(strategy = "constant", constant = 0), str(True))
+		]))
+		params = estimator.get_params(deep = True)
+		self.assertEqual("most_frequent", params["negative__strategy"])
+		self.assertEqual("most_frequent", params["positive__strategy"])
+		self.assertEqual("constant", params["zero__strategy"])
+		self.assertEqual(0, params["zero__constant"])
 		estimator.fit(X, y)
 		preds = estimator.predict(X)
 		self.assertEqual([-1, 0, -1, 1, -1], preds.tolist())
