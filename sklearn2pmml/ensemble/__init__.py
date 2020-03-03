@@ -177,3 +177,23 @@ class SelectFirstRegressor(SelectFirstEstimator, RegressorMixin):
 
 	def __init__(self, steps):
 		super(SelectFirstRegressor, self).__init__(steps)
+
+class SelectFirstClassifier(SelectFirstEstimator, ClassifierMixin):
+
+	def __init__(self, steps):
+		super(SelectFirstClassifier, self).__init__(steps)
+
+	def predict_proba(self, X):
+		result = None
+		mask = numpy.zeros(X.shape[0], dtype = bool)
+		for name, estimator, predicate in self.steps:
+			step_mask = eval_rows(X, lambda X: eval(predicate), dtype = bool)
+			step_mask[mask] = False
+			if numpy.sum(step_mask) < 1:
+				continue
+			step_result = estimator.predict_proba(X[step_mask])
+			if result is None:
+				result = numpy.empty((X.shape[0], step_result.shape[1]), dtype = object)
+			result[step_mask.ravel(), :] = step_result
+			mask = numpy.logical_or(mask, step_mask)
+		return result

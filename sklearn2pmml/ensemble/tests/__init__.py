@@ -3,7 +3,7 @@ from sklearn.base import clone
 from sklearn.dummy import DummyClassifier
 from sklearn.linear_model import ElasticNet, LinearRegression, LogisticRegression, SGDClassifier, SGDRegressor
 from sklearn.svm import LinearSVC
-from sklearn2pmml.ensemble import _checkLM, _checkLR, _step_params, SelectFirstEstimator
+from sklearn2pmml.ensemble import _checkLM, _checkLR, _step_params, SelectFirstClassifier
 
 from unittest import TestCase
 
@@ -33,22 +33,24 @@ class GBDTLRTest(TestCase):
 		self.assertEqual({"first" : 1.0}, lr_params)
 		self.assertEqual({"any__any" : None}, params)
 
-class SelectFirstEstimatorTest(TestCase):
+class SelectFirstClassifierTest(TestCase):
 
 	def test_fit_predict(self):
 		df = DataFrame([[-1, 0], [0, 0], [-1, -1], [1, 1], [-1, -1]], columns = ["X", "y"])
 		X = df[["X"]]
 		y = df["y"]
-		estimator = clone(SelectFirstEstimator([
+		classifier = clone(SelectFirstClassifier([
 			("negative", DummyClassifier(strategy = "most_frequent"), "X[0] < 0"),
 			("positive", DummyClassifier(strategy = "most_frequent"), "X[0] > 0"),
 			("zero", DummyClassifier(strategy = "constant", constant = 0), str(True))
 		]))
-		params = estimator.get_params(deep = True)
+		params = classifier.get_params(deep = True)
 		self.assertEqual("most_frequent", params["negative__strategy"])
 		self.assertEqual("most_frequent", params["positive__strategy"])
 		self.assertEqual("constant", params["zero__strategy"])
 		self.assertEqual(0, params["zero__constant"])
-		estimator.fit(X, y)
-		preds = estimator.predict(X)
+		classifier.fit(X, y)
+		preds = classifier.predict(X)
 		self.assertEqual([-1, 0, -1, 1, -1], preds.tolist())
+		pred_probs = classifier.predict_proba(X)
+		self.assertEqual((5, 2), pred_probs.shape)
