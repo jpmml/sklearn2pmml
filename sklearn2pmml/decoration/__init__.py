@@ -241,7 +241,7 @@ class ContinuousDomain(Domain):
 			mask = self._positive_outlier_mask(X, where)
 			X[mask] = self.high_value
 
-class TemporalDomain(DiscreteDomain):
+class TemporalDomain(Domain):
 
 	def __init__(self, missing_values = None, missing_value_treatment = "as_is", missing_value_replacement = None, invalid_value_treatment = "return_invalid", invalid_value_replacement = None, dtype = None):
 		super(TemporalDomain, self).__init__(missing_values = missing_values, missing_value_treatment = missing_value_treatment, missing_value_replacement = missing_value_replacement, invalid_value_treatment = invalid_value_treatment, invalid_value_replacement = invalid_value_replacement, with_data = False, with_statistics = False, dtype = dtype)
