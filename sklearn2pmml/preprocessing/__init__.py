@@ -118,6 +118,23 @@ class SecondsSinceYearTransformer(DurationTransformer):
 	def _to_duration(self, td):
 		return ((td.total_seconds()).values).astype(int)
 
+class SecondsSinceMidnightTransformer(BaseEstimator, TransformerMixin):
+
+	def __init__(self):
+		pass
+
+	def _to_duration(self, td):
+		return ((td.seconds).values).astype(int)
+
+	def fit(self, X, y = None):
+		return self
+
+	def transform(self, X):
+		def to_duration(X):
+			dt = pandas.to_datetime(X)
+			return self._to_duration(dt - dt.normalize())
+		return flat_transform(X, to_duration)
+
 class ExpressionTransformer(BaseEstimator, TransformerMixin):
 
 	def __init__(self, expr, dtype = None):

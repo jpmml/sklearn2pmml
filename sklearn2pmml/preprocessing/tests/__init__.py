@@ -5,7 +5,7 @@ from sklearn.base import clone
 from sklearn.pipeline import FeatureUnion, Pipeline
 from sklearn.impute import SimpleImputer
 from sklearn2pmml.decoration import Alias, DateDomain, DateTimeDomain
-from sklearn2pmml.preprocessing import Aggregator, CastTransformer, ConcatTransformer, CutTransformer, DaysSinceYearTransformer, ExpressionTransformer, IdentityTransformer, LookupTransformer, MatchesTransformer, MultiLookupTransformer, PMMLLabelBinarizer, PMMLLabelEncoder, PowerFunctionTransformer, ReplaceTransformer, SecondsSinceYearTransformer, StringNormalizer, SubstringTransformer
+from sklearn2pmml.preprocessing import Aggregator, CastTransformer, ConcatTransformer, CutTransformer, DaysSinceYearTransformer, ExpressionTransformer, IdentityTransformer, LookupTransformer, MatchesTransformer, MultiLookupTransformer, PMMLLabelBinarizer, PMMLLabelEncoder, PowerFunctionTransformer, ReplaceTransformer, SecondsSinceMidnightTransformer, SecondsSinceYearTransformer, StringNormalizer, SubstringTransformer
 from sklearn2pmml.preprocessing.lightgbm import make_lightgbm_column_transformer, make_lightgbm_dataframe_mapper
 from sklearn2pmml.preprocessing.xgboost import make_xgboost_column_transformer, make_xgboost_dataframe_mapper
 from unittest import TestCase
@@ -152,6 +152,16 @@ class DurationTransformerTest(TestCase):
 		])
 		Xt = mapper.fit_transform(X)
 		self.assertEqual([[-1], [12603]], Xt.tolist())
+
+class SecondsSinceMidnightTransformerTest(TestCase):
+
+	def test_timedelta(self):
+		X = DataFrame([["2020-01-01"], ["2020-01-01T00:01:00"], ["2020-01-01T05:23:30"]], columns = ["timestamp"])
+		mapper = DataFrameMapper([
+			(["timestamp"], [DateTimeDomain(), SecondsSinceMidnightTransformer()])
+		])
+		Xt = mapper.fit_transform(X)
+		self.assertEqual([[0], [60], [19410]], Xt.tolist())
 
 class ExpressionTransformerTest(TestCase):
 
