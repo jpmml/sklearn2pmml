@@ -36,7 +36,7 @@
 		<dependency>
 			<groupId>org.jpmml</groupId>
 			<artifactId>jpmml-sklearn</artifactId>
-			<version>1.5.34</version>
+			<version>1.5.35</version>
 		</dependency>
 	</dependencies>
 
