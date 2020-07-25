@@ -12,6 +12,7 @@ except ImportError:
 from sklearn.feature_selection import SelectFromModel
 from sklearn.pipeline import FeatureUnion, Pipeline
 from sklearn_pandas import DataFrameMapper
+from sklearn2pmml.resources import _package_classpath
 from subprocess import PIPE, Popen
 from zipfile import ZipFile
 
@@ -19,7 +20,6 @@ import joblib
 import numpy
 import os
 import pandas
-import pkg_resources
 import platform
 import re
 import sklearn
@@ -160,14 +160,6 @@ def _java_version(java_encoding):
 		return (match.group(1), match.group(2))
 	else:
 		return None
-
-def _package_classpath():
-	jars = []
-	resources = pkg_resources.resource_listdir("sklearn2pmml.resources", "")
-	for resource in resources:
-		if resource.endswith(".jar"):
-			jars.append(pkg_resources.resource_filename("sklearn2pmml.resources", resource))
-	return jars
 
 def _classpath(user_classpath):
 	return _package_classpath() + user_classpath

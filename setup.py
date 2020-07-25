@@ -33,7 +33,7 @@ setup(
 		"sklearn2pmml.ruleset"
 	],
 	package_data = {
-		"sklearn2pmml.resources" : ["*.jar"]
+		"sklearn2pmml.resources" : ["classpath.txt", "*.jar"]
 	},
 	install_requires = [
 		"joblib>=0.13.0",

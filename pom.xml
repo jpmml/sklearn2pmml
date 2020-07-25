@@ -59,6 +59,7 @@
 									<directory>${project.basedir}/sklearn2pmml/resources</directory>
 									<includes>
 										<include>*.jar</include>
+										<include>classpath.txt</include>
 									</includes>
 								</fileset>
 							</filesets>
@@ -79,6 +80,39 @@
 						</goals>
 						<configuration>
 							<outputDirectory>${project.basedir}/sklearn2pmml/resources</outputDirectory>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>3.0.0</version>
+				<executions>
+					<execution>
+						<id>create-classpath</id>
+						<phase>process-resources</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<target>
+								<fileset
+									id="classpath"
+									dir="${project.basedir}/sklearn2pmml/resources"
+								>
+									<include name="*.jar"/>
+								</fileset>
+								<pathconvert
+									refid="classpath"
+									pathsep="${line.separator}"
+									property="classpath.txt"
+								>
+									<mapper>
+										<flattenmapper/>
+									</mapper>
+								</pathconvert>
+								<echo file="${project.basedir}/sklearn2pmml/resources/classpath.txt">${classpath.txt}</echo>
+							</target>
 						</configuration>
 					</execution>
 				</executions>
