@@ -46,13 +46,16 @@ import pandas
 
 iris_df = pandas.read_csv("Iris.csv")
 
+iris_X = iris_df[iris_df.columns.difference(["Species"])]
+iris_y = iris_df["Species"]
+
 from sklearn.tree import DecisionTreeClassifier
 from sklearn2pmml.pipeline import PMMLPipeline
 
 pipeline = PMMLPipeline([
 	("classifier", DecisionTreeClassifier())
 ])
-pipeline.fit(iris_df[iris_df.columns.difference(["Species"])], iris_df["Species"])
+pipeline.fit(iris_X, iris_y)
 
 from sklearn2pmml import sklearn2pmml
 
@@ -66,23 +69,27 @@ import pandas
 
 iris_df = pandas.read_csv("Iris.csv")
 
+iris_X = iris_df[iris_df.columns.difference(["Species"])]
+iris_y = iris_df["Species"]
+
 from sklearn_pandas import DataFrameMapper
 from sklearn.decomposition import PCA
 from sklearn.feature_selection import SelectKBest
-from sklearn.preprocessing import Imputer
+from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LogisticRegression
 from sklearn2pmml.decoration import ContinuousDomain
 from sklearn2pmml.pipeline import PMMLPipeline
 
 pipeline = PMMLPipeline([
 	("mapper", DataFrameMapper([
-		(["Sepal.Length", "Sepal.Width", "Petal.Length", "Petal.Width"], [ContinuousDomain(), Imputer()])
+		(["Sepal.Length", "Sepal.Width", "Petal.Length", "Petal.Width"], [ContinuousDomain(), SimpleImputer()])
 	])),
 	("pca", PCA(n_components = 3)),
 	("selector", SelectKBest(k = 2)),
-	("classifier", LogisticRegression())
+	("classifier", LogisticRegression(multi_class = "ovr"))
 ])
-pipeline.fit(iris_df, iris_df["Species"])
+pipeline.fit(iris_X, iris_y)
+pipeline.verify(iris_X.sample(n = 15))
 
 from sklearn2pmml import sklearn2pmml
 
