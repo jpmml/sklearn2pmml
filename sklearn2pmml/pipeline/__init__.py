@@ -95,6 +95,8 @@ class PMMLPipeline(Pipeline):
 	def configure(self, **pmml_options):
 		if len(pmml_options) > 0:
 			estimator = self._final_estimator
+			while isinstance(estimator, Pipeline):
+				estimator = estimator._final_estimator
 			estimator.pmml_options_ = dict()
 			estimator.pmml_options_.update(pmml_options)
 

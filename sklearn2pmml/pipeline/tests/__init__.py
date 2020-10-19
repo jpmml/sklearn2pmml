@@ -1,6 +1,6 @@
 from pandas import DataFrame, Series
 from sklearn.dummy import DummyClassifier, DummyRegressor
-from sklearn.pipeline import FeatureUnion
+from sklearn.pipeline import FeatureUnion, Pipeline
 from sklearn.preprocessing import FunctionTransformer
 from sklearn.tree import DecisionTreeRegressor
 from sklearn2pmml.pipeline import _get_column_names, PMMLPipeline
@@ -48,7 +48,13 @@ class PMMLPipelineTest(TestCase):
 
 	def test_configure(self):
 		regressor = DecisionTreeRegressor()
-		pipeline = PMMLPipeline([("regressor", regressor)])
+		pipeline = PMMLPipeline([
+			("pipeline", Pipeline([
+				("regressor", regressor)
+			]))
+		])
+		self.assertIsInstance(pipeline._final_estimator, Pipeline)
+		self.assertIsInstance(pipeline['pipeline']._final_estimator, DecisionTreeRegressor)
 		self.assertFalse(hasattr(regressor, "pmml_options_"))
 		pipeline.configure()
 		self.assertFalse(hasattr(regressor, "pmml_options_"))
