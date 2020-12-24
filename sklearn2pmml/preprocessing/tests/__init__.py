@@ -5,7 +5,7 @@ from sklearn.base import clone
 from sklearn.pipeline import FeatureUnion, Pipeline
 from sklearn.impute import SimpleImputer
 from sklearn2pmml.decoration import Alias, DateDomain, DateTimeDomain
-from sklearn2pmml.preprocessing import Aggregator, CastTransformer, ConcatTransformer, CutTransformer, DaysSinceYearTransformer, ExpressionTransformer, IdentityTransformer, LookupTransformer, MatchesTransformer, MultiLookupTransformer, PMMLLabelBinarizer, PMMLLabelEncoder, PowerFunctionTransformer, ReplaceTransformer, SecondsSinceMidnightTransformer, SecondsSinceYearTransformer, StringNormalizer, SubstringTransformer
+from sklearn2pmml.preprocessing import Aggregator, CastTransformer, ConcatTransformer, CutTransformer, DaysSinceYearTransformer, ExpressionTransformer, IdentityTransformer, LookupTransformer, MatchesTransformer, MultiLookupTransformer, PMMLLabelBinarizer, PMMLLabelEncoder, PowerFunctionTransformer, ReplaceTransformer, SecondsSinceMidnightTransformer, SecondsSinceYearTransformer, StringNormalizer, SubstringTransformer, WordCountTransformer
 from sklearn2pmml.preprocessing.lightgbm import make_lightgbm_column_transformer, make_lightgbm_dataframe_mapper
 from sklearn2pmml.preprocessing.xgboost import make_xgboost_column_transformer, make_xgboost_dataframe_mapper
 from unittest import TestCase
@@ -410,6 +410,13 @@ class SubstringTransformerTest(TestCase):
 		X = numpy.asarray(["", "a", "aB", "aBc", "aBc9", "aBc9x"])
 		transformer = SubstringTransformer(1, 4)
 		self.assertEqual([[""], [""], ["B"], ["Bc"], ["Bc9"], ["Bc9"]], transformer.transform(X).tolist())
+
+class WordCountTransformerTest(TestCase):
+
+	def test_transform(self):
+		X = numpy.asarray(["", "Hello World", "Happy New Year", "!?"])
+		transformer = WordCountTransformer()
+		self.assertEqual([[0], [2], [3], [0]], transformer.transform(X).tolist())
 
 class LightGBMTest(TestCase):
 

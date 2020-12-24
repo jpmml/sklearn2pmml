@@ -3,6 +3,7 @@ from datetime import datetime
 from pandas import Categorical, Series
 from scipy.sparse import lil_matrix
 from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.pipeline import Pipeline
 from sklearn.utils import column_or_1d
 from sklearn2pmml.util import cast, eval_rows, flat_transform
 
@@ -340,6 +341,25 @@ class SubstringTransformer(BaseEstimator, TransformerMixin):
 		func = lambda x: x[self.begin:self.end]
 		Xt = eval_rows(X, func)
 		return _col2d(Xt)
+
+class WordCountTransformer(BaseEstimator, TransformerMixin):
+
+	def __init__(self, word_pattern = "\w+", non_word_pattern = "\W+"):
+		self.word_pattern = word_pattern
+		self.non_word_pattern = non_word_pattern
+		self.pipeline_ = Pipeline([
+			("word_replacer", ReplaceTransformer(pattern = "({0})".format(word_pattern), replacement = "1")),
+			("non_word_replacer", ReplaceTransformer(pattern = "({0})".format(non_word_pattern), replacement = "")),
+			("counter", ExpressionTransformer("len(X[0])", dtype = int))
+		])
+
+	def fit(self, X, y = None):
+		X = column_or_1d(X, warn = True)
+		return self
+
+	def transform(self, X):
+		X = column_or_1d(X, warn = True)
+		return self.pipeline_.transform(X)
 
 class StringNormalizer(BaseEstimator, TransformerMixin):
 
