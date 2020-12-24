@@ -1,4 +1,4 @@
-from pandas import Series
+from pandas import Index, Series
 
 import numpy
 import pandas
@@ -28,6 +28,8 @@ def dt_transform(X, func):
 	if len(shape) > 1:
 		X = X.ravel()
 	Xt = func(X)
+	if isinstance(Xt, Index):
+		Xt = Xt.values
 	if len(shape) > 1:
 		Xt = Xt.reshape(shape)
 	return Xt

@@ -25,6 +25,14 @@ def _col2d(X):
 		X = X.values
 	return X.reshape(-1, 1)
 
+def _int(X):
+	if numpy.isscalar(X):
+		return int(X)
+	else:
+		if isinstance(X, Series):
+			X = X.values
+		return X.astype(int)
+
 class Aggregator(BaseEstimator, TransformerMixin):
 
 	def __init__(self, function):
@@ -99,9 +107,10 @@ class DurationTransformer(BaseEstimator, TransformerMixin):
 		return self
 
 	def transform(self, X):
-		def to_duration(X):
-			return self._to_duration(pandas.to_timedelta(X - self.epoch))
-		return dt_transform(X, to_duration)
+		def to_int_duration(X):
+			duration = self._to_duration(pandas.to_timedelta(X - self.epoch))
+			return _int(duration)
+		return dt_transform(X, to_int_duration)
 
 class DaysSinceYearTransformer(DurationTransformer):
 
@@ -109,7 +118,7 @@ class DaysSinceYearTransformer(DurationTransformer):
 		super(DaysSinceYearTransformer, self).__init__(year)
 
 	def _to_duration(self, td):
-		return ((td.days).values).astype(int)
+		return td.days
 
 class SecondsSinceYearTransformer(DurationTransformer):
 
@@ -117,7 +126,7 @@ class SecondsSinceYearTransformer(DurationTransformer):
 		super(SecondsSinceYearTransformer, self).__init__(year)
 
 	def _to_duration(self, td):
-		return ((td.total_seconds()).values).astype(int)
+		return td.total_seconds()
 
 class SecondsSinceMidnightTransformer(BaseEstimator, TransformerMixin):
 
@@ -125,16 +134,17 @@ class SecondsSinceMidnightTransformer(BaseEstimator, TransformerMixin):
 		pass
 
 	def _to_duration(self, td):
-		return ((td.seconds).values).astype(int)
+		return td.seconds
 
 	def fit(self, X, y = None):
 		return self
 
 	def transform(self, X):
-		def to_duration(X):
+		def to_int_duration(X):
 			dt = pandas.to_datetime(X)
-			return self._to_duration(dt - dt.normalize())
-		return dt_transform(X, to_duration)
+			duration = self._to_duration(dt - dt.normalize())
+			return _int(duration)
+		return dt_transform(X, to_int_duration)
 
 class ExpressionTransformer(BaseEstimator, TransformerMixin):
 

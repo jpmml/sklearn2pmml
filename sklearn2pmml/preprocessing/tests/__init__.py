@@ -148,8 +148,8 @@ class DurationTransformerTest(TestCase):
 	def test_timedelta_seconds(self):
 		X = DataFrame([["2018-12-31T23:59:59", "2019-01-01T00:00:00"], ["2019-01-01T03:30:03", "2019-01-01T00:00:00"]], columns = ["left", "right"])
 		mapper = DataFrameMapper([
-			(["left", "right"], [DateTimeDomain(), SecondsSinceYearTransformer(year = 2010), ExpressionTransformer("X[0] - X[1]")])
-		])
+			(["left", "right"], [DateTimeDomain(), SecondsSinceYearTransformer(year = 2010), ExpressionTransformer("X['left'] - X['right']")])
+		], input_df = True)
 		Xt = mapper.fit_transform(X)
 		self.assertEqual([[-1], [12603]], Xt.tolist())
 
