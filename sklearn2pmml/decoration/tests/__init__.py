@@ -50,7 +50,7 @@ class CategoricalDomainTest(TestCase):
 		self.assertFalse(hasattr(domain, "counts_"))
 		self.assertFalse(hasattr(domain, "discr_stats_"))
 		self.assertFalse(domain._empty_fit())
-		X = DataFrame(numpy.array([1, None, 3, 2, None, 2]))
+		X = DataFrame([1, None, 3, 2, None, 2])
 		Xt = domain.fit_transform(X)
 		self.assertIsInstance(Xt, DataFrame)
 		self.assertEqual([1, 2, 3], domain.data_.tolist())
@@ -88,7 +88,7 @@ class CategoricalDomainTest(TestCase):
 		self.assertEqual("return_invalid", domain.invalid_value_treatment)
 		self.assertIsNone(domain.invalid_value_replacement)
 		self.assertFalse(domain._empty_fit())
-		X = DataFrame(numpy.array(["1", None, "3", "2", None, "2"]))
+		X = DataFrame(["1", None, "3", "2", None, "2"])
 		Xt = domain.fit_transform(X)
 		self.assertIsInstance(Xt, DataFrame)
 		self.assertEqual(["1", "2", "3"], domain.data_.tolist())
@@ -148,7 +148,7 @@ class ContinuousDomainTest(TestCase):
 		self.assertFalse(hasattr(domain, "counts_"))
 		self.assertFalse(hasattr(domain, "numeric_info_"))
 		self.assertFalse(domain._empty_fit())
-		X = DataFrame(numpy.array([1.0, float("NaN"), 3.0, 2.0, float("NaN"), 2.0]))
+		X = DataFrame([1.0, float("NaN"), 3.0, 2.0, float("NaN"), 2.0])
 		Xt = domain.fit_transform(X)
 		self.assertIsInstance(Xt, DataFrame)
 		self.assertEqual(1.0, domain.data_min_)
@@ -216,21 +216,22 @@ class ContinuousDomainTest(TestCase):
 		self.assertEqual([1.0, 0.5], domain.data_min_.tolist())
 		self.assertEqual([3.0, 3.5], domain.data_max_.tolist())
 
-class DateDomainTest(TestCase):
+class TemporalDomainTest(TestCase):
 
-	def test_fit(self):
-		domain = DateDomain()
-		X = numpy.array(["1960-01-01", "1960-01-02T00:00:00", "1960-02-01T00:00:00", "1959-12-31", "2003-04-01"])
+	def test_fit_transform(self):
+		X = DataFrame([["1959-12-31", "1959-12-31T23:59:59"], ["1960-01-01", "1960-01-01T01:01:10"], ["2003-04-01", "2003-04-01T05:16:27"]], columns = ["date", "datetime"])
+		domain = clone(DateDomain())
 		Xt = domain.fit_transform(X)
-		self.assertEqual([datetime(1960, 1, 1), datetime(1960, 1, 2), datetime(1960, 2, 1), datetime(1959, 12, 31), datetime(2003, 4, 1)], Xt.tolist())
-
-class DateTimeDomainTest(TestCase):
-
-	def test_fit(self):
-		domain = DateTimeDomain()
-		X = numpy.array(["1960-01-01T00:00:00", "1960-01-01T00:00:01", "1960-01-01T00:01:00", "1959-12-31T23:59:59", "1960-01-03T03:30:03"])
+		self.assertEqual([datetime(1959, 12, 31), datetime(1960, 1, 1), datetime(2003, 4, 1)], Xt["date"].tolist())
+		self.assertEqual([datetime(1959, 12, 31), datetime(1960, 1, 1), datetime(2003, 4, 1)], Xt["datetime"].tolist())
+		Xt = domain.fit_transform(X.values)
+		self.assertEqual([datetime(1959, 12, 31), datetime(1960, 1, 1), datetime(2003, 4, 1)], Xt[:, 0].tolist())
+		domain = clone(DateTimeDomain())
 		Xt = domain.fit_transform(X)
-		self.assertEqual([datetime(1960, 1, 1, 0, 0, 0), datetime(1960, 1, 1, 0, 0, 1), datetime(1960, 1, 1, 0, 1, 0), datetime(1959, 12, 31, 23, 59, 59), datetime(1960, 1, 3, 3, 30, 3)], Xt.tolist())
+		self.assertEqual([datetime(1959, 12, 31, 0, 0, 0), datetime(1960, 1, 1, 0, 0, 0), datetime(2003, 4, 1, 0, 0, 0)], Xt["date"].tolist())
+		self.assertEqual([datetime(1959, 12, 31, 23, 59, 59), datetime(1960, 1, 1, 1, 1, 10), datetime(2003, 4, 1, 5, 16, 27)], Xt["datetime"].tolist())
+		Xt = domain.fit_transform(X.values)
+		self.assertEqual([datetime(1959, 12, 31, 0, 0, 0), datetime(1960, 1, 1, 0, 0, 0), datetime(2003, 4, 1, 0, 0, 0)], Xt[:, 0].tolist())
 
 class MultiDomainTest(TestCase):
 

@@ -5,7 +5,7 @@ from scipy.sparse import lil_matrix
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.pipeline import Pipeline
 from sklearn.utils import column_or_1d
-from sklearn2pmml.util import cast, eval_rows, flat_transform
+from sklearn2pmml.util import cast, eval_rows, dt_transform
 
 import numpy
 import pandas
@@ -101,7 +101,7 @@ class DurationTransformer(BaseEstimator, TransformerMixin):
 	def transform(self, X):
 		def to_duration(X):
 			return self._to_duration(pandas.to_timedelta(X - self.epoch))
-		return flat_transform(X, to_duration)
+		return dt_transform(X, to_duration)
 
 class DaysSinceYearTransformer(DurationTransformer):
 
@@ -134,7 +134,7 @@ class SecondsSinceMidnightTransformer(BaseEstimator, TransformerMixin):
 		def to_duration(X):
 			dt = pandas.to_datetime(X)
 			return self._to_duration(dt - dt.normalize())
-		return flat_transform(X, to_duration)
+		return dt_transform(X, to_duration)
 
 class ExpressionTransformer(BaseEstimator, TransformerMixin):
 

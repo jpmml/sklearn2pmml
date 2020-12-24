@@ -1,10 +1,12 @@
+from pandas import Series
+
 import numpy
 import pandas
 
 def cast(X, dtype):
 	if isinstance(dtype, str) and dtype.startswith("datetime64"):
 		func = lambda x: to_pydatetime(x, dtype)
-		return flat_transform(X, func)
+		return dt_transform(X, func)
 	else:
 		if not hasattr(X, "astype"):
 			X = numpy.asarray(X)
@@ -19,7 +21,9 @@ def eval_rows(X, func, dtype = object):
 		Xt[i] = func(X[i])
 	return Xt
 
-def flat_transform(X, func):
+def dt_transform(X, func):
+	if hasattr(X, "applymap"):
+		return X.applymap(func)
 	shape = X.shape
 	if len(shape) > 1:
 		X = X.ravel()
@@ -30,6 +34,8 @@ def flat_transform(X, func):
 
 def to_pydatetime(X, dtype):
 	Xt = pandas.to_datetime(X, yearfirst = True, origin = "unix")
+	if hasattr(Xt, "dt"):
+		Xt = Xt.dt
 	if dtype == "datetime64[D]":
 		Xt = Xt.floor("D")
 	elif dtype == "datetime64[s]":
