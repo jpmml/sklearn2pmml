@@ -15,17 +15,17 @@ for i in range(sys.maxunicode):
 
 class Splitter:
 
-	def __init__(self, separator_re = "\s+"):
-		self.separator_re = separator_re
+	def __init__(self, word_separator_re = "\s+"):
+		self.word_separator_re = word_separator_re
 
 	def __getstate__(self):
-		return self.separator_re
+		return self.word_separator_re
 
-	def __setstate__(self, separator_re):
-		self.separator_re = separator_re
+	def __setstate__(self, word_separator_re):
+		self.word_separator_re = word_separator_re
 
 	def __call__(self, text):
-		tokens = re.split(self.separator_re, text)
+		tokens = re.split(self.word_separator_re, text)
 		# Trim tokens by removing leading and trailing puncutation characters
 		tokens = [token.strip(punctuation) for token in tokens]
 		# Remove empty tokens

@@ -20,9 +20,9 @@ class SplitterTest(TestCase):
 
 	def test_pickle(self):
 		splitter = Splitter("\W")
-		self.assertEqual("\W", splitter.separator_re)
+		self.assertEqual("\W", splitter.word_separator_re)
 		splitter_clone = SplitterTest._clone(splitter)
-		self.assertEqual("\W", splitter_clone.separator_re)
+		self.assertEqual("\W", splitter_clone.word_separator_re)
 
 	@staticmethod
 	def _clone(x):
