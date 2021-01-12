@@ -12,10 +12,10 @@ jpmml-converter-1.4.4.jar
 jpmml-h2o-1.1.3.jar
 jpmml-lightgbm-1.3.5.jar
 jpmml-python-1.0.9.jar
-jpmml-sklearn-1.6.10.jar
+jpmml-sklearn-1.6.11.jar
 jpmml-xgboost-1.4.4.jar
 pickle-1.1.jar
-pmml-model-1.5.5.jar
+pmml-model-1.5.11.jar
 pmml-model-metro-1.5.5.jar
 serpent-1.30.jar
 slf4j-api-1.7.30.jar
