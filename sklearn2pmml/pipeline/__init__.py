@@ -44,14 +44,14 @@ def _get_values(X):
 
 class PMMLPipeline(Pipeline):
 
-	def __init__(self, steps, predict_transformer = None, predict_proba_transformer = None, apply_transformer = None):
+	def __init__(self, steps, predict_transformer = None, predict_proba_transformer = None, apply_transformer = None, memory = None, verbose = False):
 		# SkLearn 0.23
-		#super(PMMLPipeline, self).__init__(steps = steps)
+		#super(PMMLPipeline, self).__init__(steps = steps, memory = memory, verbose = verbose)
 		self.predict_transformer = predict_transformer
 		self.predict_proba_transformer = predict_proba_transformer
 		self.apply_transformer = apply_transformer
 		# SkLearn 0.24+
-		super(PMMLPipeline, self).__init__(steps = steps)
+		super(PMMLPipeline, self).__init__(steps = steps, memory = memory, verbose = verbose)
 
 	def __repr__(self):
 		class_name = self.__class__.__name__
