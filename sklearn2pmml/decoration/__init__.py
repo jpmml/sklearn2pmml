@@ -125,11 +125,12 @@ class DiscreteDomain(Domain):
 
 	def _valid_value_mask(self, X, where):
 		if hasattr(self, "data_"):
-			def is_valid(x):
-				if hasattr(x, "isin"):
-					return x.isin(self.data_)
-				return x in self.data_
-			mask = eval_rows(X, is_valid, dtype = bool)
+			if hasattr(X, "isin"):
+				mask = X.isin(self.data_)
+			else:
+				def is_valid(x):
+					return x in self.data_
+				mask = eval_rows(X, is_valid, dtype = bool)
 			mask = (numpy.asarray(mask, dtype = bool)).reshape(X.shape)
 			return numpy.logical_and(mask, where)
 		return super(DiscreteDomain, self)._valid_value_mask(X, where)
