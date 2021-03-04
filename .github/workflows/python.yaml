@@ -1,0 +1,35 @@
+name: python
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: [3.6, 3.7, 3.8]
+        sklearn: [0.22.2, 0.23.2, 0.24.1]
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python }}
+    - uses: actions/cache@v2
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+          ${{ runner.os }}-
+    - run: |
+        python -m pip install --upgrade pip
+        pip install nose
+        pip install scikit-learn==${{ matrix.sklearn }}
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    - run: |
+        nosetests
