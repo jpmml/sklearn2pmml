@@ -34,6 +34,7 @@ def _int(X):
 		return X.astype(int)
 
 class Aggregator(BaseEstimator, TransformerMixin):
+	"""Aggregate continuous data."""
 
 	def __init__(self, function):
 		functions = ["min", "max", "sum", "prod", "product", "mean", "avg"]
@@ -59,6 +60,7 @@ class Aggregator(BaseEstimator, TransformerMixin):
 			raise ValueError(self.function)
 
 class CastTransformer(BaseEstimator, TransformerMixin):
+	"""Change data type."""
 
 	def __init__(self, dtype):
 		if isinstance(dtype, str) and dtype.startswith("datetime64"):
@@ -74,6 +76,7 @@ class CastTransformer(BaseEstimator, TransformerMixin):
 		return cast(X, self.dtype)
 
 class CutTransformer(BaseEstimator, TransformerMixin):
+	"""Bin continuous data to categorical."""
 
 	def __init__(self, bins, right = True, labels = None, include_lowest = True):
 		self.bins = bins
@@ -93,6 +96,7 @@ class CutTransformer(BaseEstimator, TransformerMixin):
 		return _col2d(Xt)
 
 class DurationTransformer(BaseEstimator, TransformerMixin):
+	"""Calculate time difference."""
 
 	def __init__(self, year):
 		if year < 1900:
@@ -113,6 +117,7 @@ class DurationTransformer(BaseEstimator, TransformerMixin):
 		return dt_transform(X, to_int_duration)
 
 class DaysSinceYearTransformer(DurationTransformer):
+	"""Calculate the number of days since the epoch."""
 
 	def __init__(self, year):
 		super(DaysSinceYearTransformer, self).__init__(year)
@@ -121,6 +126,7 @@ class DaysSinceYearTransformer(DurationTransformer):
 		return td.days
 
 class SecondsSinceYearTransformer(DurationTransformer):
+	"""Calculate the number of seconds since the epoch."""
 
 	def __init__(self, year):
 		super(SecondsSinceYearTransformer, self).__init__(year)
@@ -129,6 +135,7 @@ class SecondsSinceYearTransformer(DurationTransformer):
 		return td.total_seconds()
 
 class SecondsSinceMidnightTransformer(BaseEstimator, TransformerMixin):
+	"""Calculate the number of seconds since midnight."""
 
 	def __init__(self):
 		pass
@@ -147,6 +154,7 @@ class SecondsSinceMidnightTransformer(BaseEstimator, TransformerMixin):
 		return dt_transform(X, to_int_duration)
 
 class ExpressionTransformer(BaseEstimator, TransformerMixin):
+	"""Transform data using a Python expression."""
 
 	def __init__(self, expr, dtype = None):
 		self.expr = expr
@@ -166,6 +174,7 @@ class ExpressionTransformer(BaseEstimator, TransformerMixin):
 		return _col2d(Xt)
 
 class IdentityTransformer(BaseEstimator, TransformerMixin):
+	"""Pass data."""
 
 	def __init__(self):
 		pass
@@ -177,6 +186,14 @@ class IdentityTransformer(BaseEstimator, TransformerMixin):
 		return X
 
 class LookupTransformer(BaseEstimator, TransformerMixin):
+	"""Re-map 1D categorical data.
+
+	If the mapping is not found, returns `default_value`.
+
+	See also
+	--------
+	FilterLookupTransformer
+	"""
 
 	def __init__(self, mapping, default_value):
 		if type(mapping) is not dict:
@@ -204,6 +221,14 @@ class LookupTransformer(BaseEstimator, TransformerMixin):
 		return _col2d(Xt)
 
 class FilterLookupTransformer(LookupTransformer):
+	"""Selectively re-map 1D categorical data.
+
+	If the mapping is not found, returns the original value unchanged.
+
+	See also
+	--------
+	LookupTransformer
+	"""
 
 	def __init__(self, mapping):
 		super(FilterLookupTransformer, self).__init__(mapping, default_value = None)
@@ -232,6 +257,7 @@ class FilterLookupTransformer(LookupTransformer):
 		return _col2d(Xt)
 
 class MultiLookupTransformer(LookupTransformer):
+	"""Re-map multidimensional categorical data."""
 
 	def __init__(self, mapping, default_value):
 		super(MultiLookupTransformer, self).__init__(mapping, default_value)
@@ -257,6 +283,7 @@ class MultiLookupTransformer(LookupTransformer):
 		return _col2d(Xt)
 
 class PMMLLabelBinarizer(BaseEstimator, TransformerMixin):
+	"""Binarize categorical data in a missing value-aware way."""
 
 	def __init__(self, sparse_output = False):
 		self.sparse_output = sparse_output
@@ -281,6 +308,7 @@ class PMMLLabelBinarizer(BaseEstimator, TransformerMixin):
 		return Xt
 
 class PMMLLabelEncoder(BaseEstimator, TransformerMixin):
+	"""Encode categorical data in a missing value-aware way."""
 
 	def __init__(self, missing_values = None):
 		self.missing_values = missing_values
@@ -297,6 +325,7 @@ class PMMLLabelEncoder(BaseEstimator, TransformerMixin):
 		return _col2d(Xt)
 
 class PowerFunctionTransformer(BaseEstimator, TransformerMixin):
+	"""Raise numeric data to power."""
 
 	def __init__(self, power):
 		if not isinstance(power, int):
@@ -310,6 +339,7 @@ class PowerFunctionTransformer(BaseEstimator, TransformerMixin):
 		return numpy.power(X, self.power)
 
 class ConcatTransformer(BaseEstimator, TransformerMixin):
+	"""Concat data to string."""
 
 	def __init__(self, separator = ""):
 		self.separator = separator
@@ -323,6 +353,7 @@ class ConcatTransformer(BaseEstimator, TransformerMixin):
 		return _col2d(Xt)
 
 class MatchesTransformer(BaseEstimator, TransformerMixin):
+	"""Match RE pattern."""
 
 	def __init__(self, pattern):
 		self.pattern = pattern
@@ -339,6 +370,7 @@ class MatchesTransformer(BaseEstimator, TransformerMixin):
 		return _col2d(Xt)
 
 class ReplaceTransformer(BaseEstimator, TransformerMixin):
+	"""Replace all RE pattern matches."""
 
 	def __init__(self, pattern, replacement):
 		self.pattern = pattern
@@ -356,6 +388,7 @@ class ReplaceTransformer(BaseEstimator, TransformerMixin):
 		return _col2d(Xt)
 
 class SubstringTransformer(BaseEstimator, TransformerMixin):
+	"""Extract substring."""
 
 	def __init__(self, begin, end):
 		if begin < 0:
@@ -376,6 +409,7 @@ class SubstringTransformer(BaseEstimator, TransformerMixin):
 		return _col2d(Xt)
 
 class WordCountTransformer(BaseEstimator, TransformerMixin):
+	"""Count tokens."""
 
 	def __init__(self, word_pattern = "\w+", non_word_pattern = "\W+"):
 		self.word_pattern = word_pattern
@@ -395,6 +429,7 @@ class WordCountTransformer(BaseEstimator, TransformerMixin):
 		return self.pipeline_.transform(X)
 
 class StringNormalizer(BaseEstimator, TransformerMixin):
+	"""Normalize the case and surrounding whitespace."""
 
 	def __init__(self, function = None, trim_blanks = True):
 		functions = ["lower", "lowercase", "upper", "uppercase"]
