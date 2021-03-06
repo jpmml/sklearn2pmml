@@ -203,6 +203,34 @@ class LookupTransformer(BaseEstimator, TransformerMixin):
 		Xt = eval_rows(X, func)
 		return _col2d(Xt)
 
+class FilterLookupTransformer(LookupTransformer):
+
+	def __init__(self, mapping):
+		super(FilterLookupTransformer, self).__init__(mapping, default_value = None)
+		kv_type = None
+		for k, v in mapping.items():
+			if kv_type is None:
+				kv_type = type(k)
+			if type(k) != kv_type:
+				raise ValueError("Key is not a {0}".format(kv_type.__name__))
+			if v is None:
+				raise ValueError("Value is None")
+			if type(v) != kv_type:
+				raise ValueError("Value is not a {0}".format(kv_type.__name__))
+
+	def _transform_dict(self):
+		return self.mapping
+
+	def fit(self, X, y = None):
+		return self
+
+	def transform(self, X):
+		X = column_or_1d(X, warn = True)
+		transform_dict = self._transform_dict()
+		func = lambda k: transform_dict[k] if k in transform_dict else k
+		Xt = eval_rows(X, func)
+		return _col2d(Xt)
+
 class MultiLookupTransformer(LookupTransformer):
 
 	def __init__(self, mapping, default_value):

@@ -5,7 +5,7 @@ from sklearn.base import clone
 from sklearn.pipeline import FeatureUnion, Pipeline
 from sklearn.impute import SimpleImputer
 from sklearn2pmml.decoration import Alias, DateDomain, DateTimeDomain
-from sklearn2pmml.preprocessing import Aggregator, CastTransformer, ConcatTransformer, CutTransformer, DaysSinceYearTransformer, ExpressionTransformer, IdentityTransformer, LookupTransformer, MatchesTransformer, MultiLookupTransformer, PMMLLabelBinarizer, PMMLLabelEncoder, PowerFunctionTransformer, ReplaceTransformer, SecondsSinceMidnightTransformer, SecondsSinceYearTransformer, StringNormalizer, SubstringTransformer, WordCountTransformer
+from sklearn2pmml.preprocessing import Aggregator, CastTransformer, ConcatTransformer, CutTransformer, DaysSinceYearTransformer, ExpressionTransformer, FilterLookupTransformer, IdentityTransformer, LookupTransformer, MatchesTransformer, MultiLookupTransformer, PMMLLabelBinarizer, PMMLLabelEncoder, PowerFunctionTransformer, ReplaceTransformer, SecondsSinceMidnightTransformer, SecondsSinceYearTransformer, StringNormalizer, SubstringTransformer, WordCountTransformer
 from sklearn2pmml.preprocessing.lightgbm import make_lightgbm_column_transformer, make_lightgbm_dataframe_mapper
 from sklearn2pmml.preprocessing.xgboost import make_xgboost_column_transformer, make_xgboost_dataframe_mapper
 from unittest import TestCase
@@ -242,6 +242,33 @@ class LookupTransformerTest(TestCase):
 		self.assertEqual([[None], ["ein"]], transformer.transform(X).tolist())
 		X = Series(["one", "two", "three"])
 		self.assertEqual([["ein"], ["zwei"], ["drei"]], transformer.transform(X).tolist())
+
+class FilterLookupTransformerTest(TestCase):
+
+	def test_transform_int(self):
+		mapping = {
+			0 : 1,
+			1 : "1",
+			2 : 1,
+		}
+		with self.assertRaises(ValueError):
+			FilterLookupTransformer(mapping)
+		mapping.pop(1)
+		transformer = FilterLookupTransformer(mapping)
+		X = numpy.array([[0], [-1], [3], [2]])
+		self.assertEqual([[1], [-1], [3], [1]], transformer.transform(X).tolist())
+
+	def test_transform_string(self):
+		mapping = {
+			"orange" : "yellow",
+			"blue" : None
+		}
+		with self.assertRaises(ValueError):
+			FilterLookupTransformer(mapping)
+		mapping["blue"] = "green"
+		transformer = FilterLookupTransformer(mapping)
+		X = numpy.array([["red"], ["orange"], [None], ["green"], ["blue"]])
+		self.assertEqual([["red"], ["yellow"], [None], ["green"], ["green"]], transformer.transform(X).tolist())
 
 class MultiLookupTransformerTest(TestCase):
 
