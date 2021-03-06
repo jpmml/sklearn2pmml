@@ -1,4 +1,4 @@
-from collections import defaultdict
+from collections import defaultdict, Hashable
 from datetime import datetime
 from pandas import Categorical, Series
 from scipy.sparse import lil_matrix
@@ -200,10 +200,7 @@ class LookupTransformer(BaseEstimator, TransformerMixin):
 		X = column_or_1d(X, warn = True)
 		transform_dict = self._transform_dict()
 		func = lambda k: transform_dict[k]
-		if hasattr(X, "apply"):
-			Xt = X.apply(func)
-		else:
-			Xt = numpy.array([func(row) for row in X])
+		Xt = eval_rows(X, func)
 		return _col2d(Xt)
 
 class MultiLookupTransformer(LookupTransformer):
@@ -225,12 +222,10 @@ class MultiLookupTransformer(LookupTransformer):
 
 	def transform(self, X):
 		transform_dict = self._transform_dict()
-		func = lambda k: transform_dict[tuple(k)]
-		if hasattr(X, "apply"):
-			Xt = X.apply(func, axis = 1)
-		else:
-			# See https://stackoverflow.com/a/3338368
-			Xt = numpy.array([func((numpy.squeeze(numpy.asarray(row))).tolist()) for row in X])
+		# See https://stackoverflow.com/a/3460747
+		# See https://stackoverflow.com/a/3338368
+		func = lambda k: transform_dict[tuple(k) if isinstance(k, Hashable) else tuple(numpy.squeeze(numpy.asarray(k)))]
+		Xt = eval_rows(X, func)
 		return _col2d(Xt)
 
 class PMMLLabelBinarizer(BaseEstimator, TransformerMixin):
