@@ -3,7 +3,7 @@ from pandas import DataFrame
 from sklearn.base import clone
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import LabelBinarizer, StandardScaler
-from sklearn2pmml.decoration import Alias, CategoricalDomain, ContinuousDomain, DateDomain, DateTimeDomain, Domain, MultiDomain
+from sklearn2pmml.decoration import Alias, CategoricalDomain, ContinuousDomain, ContinuousDomainEraser, DateDomain, DateTimeDomain, DiscreteDomainEraser, Domain, MultiDomain
 from sklearn_pandas import DataFrameMapper
 from unittest import TestCase
 

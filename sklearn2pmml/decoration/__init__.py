@@ -296,3 +296,24 @@ class MultiDomain(BaseEstimator, TransformerMixin):
 				if domain is not None:
 					X[:, column] = domain.transform(X[:, column])
 		return X
+
+class DomainEraser(BaseEstimator, TransformerMixin):
+
+	def __init__(self):
+		pass
+
+	def fit(self, X, y = None):
+		return self
+
+	def transform(self, X):
+		return X
+
+class ContinuousDomainEraser(DomainEraser):
+
+	def __init__(self):
+		super(ContinuousDomainEraser, self).__init__()
+
+class DiscreteDomainEraser(DomainEraser):
+
+	def __init__(self):
+		super(DiscreteDomainEraser, self).__init__()
