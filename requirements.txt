@@ -4,4 +4,4 @@ pandas==1.1.3
 scikit-learn
 sklearn-pandas==1.8.0
 TPOT==0.11.1
-xgboost==1.2.1
+xgboost==1.3.3
