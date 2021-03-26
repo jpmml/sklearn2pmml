@@ -7,7 +7,7 @@ Python library for converting [Scikit-Learn](https://scikit-learn.org/) pipeline
 
 This library is a thin wrapper around the JPMML-SkLearn command-line application.
 
-For a list of supported Estimator and Transformer types, please refer to [JPMML-SkLearn features](https://github.com/jpmml/jpmml-sklearn#features).
+For a list of supported Estimator and Transformer types, please refer to [JPMML-SkLearn supported packages](https://github.com/jpmml/jpmml-sklearn#supported-packages).
 
 # Prerequisites #
 
@@ -105,7 +105,7 @@ Up-to-date:
 * [Converting Scikit-Learn based Imbalanced-Learn (imblearn) pipelines to PMML documents](https://openscoring.io/blog/2020/10/24/converting_sklearn_imblearn_pipeline_pmml/)
 * [Extending Scikit-Learn with date and datetime features](https://openscoring.io/blog/2020/03/08/sklearn_date_datetime_pmml/)
 * [Extending Scikit-Learn with feature specifications](https://openscoring.io/blog/2020/02/23/sklearn_feature_specification_pmml/)
-* [Converting logistic regression models to PMML documents](https://openscoring.io/blog/2020/01/19/converting_logistic_regression_pmml/)
+* [Converting logistic regression models to PMML documents](https://openscoring.io/blog/2020/01/19/converting_logistic_regression_pmml/#scikit-learn)
 * [Stacking Scikit-Learn, LightGBM and XGBoost models](https://openscoring.io/blog/2020/01/02/stacking_sklearn_lightgbm_xgboost/)
 * [Converting Scikit-Learn hyperparameter-tuned pipelines to PMML documents](https://openscoring.io/blog/2019/12/25/converting_sklearn_gridsearchcv_pipeline_pmml/)
 * [Extending Scikit-Learn with GBDT plus LR ensemble (GBDT+LR) model type](https://openscoring.io/blog/2019/06/19/sklearn_gbdt_lr_ensemble/)
