@@ -11,8 +11,8 @@ jcommander-1.72.jar
 jpmml-converter-1.4.6.jar
 jpmml-h2o-1.1.4.jar
 jpmml-lightgbm-1.3.7.jar
-jpmml-python-1.0.12.jar
-jpmml-sklearn-1.6.16.jar
+jpmml-python-1.0.13.jar
+jpmml-sklearn-1.6.17.jar
 jpmml-xgboost-1.5.0.jar
 pickle-1.1.jar
 pmml-model-1.5.11.jar
