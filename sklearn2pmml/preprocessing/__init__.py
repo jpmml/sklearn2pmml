@@ -173,18 +173,6 @@ class ExpressionTransformer(BaseEstimator, TransformerMixin):
 			Xt = cast(Xt, self.dtype)
 		return _col2d(Xt)
 
-class IdentityTransformer(BaseEstimator, TransformerMixin):
-	"""Pass data."""
-
-	def __init__(self):
-		pass
-
-	def fit(self, X, y = None):
-		return self
-
-	def transform(self, X):
-		return X
-
 class LookupTransformer(BaseEstimator, TransformerMixin):
 	"""Re-map 1D categorical data.
 
