@@ -10,9 +10,9 @@ jaxb-runtime-2.3.3.jar
 jcommander-1.72.jar
 jpmml-converter-1.4.8.jar
 jpmml-h2o-1.1.6.jar
-jpmml-lightgbm-1.3.9.jar
+jpmml-lightgbm-1.3.10.jar
 jpmml-python-1.0.15.jar
-jpmml-sklearn-1.6.21.jar
+jpmml-sklearn-1.6.22.jar
 jpmml-xgboost-1.5.2.jar
 pickle-1.1.jar
 pmml-model-1.5.15.jar
