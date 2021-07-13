@@ -100,6 +100,7 @@ sklearn2pmml(pipeline, "LogisticRegressionIris.pmml", with_repr = True)
 
 Up-to-date:
 
+* [Analyzing Scikit-Learn feature importances via PMML](https://openscoring.io/blog/2021/07/11/analyzing_sklearn_feature_importances_pmml/)
 * [Training Scikit-Learn based TF(-IDF) plus XGBoost pipelines](https://openscoring.io/blog/2021/02/27/sklearn_tf_tfidf_xgboost_pipeline/)
 * [Converting Scikit-Learn based TF(-IDF) pipelines to PMML documents](https://openscoring.io/blog/2021/01/17/converting_sklearn_tf_tfidf_pipeline_pmml/)
 * [Converting Scikit-Learn based Imbalanced-Learn (imblearn) pipelines to PMML documents](https://openscoring.io/blog/2020/10/24/converting_sklearn_imblearn_pipeline_pmml/)
