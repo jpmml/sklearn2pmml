@@ -30,7 +30,8 @@ setup(
 		"sklearn2pmml.pipeline",
 		"sklearn2pmml.preprocessing",
 		"sklearn2pmml.resources",
-		"sklearn2pmml.ruleset"
+		"sklearn2pmml.ruleset",
+		"sklearn2pmml.util"
 	],
 	package_data = {
 		"sklearn2pmml.resources" : ["classpath.txt", "*.jar"]

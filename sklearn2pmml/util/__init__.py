@@ -1,4 +1,5 @@
 from pandas import Index, Series
+from sklearn.base import clone, BaseEstimator, TransformerMixin
 
 import numpy
 import pandas
@@ -45,3 +46,14 @@ def to_pydatetime(X, dtype):
 	else:
 		raise ValueError(dtype)
 	return Xt.to_pydatetime()
+
+class Reshaper(BaseEstimator, TransformerMixin):
+
+	def __init__(self, newshape):
+		self.newshape = newshape
+
+	def fit(self, X, y = None):
+		return self
+
+	def transform(self, X):
+		return X.reshape(self.newshape)
