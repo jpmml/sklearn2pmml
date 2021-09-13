@@ -34,17 +34,19 @@ class DomainTest(TestCase):
 			Domain(missing_value_treatment = "return_invalid", missing_value_replacement = 0)
 		with self.assertRaises(ValueError):
 			Domain(invalid_value_replacement = 0)
+		with self.assertRaises(ValueError):
+			Domain(invalid_value_treatment = "return_invalid", invalid_value_replacement = 0)
 
 class CategoricalDomainTest(TestCase):
 
 	def test_fit_int(self):
 		domain = clone(CategoricalDomain(with_data = False, with_statistics = False))
 		self.assertTrue(domain._empty_fit())
-		domain = clone(CategoricalDomain(missing_value_treatment = "as_value", missing_value_replacement = 1, invalid_value_treatment = "as_is", invalid_value_replacement = 0))
+		domain = clone(CategoricalDomain(missing_value_treatment = "as_value", missing_value_replacement = 1, invalid_value_treatment = "as_value", invalid_value_replacement = 0))
 		self.assertIsNone(domain.missing_values)
 		self.assertEqual("as_value", domain.missing_value_treatment)
 		self.assertEqual(1, domain.missing_value_replacement)
-		self.assertEqual("as_is", domain.invalid_value_treatment)
+		self.assertEqual("as_value", domain.invalid_value_treatment)
 		self.assertEqual(0, domain.invalid_value_replacement)
 		self.assertFalse(hasattr(domain, "data_"))
 		self.assertFalse(hasattr(domain, "counts_"))
@@ -103,10 +105,10 @@ class CategoricalDomainTest(TestCase):
 			domain.transform(X)
 
 	def test_fit_string_missing(self):
-		domain = clone(CategoricalDomain(missing_values = ["NA", "N/A"], missing_value_replacement = "0", invalid_value_treatment = "as_is", invalid_value_replacement = "1"))
+		domain = clone(CategoricalDomain(missing_values = ["NA", "N/A"], missing_value_replacement = "0", invalid_value_treatment = "as_value", invalid_value_replacement = "1"))
 		self.assertEqual(["NA", "N/A"], domain.missing_values)
 		self.assertEqual("0", domain.missing_value_replacement)
-		self.assertEqual("as_is", domain.invalid_value_treatment)
+		self.assertEqual("as_value", domain.invalid_value_treatment)
 		self.assertEqual("1", domain.invalid_value_replacement)
 		self.assertFalse(domain._empty_fit())
 		X = DataFrame(["1", "NA", "3", "2", "N/A", "2"])
@@ -137,11 +139,11 @@ class ContinuousDomainTest(TestCase):
 	def test_fit_float(self):
 		domain = clone(ContinuousDomain(with_data = False, with_statistics = False))
 		self.assertTrue(domain._empty_fit())
-		domain = clone(ContinuousDomain(missing_values = float("NaN"), missing_value_treatment = "as_value", missing_value_replacement = -1.0, invalid_value_treatment = "as_is", invalid_value_replacement = 0.0))
+		domain = clone(ContinuousDomain(missing_values = float("NaN"), missing_value_treatment = "as_value", missing_value_replacement = -1.0, invalid_value_treatment = "as_value", invalid_value_replacement = 0.0))
 		self.assertTrue(numpy.isnan(domain.missing_values))
 		self.assertEqual("as_value", domain.missing_value_treatment)
 		self.assertEqual(-1.0, domain.missing_value_replacement)
-		self.assertEqual("as_is", domain.invalid_value_treatment)
+		self.assertEqual("as_value", domain.invalid_value_treatment)
 		self.assertEqual(0.0, domain.invalid_value_replacement)
 		self.assertFalse(hasattr(domain, "data_min_"))
 		self.assertFalse(hasattr(domain, "data_max_"))

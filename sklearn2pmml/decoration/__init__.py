@@ -47,15 +47,18 @@ class Domain(BaseEstimator, TransformerMixin):
 		self.missing_value_treatment = missing_value_treatment
 		if missing_value_replacement is not None:
 			if missing_value_treatment == "return_invalid":
-				raise ValueError("Missing value treatment {0} does not support missing_value_replacement attribute", missing_value_treatment)
+				raise ValueError("Missing value treatment {0} does not support missing_value_replacement attribute".format(missing_value_treatment))
 		self.missing_value_replacement = missing_value_replacement
-		invalid_value_treatments = ["return_invalid", "as_is", "as_missing"]
+		invalid_value_treatments = ["return_invalid", "as_is", "as_missing", "as_value"]
 		if invalid_value_treatment not in invalid_value_treatments:
 			raise ValueError("Invalid value treatment {0} not in {1}".format(invalid_value_treatment, invalid_value_treatments))
 		self.invalid_value_treatment = invalid_value_treatment
 		if invalid_value_replacement is not None:
-			if invalid_value_treatment == "return_invalid" or invalid_value_treatment == "as_missing":
-				raise ValueError("Invalid value treatment {0} does not support invalid_value_replacement attribute", invalid_value_treatment)
+			if invalid_value_treatment != "as_value":
+				raise ValueError("Invalid value treatment {0} does not support invalid_value_replacement attribute".format(invalid_value_treatment))
+		else:
+			if invalid_value_treatment == "as_value":
+				raise ValueError("Invalid value treatment {0} requires invalid_value_replacement attribute".format(invalid_value_treatment))
 		self.invalid_value_replacement = invalid_value_replacement
 		self.with_data = with_data
 		self.with_statistics = with_statistics
@@ -101,10 +104,12 @@ class Domain(BaseEstimator, TransformerMixin):
 			if numpy.any(where) > 0:
 				raise ValueError("Data contains {0} invalid values".format(numpy.count_nonzero(where)))
 		elif self.invalid_value_treatment == "as_is":
-			if self.invalid_value_replacement is not None:
-				X[where] = self.invalid_value_replacement
+			pass
 		elif self.invalid_value_treatment == "as_missing":
 			self._transform_missing_values(X, where)
+		elif self.invalid_value_treatment == "as_value":
+			if self.invalid_value_replacement is not None:
+				X[where] = self.invalid_value_replacement
 
 	def transform(self, X):
 		if self.dtype is not None:
