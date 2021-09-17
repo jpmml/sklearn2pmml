@@ -47,17 +47,18 @@ class Aggregator(BaseEstimator, TransformerMixin):
 
 	def transform(self, X):
 		if self.function == "min":
-			return numpy.nanmin(X, axis = 1) 
+			Xt = numpy.nanmin(X, axis = 1) 
 		elif self.function == "max":
-			return numpy.nanmax(X, axis = 1)
+			Xt = numpy.nanmax(X, axis = 1)
 		elif self.function == "sum":
-			return numpy.nansum(X, axis = 1)
+			Xt = numpy.nansum(X, axis = 1)
 		elif self.function == "prod" or self.function == "product":
-			return numpy.nanprod(X, axis = 1)
+			Xt = numpy.nanprod(X, axis = 1)
 		elif self.function == "mean" or self.function == "avg":
-			return numpy.nanmean(X, axis = 1)
+			Xt = numpy.nanmean(X, axis = 1)
 		else:
 			raise ValueError(self.function)
+		return _col2d(Xt)
 
 class CastTransformer(BaseEstimator, TransformerMixin):
 	"""Change data type."""

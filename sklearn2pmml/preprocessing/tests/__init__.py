@@ -25,6 +25,8 @@ def _data():
 
 def nan_eq(left, right):
 	for i, j in zip(left, right):
+		i = i[0]
+		j = j[0]
 		if i != j and not (math.isnan(i) and math.isnan(j)):
 			return False
 	return True
@@ -39,11 +41,11 @@ class AggregatorTest(TestCase):
 		X = numpy.asarray([1, 0, 2, 3])
 		aggregator = Aggregator(function = "min")
 		X = X.reshape((-1, 4))
-		self.assertEquals(0, aggregator.transform(X))
+		self.assertEqual(0, aggregator.transform(X))
 		X = X.reshape((2, 2))
-		self.assertEquals([0, 2], aggregator.transform(X).tolist())
+		self.assertEqual([[0], [2]], aggregator.transform(X).tolist())
 		X = X.reshape((4, -1))
-		self.assertEquals([1, 0, 2, 3], aggregator.transform(X).tolist())
+		self.assertEqual([[1], [0], [2], [3]], aggregator.transform(X).tolist())
 
 	def test_min_float(self):
 		X = numpy.asarray([1.0, 0.5, 2.0, 3.0, float("NaN"), 1.5])
@@ -51,33 +53,33 @@ class AggregatorTest(TestCase):
 		X = X.reshape((-1, 6))
 		self.assertEqual(0.5, aggregator.transform(X))
 		X = X.reshape((3, 2))
-		self.assertEqual([0.5, 2.0, 1.5], aggregator.transform(X).tolist())
+		self.assertEqual([[0.5], [2.0], [1.5]], aggregator.transform(X).tolist())
 		X = X.reshape((2, 3))
-		self.assertEqual([0.5, 1.5], aggregator.transform(X).tolist())
+		self.assertEqual([[0.5], [1.5]], aggregator.transform(X).tolist())
 		X = X.reshape((6, -1))
-		self.assertTrue(nan_eq([1.0, 0.5, 2.0, 3.0, float("NaN"), 1.5], aggregator.transform(X).tolist()))
+		self.assertTrue(nan_eq([[1.0], [0.5], [2.0], [3.0], [float("NaN")], [1.5]], aggregator.transform(X).tolist()))
 
 	def test_sum_float(self):
 		X = numpy.asarray([1.0, float("NaN"), 2.0, 1.0])
 		aggregator = Aggregator(function = "sum")
 		X = X.reshape((-1, 4))
-		self.assertEquals(4.0, aggregator.transform(X))
+		self.assertEqual(4.0, aggregator.transform(X))
 		X = X.reshape((2, 2))
-		self.assertEquals([1.0, 3.0], aggregator.transform(X).tolist())
+		self.assertEqual([[1.0], [3.0]], aggregator.transform(X).tolist())
 
 	def test_prod_float(self):
 		X = numpy.asarray([1.0, float("NaN"), 2.0, 4.0])
 		aggregator = Aggregator(function = "prod")
 		X = X.reshape((-1, 4))
-		self.assertEquals(8.0, aggregator.transform(X))
+		self.assertEqual(8.0, aggregator.transform(X))
 		X = X.reshape((2, 2))
-		self.assertEquals([1.0, 8.0], aggregator.transform(X).tolist())
+		self.assertEqual([[1.0], [8.0]], aggregator.transform(X).tolist())
 
 	def test_mean_float(self):
 		X = numpy.asarray([1.0, float("NaN"), 2.0])
 		aggregator = Aggregator(function = "mean")
 		X = X.reshape((-1, 3))
-		self.assertEquals(1.5, aggregator.transform(X))
+		self.assertEqual(1.5, aggregator.transform(X))
 
 class CastTransformerTest(TestCase):
 
