@@ -146,9 +146,9 @@ def _decode(data, encoding):
 	except ValueError:
 		return ""
 
-def _java_version(java_encoding):
+def _java_version(java_encoding, java_home = ""):
 	try:
-		process = Popen(["java", "-version"], stdout = PIPE, stderr = PIPE, bufsize = 1)
+		process = Popen([java_home + "java", "-version"], stdout = PIPE, stderr = PIPE, bufsize = 1)
 	except:
 		return None
 	output, error = process.communicate()
@@ -183,7 +183,7 @@ def _dump(obj, prefix):
 		os.close(fd)
 	return path
 
-def sklearn2pmml(pipeline, pmml, user_classpath = [], with_repr = False, debug = False, java_encoding = "UTF-8"):
+def sklearn2pmml(pipeline, pmml, user_classpath = [], with_repr = False, debug = False, java_encoding = "UTF-8", java_home = ""):
 	"""Converts a fitted PMML pipeline object to PMML file.
 
 	Parameters:
@@ -209,7 +209,7 @@ def sklearn2pmml(pipeline, pmml, user_classpath = [], with_repr = False, debug =
 
 	"""
 	if debug:
-		java_version = _java_version(java_encoding)
+		java_version = _java_version(java_encoding, java_home)
 		if java_version is None:
 			java_version = ("java", "N/A")
 		print("python: {0}".format(platform.python_version()))
@@ -223,7 +223,7 @@ def sklearn2pmml(pipeline, pmml, user_classpath = [], with_repr = False, debug =
 	if not isinstance(pipeline, PMMLPipeline):
 		raise TypeError("The pipeline object is not an instance of " + PMMLPipeline.__name__ + ". Use the 'sklearn2pmml.make_pmml_pipeline(obj)' utility function to translate a regular Scikit-Learn estimator or pipeline to a PMML pipeline")
 	estimator = pipeline._final_estimator
-	cmd = ["java", "-cp", os.pathsep.join(_classpath(user_classpath)), "org.jpmml.sklearn.Main"]
+	cmd = [java_home + "java", "-cp", os.pathsep.join(_classpath(user_classpath)), "org.jpmml.sklearn.Main"]
 	dumps = []
 	try:
 		if with_repr:
