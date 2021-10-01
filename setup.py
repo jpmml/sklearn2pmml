@@ -29,6 +29,7 @@ setup(
 		"sklearn2pmml.feature_selection",
 		"sklearn2pmml.neural_network",
 		"sklearn2pmml.pipeline",
+		"sklearn2pmml.postprocessing",
 		"sklearn2pmml.preprocessing",
 		"sklearn2pmml.resources",
 		"sklearn2pmml.ruleset",
