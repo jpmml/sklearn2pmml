@@ -36,23 +36,7 @@
 		<dependency>
 			<groupId>org.jpmml</groupId>
 			<artifactId>jpmml-sklearn</artifactId>
-			<version>1.6.34</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.jpmml</groupId>
-					<artifactId>pmml-agent</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.jpmml</groupId>
-					<artifactId>jpmml-python</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-
-		<dependency>
-			<groupId>org.jpmml</groupId>
-			<artifactId>jpmml-python</artifactId>
-			<version>1.0.23</version>
+			<version>1.6.35</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.jpmml</groupId>
