@@ -230,9 +230,11 @@ def sklearn2pmml(pipeline, pmml, user_classpath = [], with_repr = False, debug =
 			pipeline.repr_ = repr(pipeline)
 		# if isinstance(estimator, H2OEstimator):
 		if hasattr(estimator, "download_mojo"):
-			estimator_mojo = estimator.download_mojo()
-			dumps.append(estimator_mojo)
-			estimator._mojo_path = estimator_mojo
+			# Avoid MOJO (re-)download if the indicator attribute is set
+			if not hasattr(estimator, "_mojo_path"):
+				estimator_mojo = estimator.download_mojo()
+				dumps.append(estimator_mojo)
+				estimator._mojo_path = estimator_mojo
 		pipeline_pkl = _dump(pipeline, "pipeline")
 		cmd.extend(["--pkl-pipeline-input", pipeline_pkl])
 		dumps.append(pipeline_pkl)
