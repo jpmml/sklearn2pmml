@@ -13,6 +13,17 @@ def cast(X, dtype):
 			X = numpy.asarray(X)
 		return X.astype(dtype)
 
+def common_dtype(X):
+	if hasattr(X, "dtype"):
+		return X.dtype
+	elif hasattr(X, "dtypes"):
+		dtypes = set(X.dtypes)
+		if len(dtypes) != 1:
+			raise ValueError(dtypes)
+		return next(iter(dtypes))
+	else:
+		raise ValueError()
+
 def eval_rows(X, func, dtype = object):
 	if hasattr(X, "apply"):
 		return X.apply(func, axis = 1)

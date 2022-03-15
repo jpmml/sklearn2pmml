@@ -1,7 +1,7 @@
 from pandas import DataFrame
 from sklearn.base import clone, BaseEstimator, TransformerMixin
 from sklearn.utils import column_or_1d
-from sklearn2pmml.util import cast, eval_rows
+from sklearn2pmml.util import cast, common_dtype, eval_rows
 
 import numpy
 import pandas
@@ -146,6 +146,7 @@ class DiscreteDomain(Domain):
 			return self
 		if self.dtype is not None:
 			X = cast(X, self.dtype)
+		self.dtype_ = X.dtype
 		mask = self._missing_value_mask(X)
 		values, counts = numpy.unique(X[~mask], return_counts = True)
 		if self.with_data:
@@ -200,6 +201,7 @@ class ContinuousDomain(Domain):
 			return self
 		if self.dtype is not None:
 			X = cast(X, self.dtype)
+		self.dtype_ = common_dtype(X)
 		mask = self._missing_value_mask(X)
 		X = numpy.ma.masked_array(X, mask = mask)
 		min = numpy.asarray(numpy.nanmin(X, axis = 0))
@@ -257,6 +259,7 @@ class TemporalDomain(Domain):
 			raise ValueError("Temporal data type {0} not in {1}".format(dtype, dtypes))
 
 	def fit(self, X, y = None):
+		self.dtype_ = common_dtype(X)
 		return self
 
 class DateDomain(TemporalDomain):
