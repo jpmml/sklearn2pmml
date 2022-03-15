@@ -1,5 +1,6 @@
 from pandas import DataFrame
 from sklearn.base import clone, BaseEstimator, TransformerMixin
+from sklearn2pmml import _is_pandas_categorical
 from sklearn2pmml.util import cast, common_dtype, ensure_1d, eval_rows
 
 import numpy
@@ -149,10 +150,15 @@ class DiscreteDomain(Domain):
 		mask = self._missing_value_mask(X)
 		values, counts = numpy.unique(X[~mask], return_counts = True)
 		if self.with_data:
-			if (self.missing_value_replacement is not None) and numpy.any(mask) > 0:
-				self.data_ = numpy.unique(numpy.append(values, self.missing_value_replacement))
+			if _is_pandas_categorical(self.dtype_):
+				data = self.dtype_.categories
 			else:
-				self.data_ = values
+				data = values
+			if (self.missing_value_replacement is not None) and numpy.any(mask) > 0:
+				if _is_pandas_categorical(self.dtype_):
+					raise ValueError()
+				data = numpy.unique(numpy.append(data, self.missing_value_replacement))
+			self.data_ = data
 		if self.with_statistics:
 			self.counts_ = _count(mask)
 			self.discr_stats_ = (values, counts)

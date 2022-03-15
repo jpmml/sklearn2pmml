@@ -1,4 +1,4 @@
-from pandas import Index, Series
+from pandas import Categorical, Index, Series
 from sklearn.base import clone, BaseEstimator, TransformerMixin
 from sklearn.utils import column_or_1d
 
@@ -26,7 +26,7 @@ def common_dtype(X):
 		raise ValueError()
 
 def ensure_1d(X):
-	if isinstance(X, Series):
+	if isinstance(X, Categorical) or isinstance(X, Series):
 		return X
 	return column_or_1d(X, warn = True)
 

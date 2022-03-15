@@ -32,8 +32,13 @@ from .pipeline import PMMLPipeline
 def _is_categorical(dtype):
 	if dtype == object or dtype == str or dtype == bool:
 		return True
-	elif hasattr(dtype, "name") and dtype.name == "category":
+	elif _is_pandas_categorical(dtype):
 		return True
+	return False
+
+def _is_pandas_categorical(dtype):
+	if hasattr(dtype, "name"):
+		return dtype.name == "category"
 	return False
 
 class EstimatorProxy(BaseEstimator):

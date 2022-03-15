@@ -1,5 +1,5 @@
 from datetime import datetime
-from pandas import DataFrame
+from pandas import Categorical, CategoricalDtype, DataFrame, Series
 from sklearn.base import clone
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import LabelBinarizer, StandardScaler
@@ -80,6 +80,15 @@ class CategoricalDomainTest(TestCase):
 		Xt = domain.transform(X)
 		self.assertEqual([0, 0, 2], Xt.tolist())
 
+	def test_fit_int_categorical(self):
+		domain = clone(CategoricalDomain(dtype = CategoricalDtype()))
+		self.assertIsNone(domain.dtype.categories)
+		self.assertFalse(hasattr(domain, "dtype_"))
+		X = Series([-1, 0, 1, 0, -1])
+		Xt = domain.fit_transform(X)
+		self.assertIsNone(domain.dtype.categories)
+		self.assertEqual([-1, 0, 1], domain.dtype_.categories.tolist())
+
 	def test_fit_string(self):
 		domain = clone(CategoricalDomain(with_data = False, with_statistics = False))
 		self.assertTrue(domain._empty_fit())
@@ -121,6 +130,27 @@ class CategoricalDomainTest(TestCase):
 		X = numpy.array(["NA", "N/A", "4"])
 		Xt = domain.transform(X)
 		self.assertEqual(["0", "0", "1"], Xt.tolist())
+
+	def test_fit_string_categorical(self):
+		domain = clone(CategoricalDomain())
+		X = Categorical(["a", "b", "c", "b", "a"])
+		Xt = domain.fit_transform(X)
+		self.assertIsInstance(Xt, Categorical)
+		self.assertEqual(["a", "b", "c"], domain.data_.tolist())
+		X = Categorical(X.tolist(), dtype = CategoricalDtype(categories = ["c", "b", "a"]))
+		Xt = domain.fit_transform(X)
+		self.assertIsInstance(Xt, Categorical)
+		self.assertEqual(["c", "b", "a"], domain.data_.tolist())
+		domain = clone(CategoricalDomain(dtype = CategoricalDtype()))
+		X = Series(["a", "b", "c"])
+		Xt = domain.fit_transform(X)
+		self.assertIsInstance(Xt, Series)
+		self.assertIsInstance(domain.dtype, CategoricalDtype)
+		self.assertIsInstance(domain.dtype_, CategoricalDtype)
+		self.assertEqual(["a", "b", "c"], domain.data_.tolist())
+		domain = clone(CategoricalDomain(dtype = CategoricalDtype(categories = ["c", "b", "a"])))
+		Xt = domain.fit_transform(X)
+		self.assertEqual(["c", "b", "a"], domain.data_.tolist())
 
 	def test_mapper(self):
 		domain = CategoricalDomain()

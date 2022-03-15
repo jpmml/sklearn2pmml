@@ -1,4 +1,4 @@
-from pandas import DataFrame, Series
+from pandas import Categorical, CategoricalDtype, DataFrame, Series
 from sklearn.dummy import DummyRegressor
 from sklearn.feature_selection import f_regression, SelectFromModel, SelectKBest
 from sklearn.pipeline import Pipeline
@@ -13,15 +13,23 @@ class DTypeTest(TestCase):
 
 	def test_is_categorical(self):
 		x = Series(["True", "False", "True"], name = "x", dtype = str)
+		self.assertEqual(["True", "False", "True"], x.values.tolist())
 		self.assertTrue(_is_categorical(x.dtype))
-		x = x.astype(bool)
+		x = Series([True, False, True], name = "x", dtype = bool)
+		self.assertEqual([True, False, True], x.values.tolist())
 		self.assertTrue(_is_categorical(x.dtype))
 		x = x.astype(float)
+		self.assertEqual([1.0, 0.0, 1.0], x.values.tolist())
 		self.assertFalse(_is_categorical(x.dtype))
 		x = x.astype("category")
+		self.assertEqual([1.0, 0.0, 1.0], x.values.tolist())
 		self.assertTrue(_is_categorical(x.dtype))
 		x = x.astype(int)
+		self.assertEqual([1, 0, 1], x.values.tolist())
 		self.assertFalse(_is_categorical(x.dtype))
+		x = x.astype(CategoricalDtype())
+		self.assertEquals([1, 0, 1], x.values.tolist())
+		self.assertTrue(_is_categorical(x.dtype))
 
 class EstimatorProxyTest(TestCase):
 
