@@ -4,8 +4,7 @@ from pandas import Categorical, Series
 from scipy.sparse import lil_matrix
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.pipeline import Pipeline
-from sklearn.utils import column_or_1d
-from sklearn2pmml.util import cast, eval_rows, dt_transform
+from sklearn2pmml.util import cast, ensure_1d, eval_rows, dt_transform
 
 import numpy
 import pandas
@@ -86,11 +85,11 @@ class CutTransformer(BaseEstimator, TransformerMixin):
 		self.include_lowest = include_lowest
 
 	def fit(self, X, y = None):
-		X = column_or_1d(X, warn = True)
+		X = ensure_1d(X)
 		return self
 
 	def transform(self, X):
-		X = column_or_1d(X, warn = True)
+		X = ensure_1d(X)
 		Xt = pandas.cut(X, bins = self.bins, right = self.right, labels = self.labels, include_lowest = self.include_lowest)
 		if isinstance(Xt, Categorical):
 			Xt = numpy.asarray(Xt)
@@ -199,11 +198,11 @@ class LookupTransformer(BaseEstimator, TransformerMixin):
 		return transform_dict
 
 	def fit(self, X, y = None):
-		X = column_or_1d(X, warn = True)
+		X = ensure_1d(X)
 		return self
 
 	def transform(self, X):
-		X = column_or_1d(X, warn = True)
+		X = ensure_1d(X)
 		transform_dict = self._transform_dict()
 		func = lambda k: transform_dict[k]
 		Xt = eval_rows(X, func)
@@ -239,7 +238,7 @@ class FilterLookupTransformer(LookupTransformer):
 		return self
 
 	def transform(self, X):
-		X = column_or_1d(X, warn = True)
+		X = ensure_1d(X)
 		transform_dict = self._transform_dict()
 		func = lambda k: transform_dict[k] if k in transform_dict else k
 		Xt = eval_rows(X, func)
@@ -278,12 +277,12 @@ class PMMLLabelBinarizer(BaseEstimator, TransformerMixin):
 		self.sparse_output = sparse_output
 
 	def fit(self, X, y = None):
-		X = column_or_1d(X, warn = True)
+		X = ensure_1d(X)
 		self.classes_ = numpy.unique(X[~pandas.isnull(X)])
 		return self
 
 	def transform(self, X):
-		X = column_or_1d(X, warn = True)
+		X = ensure_1d(X)
 		index = list(self.classes_)
 		if self.sparse_output:
 			Xt = lil_matrix((len(X), len(index)), dtype = numpy.int)
@@ -303,12 +302,12 @@ class PMMLLabelEncoder(BaseEstimator, TransformerMixin):
 		self.missing_values = missing_values
 
 	def fit(self, X, y = None):
-		X = column_or_1d(X, warn = True)
+		X = ensure_1d(X)
 		self.classes_ = numpy.unique(X[~pandas.isnull(X)])
 		return self
 
 	def transform(self, X):
-		X = column_or_1d(X, warn = True)
+		X = ensure_1d(X)
 		index = list(self.classes_)
 		Xt = numpy.array([self.missing_values if pandas.isnull(v) else index.index(v) for v in X])
 		return _col2d(Xt)
@@ -348,11 +347,11 @@ class MatchesTransformer(BaseEstimator, TransformerMixin):
 		self.pattern = pattern
 
 	def fit(self, X, y = None):
-		X = column_or_1d(X, warn = True)
+		X = ensure_1d(X)
 		return self
 
 	def transform(self, X):
-		X = column_or_1d(X, warn = True)
+		X = ensure_1d(X)
 		engine = _regex_engine(self.pattern)
 		func = lambda x: bool(engine.search(x))
 		Xt = eval_rows(X, func)
@@ -366,11 +365,11 @@ class ReplaceTransformer(BaseEstimator, TransformerMixin):
 		self.replacement = replacement
 
 	def fit(self, X, y = None):
-		X = column_or_1d(X, warn = True)
+		X = ensure_1d(X)
 		return self
 
 	def transform(self, X):
-		X = column_or_1d(X, warn = True)
+		X = ensure_1d(X)
 		engine = _regex_engine(self.pattern)
 		func = lambda x: engine.sub(self.replacement, x)
 		Xt = eval_rows(X, func)
@@ -388,11 +387,11 @@ class SubstringTransformer(BaseEstimator, TransformerMixin):
 		self.end = end
 
 	def fit(self, X, y = None):
-		X = column_or_1d(X, warn = True)
+		X = ensure_1d(X)
 		return self
 
 	def transform(self, X):
-		X = column_or_1d(X, warn = True)
+		X = ensure_1d(X)
 		func = lambda x: x[self.begin:self.end]
 		Xt = eval_rows(X, func)
 		return _col2d(Xt)
@@ -410,11 +409,11 @@ class WordCountTransformer(BaseEstimator, TransformerMixin):
 		])
 
 	def fit(self, X, y = None):
-		X = column_or_1d(X, warn = True)
+		X = ensure_1d(X)
 		return self
 
 	def transform(self, X):
-		X = column_or_1d(X, warn = True)
+		X = ensure_1d(X)
 		return self.pipeline_.transform(X)
 
 class StringNormalizer(BaseEstimator, TransformerMixin):

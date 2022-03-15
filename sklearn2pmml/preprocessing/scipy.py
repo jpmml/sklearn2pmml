@@ -1,6 +1,6 @@
 from scipy.interpolate import BSpline
 from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.utils import column_or_1d
+from sklearn2pmml.util import ensure_1d
 
 class BSplineTransformer(BaseEstimator, TransformerMixin):
 
@@ -10,9 +10,9 @@ class BSplineTransformer(BaseEstimator, TransformerMixin):
 		self.bspline = bspline
 
 	def fit(self, X, y = None):
-		X = column_or_1d(X, warn = True)
+		X = ensure_1d(X)
 		return self
 
 	def transform(self, X):
-		X = column_or_1d(X, warn = True)
+		X = ensure_1d(X)
 		return self.bspline(X)

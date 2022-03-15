@@ -1,7 +1,6 @@
 from pandas import DataFrame
 from sklearn.base import clone, BaseEstimator, TransformerMixin
-from sklearn.utils import column_or_1d
-from sklearn2pmml.util import cast, common_dtype, eval_rows
+from sklearn2pmml.util import cast, common_dtype, ensure_1d, eval_rows
 
 import numpy
 import pandas
@@ -141,7 +140,7 @@ class DiscreteDomain(Domain):
 		return super(DiscreteDomain, self)._valid_value_mask(X, where)
 
 	def fit(self, X, y = None):
-		X = column_or_1d(X, warn = True)
+		X = ensure_1d(X)
 		if self._empty_fit():
 			return self
 		if self.dtype is not None:

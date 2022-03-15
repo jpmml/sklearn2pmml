@@ -1,5 +1,6 @@
 from pandas import Index, Series
 from sklearn.base import clone, BaseEstimator, TransformerMixin
+from sklearn.utils import column_or_1d
 
 import numpy
 import pandas
@@ -24,8 +25,15 @@ def common_dtype(X):
 	else:
 		raise ValueError()
 
+def ensure_1d(X):
+	if isinstance(X, Series):
+		return X
+	return column_or_1d(X, warn = True)
+
 def eval_rows(X, func, dtype = object):
 	if hasattr(X, "apply"):
+		if isinstance(X, Series):
+			return X.apply(func)
 		return X.apply(func, axis = 1)
 	nrow = X.shape[0]
 	Xt = numpy.empty(shape = (nrow, ), dtype = dtype)
