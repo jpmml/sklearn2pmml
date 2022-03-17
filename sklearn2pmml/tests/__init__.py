@@ -3,7 +3,7 @@ from sklearn.dummy import DummyRegressor
 from sklearn.feature_selection import f_regression, SelectFromModel, SelectKBest
 from sklearn.pipeline import Pipeline
 from sklearn.tree import DecisionTreeRegressor
-from sklearn2pmml import _classpath, _filter, _filter_steps, _is_categorical, _java_version, _strip_module, _supported_classes, make_pmml_pipeline, make_tpot_pmml_config, EstimatorProxy, SelectorProxy
+from sklearn2pmml import _classpath, _filter, _filter_steps, _is_categorical, _java_version, _parse_java_version, _strip_module, _supported_classes, make_pmml_pipeline, make_tpot_pmml_config, EstimatorProxy, SelectorProxy
 from sklearn2pmml.pipeline import PMMLPipeline
 from unittest import TestCase
 
@@ -91,6 +91,30 @@ class JavaTest(TestCase):
 		version = _java_version("UTF-8")
 		self.assertIsInstance(version, tuple)
 		self.assertTrue(2, len(version))
+
+	def test_parse_java_version(self):
+		"""Example Java LTS version strings.
+
+		Obtained via:
+		$JAVA_HOME/bin/java -version > /dev/null
+		"""
+		java_version_string = 'java version "1.8.0_202"\n' \
+			'Java(TM) SE Runtime Environment (build 1.8.0_202-b08)\n' \
+			'Java HotSpot(TM) 64-Bit Server VM (build 25.202-b08, mixed mode)'
+		version = _parse_java_version(java_version_string)
+		self.assertEqual(("java", "1.8.0_202"), version)
+
+		java_version_string = 'java version "11.0.2" 2019-01-15 LTS\n' \
+			'Java(TM) SE Runtime Environment 18.9 (build 11.0.2+9-LTS)\n' \
+			'Java HotSpot(TM) 64-Bit Server VM 18.9 (build 11.0.2+9-LTS, mixed mode)'
+		version = _parse_java_version(java_version_string)
+		self.assertEqual(("java", "11.0.2"), version)
+
+		java_version_string = 'java version "17.0.1" 2021-10-19 LTS\n' \
+			'Java(TM) SE Runtime Environment (build 17.0.1+12-LTS-39)\n' \
+			'Java HotSpot(TM) 64-Bit Server VM (build 17.0.1+12-LTS-39, mixed mode, sharing)'
+		version = _parse_java_version(java_version_string)
+		self.assertEqual(("java", "17.0.1"), version)
 
 class ClasspathTest(TestCase):
 

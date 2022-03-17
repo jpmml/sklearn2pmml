@@ -160,7 +160,10 @@ def _java_version(java_encoding):
 	retcode = process.poll()
 	if retcode:
 		return None
-	match = re.match("^(.*)\sversion\s\"(.*)\"(|\s\d\d\d\d\-\d\d\-\d\d)$", _decode(error, java_encoding), re.MULTILINE)
+	return _parse_java_version(_decode(error, java_encoding))
+
+def _parse_java_version(java_version):
+	match = re.match("^(.*)\sversion\s\"(.*)\"(|\s.+)$", java_version, re.MULTILINE)
 	if match:
 		return (match.group(1), match.group(2))
 	else:
