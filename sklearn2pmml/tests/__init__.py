@@ -88,7 +88,7 @@ class SelectorProxyTest(TestCase):
 class JavaTest(TestCase):
 
 	def test_java_version(self):
-		version = _java_version("UTF-8")
+		version = _java_version()
 		self.assertIsInstance(version, tuple)
 		self.assertTrue(2, len(version))
 
