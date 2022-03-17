@@ -164,6 +164,26 @@ class CategoricalDomainTest(TestCase):
 		self.assertEqual({"1" : 1, "2" : 1, "3" : 1}, _value_count(domain.discr_stats_))
 		self.assertEqual(["1", "2", "3"], domain.data_.tolist())
 
+	def test_mapper_categorical(self):
+		domain = CategoricalDomain(dtype = CategoricalDtype())
+		str_domain = clone(domain)
+		int_domain = clone(domain)
+		df = DataFrame([["a", -1], ["b", 0], ["c", 1], ["b", 0], ["a", -1]], columns = ["str", "int"])
+		self.assertEqual(numpy.dtype("object"), df["str"].dtype)
+		self.assertEqual(int, df["int"].dtype)
+		mapper = DataFrameMapper([
+			(["str"], str_domain),
+			(["int"], int_domain)
+		], input_df = True, df_out = True)
+		dft = mapper.fit_transform(df)
+		self.assertIsInstance(dft, DataFrame)
+		self.assertEqual(["a", "b", "c"], str_domain.data_.tolist())
+		self.assertIsInstance(str_domain.dtype_, CategoricalDtype)
+		self.assertEqual([-1, 0, 1], int_domain.data_.tolist())
+		self.assertIsInstance(int_domain.dtype_, CategoricalDtype)
+		self.assertEqual(CategoricalDtype(categories = ["a", "b", "c"]), dft["str"].dtype)
+		self.assertEqual(CategoricalDtype(categories = [-1, 0, 1]), dft["int"].dtype)
+
 class ContinuousDomainTest(TestCase):
 
 	def test_fit_float(self):

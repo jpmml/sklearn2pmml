@@ -1,4 +1,4 @@
-from pandas import Categorical, Index, Series
+from pandas import Categorical, DataFrame, Index, Series
 from sklearn.base import clone, BaseEstimator, TransformerMixin
 
 import numpy
@@ -27,6 +27,10 @@ def common_dtype(X):
 def ensure_1d(X):
 	if isinstance(X, (Categorical, Series)):
 		return X
+	elif isinstance(X, DataFrame):
+		columns = X.columns
+		if len(columns) == 1:
+			return X[columns[0]]
 	X = numpy.asarray(X)
 	shape = X.shape
 	if len(shape) == 1:
