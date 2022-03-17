@@ -1,6 +1,5 @@
 from pandas import Categorical, Index, Series
 from sklearn.base import clone, BaseEstimator, TransformerMixin
-from sklearn.utils import column_or_1d
 
 import numpy
 import pandas
@@ -26,9 +25,16 @@ def common_dtype(X):
 		raise ValueError()
 
 def ensure_1d(X):
-	if isinstance(X, Categorical) or isinstance(X, Series):
+	if isinstance(X, (Categorical, Series)):
 		return X
-	return column_or_1d(X, warn = True)
+	X = numpy.asarray(X)
+	shape = X.shape
+	if len(shape) == 1:
+		return X
+	elif (len(shape) == 2) and (shape[1] == 1):
+		return X.ravel()
+	else:
+		raise ValueError("Expected 1d array, got {}d array of shape {}".format(len(shape), str(shape)))
 
 def eval_rows(X, func, dtype = object):
 	if hasattr(X, "apply"):
