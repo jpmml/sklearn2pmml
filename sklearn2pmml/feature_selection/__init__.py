@@ -27,7 +27,7 @@ class SelectUnique(BaseEstimator, SelectorMixin):
 				continue
 			for right in range(left + 1, cols):
 				equiv = numpy.array_equiv(X[:, left], X[:, right])
-				if(equiv):
+				if equiv:
 					mask[right] = False
 		self.support_mask_ = mask
 		return self

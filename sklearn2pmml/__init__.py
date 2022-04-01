@@ -247,11 +247,11 @@ def sklearn2pmml(pipeline, pmml, user_classpath = [], with_repr = False, debug =
 		output, error = process.communicate()
 		retcode = process.poll()
 		if debug or retcode:
-			if(len(output) > 0):
+			if len(output) > 0:
 				print("Standard output:\n{0}".format(output))
 			else:
 				print("Standard output is empty")
-			if(len(error) > 0):
+			if len(error) > 0:
 				print("Standard error:\n{0}".format(error))
 			else:
 				print("Standard error is empty")
