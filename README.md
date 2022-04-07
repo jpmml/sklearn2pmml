@@ -5,7 +5,7 @@ Python library for converting [Scikit-Learn](https://scikit-learn.org/) pipeline
 
 # Features #
 
-This library is a thin wrapper around the JPMML-SkLearn command-line application.
+This library is a thin wrapper around the JPMML-SkLearn library.
 
 For a list of supported Estimator and Transformer types, please refer to [JPMML-SkLearn supported packages](https://github.com/jpmml/jpmml-sklearn#supported-packages).
 

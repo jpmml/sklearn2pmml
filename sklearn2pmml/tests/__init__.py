@@ -120,9 +120,9 @@ class ClasspathTest(TestCase):
 
 	def test_classpath(self):
 		classpath = _classpath([])
-		self.assertEqual(22, len(classpath))
+		self.assertEqual(29, len(classpath))
 		classpath = _classpath(["A.jar", "B.jar"])
-		self.assertEqual(22 + 2, len(classpath))
+		self.assertEqual(29 + 2, len(classpath))
 
 	def test_supported_classes(self):
 		classes = _supported_classes([])

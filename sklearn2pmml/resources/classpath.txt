@@ -1,3 +1,4 @@
+sklearn2pmml-1.0-SNAPSHOT.jar
 gson-2.9.0.jar
 guava-21.0.jar
 h2o-genmodel-3.36.0.4.jar
@@ -9,6 +10,7 @@ jakarta.activation-2.0.1.jar
 jakarta.xml.bind-api-3.0.1.jar
 jaxb-core-3.0.2.jar
 jaxb-runtime-3.0.2.jar
+jcommander-1.72.jar
 pickle-1.2.jar
 pmml-converter-1.5.3.jar
 pmml-h2o-1.2.3.jar

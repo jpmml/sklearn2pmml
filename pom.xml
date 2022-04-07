@@ -82,6 +82,12 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
+
+		<dependency>
+			<groupId>com.beust</groupId>
+			<artifactId>jcommander</artifactId>
+			<version>1.72</version>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -113,6 +119,15 @@
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.10.0</version>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
 				<version>3.3.0</version>
 				<executions>
@@ -124,6 +139,31 @@
 						</goals>
 						<configuration>
 							<outputDirectory>${project.basedir}/sklearn2pmml/resources</outputDirectory>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>3.2.0</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.basedir}/sklearn2pmml/resources</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${project.basedir}/target</directory>
+									<includes>
+										<include>${project.build.finalName}.jar</include>
+									</includes>
+									<filtering>false</filtering>
+								</resource>
+							</resources>
 						</configuration>
 					</execution>
 				</executions>
@@ -155,7 +195,15 @@
 										<flattenmapper/>
 									</mapper>
 								</pathconvert>
-								<echo file="${project.basedir}/sklearn2pmml/resources/classpath.txt">${classpath.txt}</echo>
+								<echo
+									file="${project.basedir}/sklearn2pmml/resources/classpath.txt"
+									message="${project.build.finalName}.jar${line.separator}"
+								/>
+								<echo
+									file="${project.basedir}/sklearn2pmml/resources/classpath.txt"
+									append="true"
+									message="${classpath.txt}"
+								/>
 							</target>
 						</configuration>
 					</execution>

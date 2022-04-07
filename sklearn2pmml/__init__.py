@@ -198,7 +198,7 @@ def sklearn2pmml(pipeline, pmml, user_classpath = [], with_repr = False, debug =
 
 	user_classpath: list of strings, optional
 		The paths to JAR files that provide custom Transformer, Selector and/or Estimator converter classes.
-		The JPMML-SkLearn classpath is constructed by appending user JAR files to package JAR files.
+		The SkLearn2PMML classpath is constructed by appending user JAR files to package JAR files.
 
 	with_repr: boolean, optional
 		If true, insert the string representation of pipeline into the PMML document.
@@ -222,7 +222,7 @@ def sklearn2pmml(pipeline, pmml, user_classpath = [], with_repr = False, debug =
 	if not isinstance(pipeline, PMMLPipeline):
 		raise TypeError("The pipeline object is not an instance of " + PMMLPipeline.__name__ + ". Use the 'sklearn2pmml.make_pmml_pipeline(obj)' utility function to translate a regular Scikit-Learn estimator or pipeline to a PMML pipeline")
 	estimator = pipeline._final_estimator
-	cmd = ["java", "-cp", os.pathsep.join(_classpath(user_classpath)), "org.jpmml.sklearn.Main"]
+	cmd = ["java", "-cp", os.pathsep.join(_classpath(user_classpath)), "com.sklearn2pmml.Main"]
 	dumps = []
 	try:
 		if with_repr:
@@ -256,7 +256,7 @@ def sklearn2pmml(pipeline, pmml, user_classpath = [], with_repr = False, debug =
 			else:
 				print("Standard error is empty")
 		if retcode:
-			raise RuntimeError("The JPMML-SkLearn conversion application has failed. The Java executable should have printed more information about the failure into its standard output and/or standard error streams")
+			raise RuntimeError("The SkLearn2PMML application has failed. The Java executable should have printed more information about the failure into its standard output and/or standard error streams")
 	finally:
 		if debug:
 			print("Preserved joblib dump file(s): {0}".format(" ".join(dumps)))
@@ -298,7 +298,7 @@ def make_tpot_pmml_config(config, user_classpath = []):
 
 	user_classpath: list of strings, optional
 		The paths to JAR files that provide custom Transformer, Selector and/or Estimator converter classes.
-		The JPMML-SkLearn classpath is constructed by appending user JAR files to package JAR files.
+		The SkLearn2PMML classpath is constructed by appending user JAR files to package JAR files.
 
 	"""
 	tpot_keys = set(config.keys())
