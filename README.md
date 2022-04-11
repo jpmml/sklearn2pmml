@@ -100,6 +100,7 @@ sklearn2pmml(pipeline, "LogisticRegressionIris.pmml", with_repr = True)
 
 Up-to-date:
 
+* [One-hot-encoding (OHE) categorical features in Scikit-Learn based XGBoost pipelines](https://openscoring.io/blog/2022/04/12/onehot_encoding_sklearn_xgboost_pipeline/)
 * [Benchmarking Scikit-Learn against JPMML-Evaluator in Java and Python environments](https://openscoring.io/blog/2021/08/04/benchmarking_sklearn_jpmml_evaluator/)
 * [Extending Scikit-Learn with outlier detector transformer type](https://openscoring.io/blog/2021/07/16/sklearn_outlier_detector_transformer/)
 * [Analyzing Scikit-Learn feature importances via PMML](https://openscoring.io/blog/2021/07/11/analyzing_sklearn_feature_importances_pmml/)
