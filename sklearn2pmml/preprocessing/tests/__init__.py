@@ -168,10 +168,12 @@ class SecondsSinceMidnightTransformerTest(TestCase):
 class ExpressionTransformerTest(TestCase):
 
 	def test_transform(self):
+		begin_err_state = numpy.geterr()
 		transformer = ExpressionTransformer("X['a'] + X['b']", map_missing_to = -1, dtype = int)
 		self.assertTrue(hasattr(transformer, "expr"))
 		self.assertTrue(hasattr(transformer, "map_missing_to"))
 		self.assertTrue(hasattr(transformer, "default_value"))
+		self.assertTrue(hasattr(transformer, "invalid_value_treatment"))
 		self.assertTrue(hasattr(transformer, "dtype"))
 		X = DataFrame([[0, 1], [1, 2]], columns = ["a", "b"])
 		Xt = transformer.fit_transform(X)
@@ -212,6 +214,21 @@ class ExpressionTransformerTest(TestCase):
 		self.assertEqual([[0.25], [2.0]], transformer.fit_transform(X).tolist())
 		transformer = ExpressionTransformer("X[0] / X[1]")
 		self.assertEqual([[1.0], [0.5]], transformer.fit_transform(X).tolist())
+		X = numpy.array([[13, 0]], dtype = int)
+		with self.assertRaises(ArithmeticError):
+			transformer.transform(X)
+		X = X.astype(float)
+		with self.assertRaises(ArithmeticError):
+			transformer.transform(X)
+		transformer = ExpressionTransformer("X[0] / X[1]", invalid_value_treatment = "as_missing")
+		X = numpy.array([[13, 0], [13, 1]], dtype = int)
+		Xt = transformer.fit_transform(X)
+		self.assertEqual([[None], [13]], Xt.tolist())
+		transformer = ExpressionTransformer("X[0] / X[1]", default_value = -1, invalid_value_treatment = "as_missing")
+		Xt = transformer.transform(X)
+		self.assertEqual([[-1], [13]], Xt.tolist())
+		end_err_state = numpy.geterr()
+		self.assertEqual(begin_err_state, end_err_state)
 
 	def test_sequence_transform(self):
 		X = DataFrame([[None], [1], [None]], columns = ["a"])

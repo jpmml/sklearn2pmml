@@ -163,19 +163,32 @@ class ExpressionTransformer(BaseEstimator, TransformerMixin):
 
 	default_value: scalar, optional
 		The return value when the expression result is missing.
+
+	invalid_value_treatment: string
+		The action to take when the evaluation of the expression raises an error.
 	"""
 
-	def __init__(self, expr, map_missing_to = None, default_value = None, dtype = None):
+	def __init__(self, expr, map_missing_to = None, default_value = None, invalid_value_treatment = "return_invalid", dtype = None):
 		self.expr = expr
 		self.map_missing_to = map_missing_to
 		self.default_value = default_value
+		invalid_value_treatments = ["return_invalid", "as_missing"]
+		if invalid_value_treatment not in invalid_value_treatments:
+			raise ValueError("Invalid value treatment {0} not in {1}".format(invalid_value_treatment, invalid_value_treatments))
+		self.invalid_value_treatment = invalid_value_treatment
 		self.dtype = dtype
 
 	def _eval_row(self, X):
 		# X is array-like (row vector)
 		if (self.map_missing_to is not None) and ((pandas.isnull(X)).any()):
 			return self.map_missing_to
-		Xt = eval(self.expr)
+		try:
+			Xt = eval(self.expr)
+		except ArithmeticError as ae:
+			if self.invalid_value_treatment == "return_invalid":
+				raise ae
+			elif self.invalid_value_treatment == "as_missing":
+				Xt = None
 		# Xt is scalar
 		if (self.default_value is not None) and (pandas.isnull(Xt)):
 			return self.default_value
@@ -186,7 +199,9 @@ class ExpressionTransformer(BaseEstimator, TransformerMixin):
 
 	def transform(self, X):
 		func = lambda x: self._eval_row(x)
-		Xt = eval_rows(X, func)
+		# Evaluate in PMML compatibility mode
+		with numpy.errstate(divide = "raise"):
+			Xt = eval_rows(X, func)
 		if self.dtype is not None:
 			Xt = cast(Xt, self.dtype)
 		return _col2d(Xt)
