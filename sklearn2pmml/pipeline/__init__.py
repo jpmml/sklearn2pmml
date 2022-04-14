@@ -109,7 +109,7 @@ class PMMLPipeline(Pipeline):
 		if self.active_fields is None or active_fields is None:
 			raise ValueError("Cannot perform model validation with anonymous data")
 		if self.active_fields.tolist() != active_fields.tolist():
-			raise ValueError("The columns between training data {} and verification data {} do not match".format(self.active_fields, active_fields))
+			raise ValueError("The columns between training data {0} and verification data {1} do not match".format(self.active_fields, active_fields))
 		active_values = _get_values(X)
 		y = self.predict(X, **predict_params)
 		target_values = _get_values(y)

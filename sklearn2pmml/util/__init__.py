@@ -38,7 +38,7 @@ def ensure_1d(X):
 	elif (len(shape) == 2) and (shape[1] == 1):
 		return X.ravel()
 	else:
-		raise ValueError("Expected 1d array, got {}d array of shape {}".format(len(shape), str(shape)))
+		raise ValueError("Expected 1d array, got {0}d array of shape {1}".format(len(shape), str(shape)))
 
 def eval_rows(X, func, dtype = object):
 	if hasattr(X, "apply"):

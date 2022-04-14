@@ -23,12 +23,12 @@ def _checkGBDTRegressor(gbdt):
 				return gbdt
 		except ImportError:
 			pass
-	raise ValueError("GBDT class " + _class_name(gbdt) + " is not supported")
+	raise ValueError("GBDT class {0} is not supported".format(_class_name(gbdt)))
 
 def _checkLM(lm):
 	if isinstance(lm, (LinearModel, LinearRegression, SparseCoefMixin)):
 		return lm
-	raise ValueError("LM class " + _class_name(lm) + " is not supported")
+	raise ValueError("LM class {0} is not supported".format(_class_name(lm)))
 
 def _checkGBDTClassifier(gbdt):
 	if hasattr(gbdt, "apply"):
@@ -40,12 +40,12 @@ def _checkGBDTClassifier(gbdt):
 				return gbdt
 		except ImportError:
 			pass
-	raise ValueError("GBDT class " + _class_name(gbdt) + " is not supported")
+	raise ValueError("GBDT class {0} is not supported".format(_class_name(gbdt)))
 
 def _checkLR(lr):
 	if isinstance(lr, LinearClassifierMixin):
 		return lr
-	raise ValueError("LR class " + _class_name(lr) + " is not supported")
+	raise ValueError("LR class {0} is not supported".format(_class_name(lr)))
 
 def _step_params(name, params):
 	prefix = name + "__"

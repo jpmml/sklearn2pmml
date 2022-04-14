@@ -6,7 +6,7 @@ class BSplineTransformer(BaseEstimator, TransformerMixin):
 
 	def __init__(self, bspline):
 		if not isinstance(bspline, BSpline):
-			raise ValueError("Spline is not an instance of " + BSpline.__name__)
+			raise ValueError("The spline object is not an instance of {0}".format(BSpline.__name__))
 		self.bspline = bspline
 
 	def fit(self, X, y = None):

@@ -5,7 +5,7 @@ class MLPTransformer(BaseEstimator, TransformerMixin):
 
 	def __init__(self, mlp, transformer_output_layer = -1):
 		if not isinstance(mlp, MLPRegressor):
-			raise ValueError("The mlp object is not an instance of " + MLPRegressor.__name__)
+			raise ValueError("The mlp object is not an instance of {0}".format(MLPRegressor.__name__))
 		self.mlp = mlp
 		self.transformer_output_layer = transformer_output_layer
 
