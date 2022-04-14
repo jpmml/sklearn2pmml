@@ -137,6 +137,8 @@ class ClasspathTest(TestCase):
 class FunctionTest(TestCase):
 
 	def test_make_pmml_pipeline(self):
+		with self.assertRaises(TypeError):
+			make_pmml_pipeline(None)
 		estimator = DummyRegressor()
 		pmml_pipeline = make_pmml_pipeline(estimator)
 		self.assertTrue(isinstance(pmml_pipeline, PMMLPipeline))

@@ -96,7 +96,7 @@ def _get_steps(obj):
 	elif isinstance(obj, BaseEstimator):
 		return [("estimator", obj)]
 	else:
-		raise ValueError()
+		raise TypeError("The object is not an instance of " + BaseEstimator.__name__)
 
 def _filter(obj):
 	if isinstance(obj, DataFrameMapper):
@@ -220,7 +220,7 @@ def sklearn2pmml(pipeline, pmml, user_classpath = [], with_repr = False, debug =
 		print("numpy: {0}".format(numpy.__version__))
 		print("{0}: {1}".format(java_version[0], java_version[1]))
 	if not isinstance(pipeline, PMMLPipeline):
-		raise TypeError("The pipeline object is not an instance of " + PMMLPipeline.__name__ + ". Use the 'sklearn2pmml.make_pmml_pipeline(obj)' utility function to translate a regular Scikit-Learn estimator or pipeline to a PMML pipeline")
+		raise TypeError("The pipeline object is not an instance of " + PMMLPipeline.__name__ + ". Use the 'sklearn2pmml.make_pmml_pipeline(obj)' utility function to translate a regular Scikit-Learn pipeline or estimator to a PMML pipeline")
 	estimator = pipeline._final_estimator
 	cmd = ["java", "-cp", os.pathsep.join(_classpath(user_classpath)), "com.sklearn2pmml.Main"]
 	dumps = []
