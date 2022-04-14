@@ -154,14 +154,32 @@ class SecondsSinceMidnightTransformer(BaseEstimator, TransformerMixin):
 		return dt_transform(X, to_int_duration)
 
 class ExpressionTransformer(BaseEstimator, TransformerMixin):
-	"""Transform data using a Python expression."""
+	"""Transform data using a Python expression.
 
-	def __init__(self, expr, dtype = None):
+	Parameters:
+	----------
+	map_missing_to: scalar, optional
+		The return value when any of the expression arguments is missing.
+
+	default_value: scalar, optional
+		The return value when the expression result is missing.
+	"""
+
+	def __init__(self, expr, map_missing_to = None, default_value = None, dtype = None):
 		self.expr = expr
+		self.map_missing_to = map_missing_to
+		self.default_value = default_value
 		self.dtype = dtype
 
 	def _eval_row(self, X):
-		return eval(self.expr)
+		# X is array-like (row vector)
+		if (self.map_missing_to is not None) and ((pandas.isnull(X)).any()):
+			return self.map_missing_to
+		Xt = eval(self.expr)
+		# Xt is scalar
+		if (self.default_value is not None) and (pandas.isnull(Xt)):
+			return self.default_value
+		return Xt
 
 	def fit(self, X, y = None):
 		return self
