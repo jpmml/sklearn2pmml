@@ -168,12 +168,12 @@ class ExpressionTransformer(BaseEstimator, TransformerMixin):
 		The action to take when the evaluation of the expression raises an error.
 	"""
 
-	def __init__(self, expr, map_missing_to = None, default_value = None, invalid_value_treatment = "return_invalid", dtype = None):
+	def __init__(self, expr, map_missing_to = None, default_value = None, invalid_value_treatment = None, dtype = None):
 		self.expr = expr
 		self.map_missing_to = map_missing_to
 		self.default_value = default_value
 		invalid_value_treatments = ["return_invalid", "as_missing"]
-		if invalid_value_treatment not in invalid_value_treatments:
+		if (invalid_value_treatment is not None) and (invalid_value_treatment not in invalid_value_treatments):
 			raise ValueError("Invalid value treatment {0} not in {1}".format(invalid_value_treatment, invalid_value_treatments))
 		self.invalid_value_treatment = invalid_value_treatment
 		self.dtype = dtype
@@ -189,6 +189,8 @@ class ExpressionTransformer(BaseEstimator, TransformerMixin):
 				raise ae
 			elif self.invalid_value_treatment == "as_missing":
 				Xt = None
+			else:
+				pass
 		# Xt is scalar
 		if (self.default_value is not None) and (pandas.isnull(Xt)):
 			return self.default_value
