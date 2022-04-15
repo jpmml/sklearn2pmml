@@ -6,6 +6,7 @@ from sklearn.pipeline import FeatureUnion, Pipeline
 from sklearn.impute import SimpleImputer
 from sklearn2pmml.decoration import Alias, DateDomain, DateTimeDomain
 from sklearn2pmml.preprocessing import Aggregator, CastTransformer, ConcatTransformer, CutTransformer, DaysSinceYearTransformer, ExpressionTransformer, FilterLookupTransformer, LookupTransformer, MatchesTransformer, MultiLookupTransformer, PMMLLabelBinarizer, PMMLLabelEncoder, PowerFunctionTransformer, ReplaceTransformer, SecondsSinceMidnightTransformer, SecondsSinceYearTransformer, StringNormalizer, SubstringTransformer, WordCountTransformer
+from sklearn2pmml.preprocessing.h2o import H2OFrameConstructor, H2OFrameCreator
 from sklearn2pmml.preprocessing.lightgbm import make_lightgbm_column_transformer, make_lightgbm_dataframe_mapper
 from sklearn2pmml.preprocessing.xgboost import make_xgboost_column_transformer, make_xgboost_dataframe_mapper
 from unittest import TestCase
@@ -471,6 +472,12 @@ class WordCountTransformerTest(TestCase):
 		X = numpy.asarray(["", "Hello World", "Happy New Year", "!?"])
 		transformer = WordCountTransformer()
 		self.assertEqual([[0], [2], [3], [0]], transformer.transform(X).tolist())
+
+class H2OFrameCreatorTest(TestCase):
+
+	def test_init(self):
+		with self.assertWarns(DeprecationWarning):
+			H2OFrameCreator()
 
 class LightGBMTest(TestCase):
 
