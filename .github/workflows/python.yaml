@@ -11,8 +11,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python: [3.6, 3.7, 3.8]
-        sklearn: [0.22.2, 0.23.2, 0.24.1]
+        python: [3.7, 3.8, 3.9, 3.10]
+        sklearn: [0.23.2, 0.24.2, 1.0.2]
 
     steps:
     - uses: actions/checkout@v2
