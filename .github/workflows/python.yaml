@@ -15,7 +15,9 @@ jobs:
         sklearn: [0.22.2, 0.23.2, 0.24.2, 1.0.2]
         exclude:
           - python: 3.9
-            sklearn: [0.22.2, 0.23.2]
+            sklearn: 0.22.2
+          - python: 3.9
+            sklearn: 0.23.2
           - python: '3.10'
 
     steps:
