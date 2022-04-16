@@ -1,8 +1,8 @@
 sklearn2pmml-1.0-SNAPSHOT.jar
 gson-2.9.0.jar
 guava-21.0.jar
-h2o-genmodel-3.36.0.4.jar
-h2o-logger-3.36.0.4.jar
+h2o-genmodel-3.36.1.1.jar
+h2o-logger-3.36.1.1.jar
 h2o-tree-api-0.3.17.jar
 istack-commons-runtime-4.0.1.jar
 jackson-annotations-2.13.1.jar
@@ -18,11 +18,11 @@ pmml-lightgbm-1.4.3.jar
 pmml-model-1.6.3.jar
 pmml-model-metro-1.6.3.jar
 pmml-python-1.1.5.jar
-pmml-sklearn-1.7.2.jar
-pmml-sklearn-extension-1.7.2.jar
-pmml-sklearn-h2o-1.7.2.jar
-pmml-sklearn-lightgbm-1.7.2.jar
-pmml-sklearn-xgboost-1.7.2.jar
+pmml-sklearn-1.7.3.jar
+pmml-sklearn-extension-1.7.3.jar
+pmml-sklearn-h2o-1.7.3.jar
+pmml-sklearn-lightgbm-1.7.3.jar
+pmml-sklearn-xgboost-1.7.3.jar
 pmml-xgboost-1.6.4.jar
 serpent-1.40.jar
 slf4j-api-1.7.36.jar
