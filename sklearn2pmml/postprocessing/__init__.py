@@ -14,15 +14,28 @@ class BusinessDecisionTransformer(BaseEstimator, TransformerMixin):
 		self.decisions = decisions
 		self.prefit = prefit
 		if prefit:
-			self.transformer_ = clone(transformer)
+			self.transformer_ = self._make_transformer()
+
+	def _make_transformer(self):
+		if self.transformer is None:
+			return None
+		elif isinstance(self.transformer, str):
+			return ExpressionTransformer(self.transformer)
+		elif isinstance(self.transformer, TransformerMixin):
+			return clone(self.transformer)
+		else:
+			raise TypeError()
 
 	def fit(self, X, y = None):
-		self.transformer_ = clone(self.transformer)
-		if y is None:
-			self.transformer_.fit(X)
-		else:
-			self.transformer_.fit(X, y)
+		self.transformer_ = self._make_transformer()
+		if self.transformer_ is not None:
+			if y is None:
+				self.transformer_.fit(X)
+			else:
+				self.transformer_.fit(X, y)
 		return self
 
 	def transform(self, X):
-		return self.transformer_.transform(X)
+		if self.transformer_ is not None:
+			return self.transformer_.transform(X)
+		return X
