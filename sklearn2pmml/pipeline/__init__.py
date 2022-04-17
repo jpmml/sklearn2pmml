@@ -69,7 +69,7 @@ class PMMLPipeline(Pipeline):
 			self.target_fields = target_fields
 		return super(PMMLPipeline, self)._fit(X = X, y = y, **fit_params)
 
-	def predict_proba(self, X, **predict_proba_params):
+	def _transform(self, X):
 		Xt = X
 		if hasattr(self, "_iter"):
 			for _, name, transform in self._iter(with_final = False):
@@ -78,7 +78,18 @@ class PMMLPipeline(Pipeline):
 			for name, transform in self.steps[:-1]:
 				if transform is not None:
 					Xt = transform.transform(Xt)
+		return Xt
+
+	def predict_proba(self, X, **predict_proba_params):
+		Xt = self._transform(X)
 		return self.steps[-1][-1].predict_proba(Xt, **predict_proba_params)
+
+	def apply(self, X):
+		Xt = self._transform(X)
+		yt = self.steps[-1][-1].apply(Xt)
+		if len(yt.shape) == 1:
+			yt = yt.reshape(-1, 1)
+		return yt
 
 	def predict_transform(self, X, **predict_params):
 		y_pred = self.predict(X, **predict_params)
@@ -95,6 +106,13 @@ class PMMLPipeline(Pipeline):
 			y_probat = self.predict_proba_transformer.transform(y_proba)
 			return numpy.hstack((y_proba, y_probat))
 		return y_proba
+
+	def apply_transform(self, X):
+		y_apply = self.apply(X)
+		if self.apply_transformer is not None:
+			y_applyt = self.apply_transformer.transform(y_apply)
+			return numpy.hstack((y_apply, y_applyt))
+		return y_apply
 
 	def configure(self, **pmml_options):
 		if len(pmml_options) > 0:
