@@ -36,7 +36,7 @@
 		<dependency>
 			<groupId>org.jpmml</groupId>
 			<artifactId>pmml-sklearn</artifactId>
-			<version>1.7.3</version>
+			<version>1.7.4</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.jpmml</groupId>
@@ -47,12 +47,12 @@
 		<dependency>
 			<groupId>org.jpmml</groupId>
 			<artifactId>pmml-sklearn-extension</artifactId>
-			<version>1.7.3</version>
+			<version>1.7.4</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jpmml</groupId>
 			<artifactId>pmml-sklearn-h2o</artifactId>
-			<version>1.7.3</version>
+			<version>1.7.4</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.jpmml</groupId>
@@ -63,7 +63,7 @@
 		<dependency>
 			<groupId>org.jpmml</groupId>
 			<artifactId>pmml-sklearn-lightgbm</artifactId>
-			<version>1.7.3</version>
+			<version>1.7.4</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.jpmml</groupId>
@@ -74,7 +74,7 @@
 		<dependency>
 			<groupId>org.jpmml</groupId>
 			<artifactId>pmml-sklearn-xgboost</artifactId>
-			<version>1.7.3</version>
+			<version>1.7.4</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.jpmml</groupId>
