@@ -3,7 +3,7 @@ from sklearn2pmml.preprocessing import ExpressionTransformer
 
 class BusinessDecisionTransformer(BaseEstimator, TransformerMixin):
 
-	def __init__(self, transformer, business_problem, decisions, prefit = False):
+	def __init__(self, transformer, business_problem, decisions, prefit = True):
 		self.transformer = transformer
 		self.business_problem = business_problem
 		for decision in decisions:

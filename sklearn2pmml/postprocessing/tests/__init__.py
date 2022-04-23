@@ -12,7 +12,7 @@ class BusinessDecisionTransformerTest(TestCase):
 			(False, "Do not take the action"),
 			(True, "Take the action")
 		]
-		transformer = BusinessDecisionTransformer(transformer = None, business_problem = business_problem, decisions = decisions)
+		transformer = BusinessDecisionTransformer(transformer = None, business_problem = business_problem, decisions = decisions, prefit = False)
 		self.assertTrue(hasattr(transformer, "transformer"))
 		self.assertFalse(hasattr(transformer, "transformer_"))
 		X = numpy.asarray([[False], [True]])
