@@ -1,6 +1,7 @@
 from collections import defaultdict, Hashable
 from datetime import datetime
 from pandas import Categorical, DataFrame, Series
+from scipy.interpolate import BSpline
 from scipy.sparse import lil_matrix
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.pipeline import Pipeline
@@ -58,6 +59,21 @@ class Aggregator(BaseEstimator, TransformerMixin):
 		else:
 			raise ValueError(self.function)
 		return _col2d(Xt)
+
+class BSplineTransformer(BaseEstimator, TransformerMixin):
+
+	def __init__(self, bspline):
+		if not isinstance(bspline, BSpline):
+			raise ValueError("The spline object is not an instance of {0}".format(BSpline.__name__))
+		self.bspline = bspline
+
+	def fit(self, X, y = None):
+		X = ensure_1d(X)
+		return self
+
+	def transform(self, X):
+		X = ensure_1d(X)
+		return self.bspline(X)
 
 class CastTransformer(BaseEstimator, TransformerMixin):
 	"""Change data type."""
