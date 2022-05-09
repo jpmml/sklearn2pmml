@@ -1,6 +1,6 @@
 from collections import defaultdict, Hashable
 from datetime import datetime
-from pandas import Categorical, Series
+from pandas import Categorical, DataFrame, Series
 from scipy.sparse import lil_matrix
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.pipeline import Pipeline
@@ -94,6 +94,18 @@ class CutTransformer(BaseEstimator, TransformerMixin):
 		if isinstance(Xt, Categorical):
 			Xt = numpy.asarray(Xt)
 		return _col2d(Xt)
+
+class DataFrameConstructor(BaseEstimator, TransformerMixin):
+
+	def __init__(self, columns, dtype):
+		self.columns = columns
+		self.dtype = dtype
+
+	def fit(self, X, y = None):
+		return self
+
+	def transform(self, X):
+		return DataFrame(X, columns = self.columns, dtype = self.dtype)
 
 class DurationTransformer(BaseEstimator, TransformerMixin):
 	"""Calculate time difference."""

@@ -5,7 +5,7 @@ from sklearn.base import clone
 from sklearn.pipeline import FeatureUnion, Pipeline
 from sklearn.impute import SimpleImputer
 from sklearn2pmml.decoration import Alias, DateDomain, DateTimeDomain
-from sklearn2pmml.preprocessing import Aggregator, CastTransformer, ConcatTransformer, CutTransformer, DaysSinceYearTransformer, ExpressionTransformer, FilterLookupTransformer, LookupTransformer, MatchesTransformer, MultiLookupTransformer, PMMLLabelBinarizer, PMMLLabelEncoder, PowerFunctionTransformer, ReplaceTransformer, SecondsSinceMidnightTransformer, SecondsSinceYearTransformer, StringNormalizer, SubstringTransformer, WordCountTransformer
+from sklearn2pmml.preprocessing import Aggregator, CastTransformer, ConcatTransformer, CutTransformer, DataFrameConstructor, DaysSinceYearTransformer, ExpressionTransformer, FilterLookupTransformer, LookupTransformer, MatchesTransformer, MultiLookupTransformer, PMMLLabelBinarizer, PMMLLabelEncoder, PowerFunctionTransformer, ReplaceTransformer, SecondsSinceMidnightTransformer, SecondsSinceYearTransformer, StringNormalizer, SubstringTransformer, WordCountTransformer
 from sklearn2pmml.preprocessing.h2o import H2OFrameConstructor, H2OFrameCreator
 from sklearn2pmml.preprocessing.lightgbm import make_lightgbm_column_transformer, make_lightgbm_dataframe_mapper
 from sklearn2pmml.preprocessing.xgboost import make_xgboost_column_transformer, make_xgboost_dataframe_mapper
@@ -119,6 +119,14 @@ class CutTransformerTest(TestCase):
 		self.assertTrue(numpy.isnan(transformer.transform(X)).tolist()[0])
 		X = numpy.array([5.0])
 		self.assertTrue(numpy.isnan(transformer.transform(X)).tolist()[0])
+
+class DataFrameConstructorTest(TestCase):
+
+	def test_fit_transform(self):
+		X = numpy.asarray([[1, "one"], [2, "two"], [3, "three"]])
+		transformer = DataFrameConstructor(columns = ["int", "str"], dtype = object)
+		Xt = transformer.fit_transform(X)
+		self.assertIsInstance(Xt, DataFrame)
 
 class DurationTransformerTest(TestCase):
 
