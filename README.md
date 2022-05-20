@@ -1,18 +1,16 @@
 SkLearn2PMML [![Build Status](https://github.com/jpmml/sklearn2pmml/workflows/python/badge.svg)](https://github.com/jpmml/sklearn2pmml/actions?query=workflow%3A%22python%22)
 ============
 
-Python library for converting [Scikit-Learn](https://scikit-learn.org/) pipelines to PMML.
+Python package for converting [Scikit-Learn](https://scikit-learn.org/) pipelines to PMML.
 
 # Features #
 
-This library is a thin wrapper around the JPMML-SkLearn library.
-
-For a list of supported Estimator and Transformer types, please refer to [JPMML-SkLearn supported packages](https://github.com/jpmml/jpmml-sklearn#supported-packages).
+This package is a thin Python wrapper around the [JPMML-SkLearn](https://github.com/jpmml/jpmml-sklearn#features) library.
 
 # Prerequisites #
 
-* Python 2.7, 3.4 or newer.
 * Java 1.8 or newer. The Java executable must be available on system path.
+* Python 2.7, 3.4 or newer.
 
 # Installation #
 
