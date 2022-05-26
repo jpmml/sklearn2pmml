@@ -107,7 +107,7 @@ class CutTransformer(BaseEstimator, TransformerMixin):
 	def transform(self, X):
 		X = ensure_1d(X)
 		Xt = pandas.cut(X, bins = self.bins, right = self.right, labels = self.labels, include_lowest = self.include_lowest)
-		if isinstance(Xt, Categorical):
+		if Xt.dtype == 'category':
 			Xt = numpy.asarray(Xt)
 		return _col2d(Xt)
 
