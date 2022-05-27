@@ -1,6 +1,6 @@
 from collections import defaultdict, Hashable
 from datetime import datetime
-from pandas import Categorical, DataFrame, Series
+from pandas import DataFrame, Series
 from scipy.interpolate import BSpline
 from scipy.sparse import lil_matrix
 from sklearn.base import BaseEstimator, TransformerMixin
@@ -107,7 +107,7 @@ class CutTransformer(BaseEstimator, TransformerMixin):
 	def transform(self, X):
 		X = ensure_1d(X)
 		Xt = pandas.cut(X, bins = self.bins, right = self.right, labels = self.labels, include_lowest = self.include_lowest)
-		if isinstance(Xt, Categorical):
+		if Xt.dtype == "category":
 			Xt = numpy.asarray(Xt)
 		return _col2d(Xt)
 

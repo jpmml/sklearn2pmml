@@ -104,7 +104,19 @@ class CastTransformerTest(TestCase):
 
 class CutTransformerTest(TestCase):
 
-	def test_transform(self):
+	def test_transform_int(self):
+		bins = [-100, -10, 0, 10, 100]
+		transformer = CutTransformer(bins, labels = ["x-neg", "neg", "pos", "x-pos"])
+		X = DataFrame([[-25], [-1], [5], [25]], columns = ["a"])
+		Xt = transformer.fit_transform(X)
+		self.assertIsInstance(Xt, numpy.ndarray)
+		self.assertEqual([["x-neg"], ["neg"], ["pos"], ["x-pos"]], Xt.tolist())
+		X = numpy.array([-25, -1, 5, 25])
+		Xt = transformer.fit_transform(X)
+		self.assertIsInstance(Xt, numpy.ndarray)
+		self.assertEqual([["x-neg"], ["neg"], ["pos"], ["x-pos"]], Xt.tolist())
+
+	def test_transform_float(self):
 		bins = [float("-inf"), -1.0, 0.0, 1.0, float("+inf")]
 		transformer = CutTransformer(bins, labels = False, right = True)
 		X = numpy.array([-2.0, -1.0, -0.5, 0.0, 0.5, 1.0, 2.0])
