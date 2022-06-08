@@ -54,3 +54,6 @@ class SelectFirstClassifierTest(TestCase):
 		self.assertEqual([-1, 0, -1, 1, -1], preds.tolist())
 		pred_probs = classifier.predict_proba(X)
 		self.assertEqual((5, 2), pred_probs.shape)
+
+class SelectFirstRegressorTest(TestCase):
+	pass

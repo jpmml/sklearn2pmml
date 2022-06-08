@@ -33,6 +33,7 @@ setup(
 		"sklearn2pmml.preprocessing",
 		"sklearn2pmml.resources",
 		"sklearn2pmml.ruleset",
+		"sklearn2pmml.tree",
 		"sklearn2pmml.util"
 	],
 	package_data = {
