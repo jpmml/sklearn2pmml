@@ -2,7 +2,7 @@ try:
 	from CHAID import Tree
 except ImportError:
 	pass
-from pandas import Series
+from pandas import DataFrame, Series
 from sklearn.base import BaseEstimator, ClassifierMixin, RegressorMixin
 
 import numpy
@@ -17,11 +17,15 @@ class CHAIDEstimator(BaseEstimator):
 		raise NotImplementedError()
 
 	def fit(self, X, y, **fit_params):
-		features = dict()
-		for col in X.columns.values:
-			features[col] = "nominal"
-		df = pandas.concat((X, y), axis = 1)
-		tree = Tree.from_pandas_df(df, i_variables = features, d_variable = y.name, dep_variable_type = self._target_type(), **self.config)
+		if isinstance(X, DataFrame):
+			features = dict()
+			for col in X.columns.values:
+				features[col] = "nominal"
+			df = pandas.concat((X, y), axis = 1)
+			tree = Tree.from_pandas_df(df, i_variables = features, d_variable = y.name, dep_variable_type = self._target_type(), **self.config)
+		else:
+			variable_types = ["nominal"] * X.shape[1]
+			tree = Tree.from_numpy(X, y, variable_types = variable_types, dep_variable_type = self._target_type(), **self.config)
 		treelib_tree = tree.to_tree()
 		self.tree_ = tree
 		self.treelib_tree_ = treelib_tree
