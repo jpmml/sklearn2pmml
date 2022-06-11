@@ -7,6 +7,7 @@ from sklearn.base import BaseEstimator, ClassifierMixin, RegressorMixin
 
 import numpy
 import pandas
+import warnings
 
 class CHAIDEstimator(BaseEstimator):
 
@@ -30,6 +31,11 @@ class CHAIDEstimator(BaseEstimator):
 		self.tree_ = tree
 		self.treelib_tree_ = treelib_tree
 		return self
+
+	def apply(self, X):
+		if X is not None:
+			warnings.warn("Ignoring the 'X' argument. Returning leaf indices for the training dataset")
+		return self.tree_.node_predictions()
 
 class CHAIDClassifier(CHAIDEstimator, ClassifierMixin):
 
