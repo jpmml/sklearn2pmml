@@ -183,6 +183,9 @@ class SelectFirstEstimator(_BaseComposition):
 			mask = numpy.logical_or(mask, step_mask)
 		return result
 
+	def apply(self, X):
+		return self._ensemble_predict("apply", X)
+
 	def predict(self, X):
 		return self._ensemble_predict("predict", X)
 
