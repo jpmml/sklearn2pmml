@@ -160,18 +160,31 @@ class SelectFirstEstimator(_BaseComposition):
 			mask = numpy.logical_or(mask, step_mask)
 		return self
 
-	def predict(self, X):
-		result = numpy.empty((X.shape[0], ), dtype = object)
+	def _ensemble_predict(self, predict_method, X):
+		result = None
 		mask = numpy.zeros(X.shape[0], dtype = bool)
 		for name, estimator, predicate in self.steps:
 			step_mask = eval_rows(X, lambda X: eval(predicate), dtype = bool)
 			step_mask[mask] = False
 			if numpy.sum(step_mask) < 1:
 				continue
-			step_result = estimator.predict(X[step_mask])
-			result[step_mask.ravel()] = step_result
+			step_result = getattr(estimator, predict_method)(X[step_mask])
+			# Ensure array
+			if result is None:
+				if len(step_result.shape) == 1:
+					result = numpy.empty((X.shape[0], ), dtype = object)
+				else:
+					result = numpy.empty((X.shape[0], step_result.shape[1]), dtype = object)
+			# Fill in array values
+			if len(step_result.shape) == 1:
+				result[step_mask.ravel()] = step_result
+			else:
+				result[step_mask.ravel(), :] = step_result
 			mask = numpy.logical_or(mask, step_mask)
 		return result
+
+	def predict(self, X):
+		return self._ensemble_predict("predict", X)
 
 class SelectFirstRegressor(SelectFirstEstimator, RegressorMixin):
 
@@ -184,16 +197,4 @@ class SelectFirstClassifier(SelectFirstEstimator, ClassifierMixin):
 		super(SelectFirstClassifier, self).__init__(steps)
 
 	def predict_proba(self, X):
-		result = None
-		mask = numpy.zeros(X.shape[0], dtype = bool)
-		for name, estimator, predicate in self.steps:
-			step_mask = eval_rows(X, lambda X: eval(predicate), dtype = bool)
-			step_mask[mask] = False
-			if numpy.sum(step_mask) < 1:
-				continue
-			step_result = estimator.predict_proba(X[step_mask])
-			if result is None:
-				result = numpy.empty((X.shape[0], step_result.shape[1]), dtype = object)
-			result[step_mask.ravel(), :] = step_result
-			mask = numpy.logical_or(mask, step_mask)
-		return result
+		return self._ensemble_predict("predict_proba", X)
