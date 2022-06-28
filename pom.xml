@@ -32,11 +32,15 @@
 		<url>https://github.com/jpmml/sklearn2pmml/issues</url>
 	</issueManagement>
 
+	<properties>
+		<jpmml-sklearn.version>1.7.9</jpmml-sklearn.version>
+	</properties>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.jpmml</groupId>
 			<artifactId>pmml-sklearn</artifactId>
-			<version>1.7.9</version>
+			<version>${jpmml-sklearn.version}</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.jpmml</groupId>
@@ -47,12 +51,12 @@
 		<dependency>
 			<groupId>org.jpmml</groupId>
 			<artifactId>pmml-sklearn-extension</artifactId>
-			<version>1.7.9</version>
+			<version>${jpmml-sklearn.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jpmml</groupId>
 			<artifactId>pmml-sklearn-h2o</artifactId>
-			<version>1.7.9</version>
+			<version>${jpmml-sklearn.version}</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.jpmml</groupId>
@@ -63,7 +67,7 @@
 		<dependency>
 			<groupId>org.jpmml</groupId>
 			<artifactId>pmml-sklearn-lightgbm</artifactId>
-			<version>1.7.9</version>
+			<version>${jpmml-sklearn.version}</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.jpmml</groupId>
@@ -74,7 +78,7 @@
 		<dependency>
 			<groupId>org.jpmml</groupId>
 			<artifactId>pmml-sklearn-xgboost</artifactId>
-			<version>1.7.9</version>
+			<version>${jpmml-sklearn.version}</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.jpmml</groupId>
@@ -145,6 +149,19 @@
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>3.2.2</version>
+				<configuration>
+					<archive>
+						<manifestEntries>
+							<Implementation-Title>SkLearn2PMML package</Implementation-Title>
+							<Implementation-Version>${sklearn2pmml.version}</Implementation-Version>
+						</manifestEntries>
+					</archive>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-resources-plugin</artifactId>
 				<version>3.2.0</version>
 				<executions>
@@ -154,6 +171,7 @@
 							<goal>copy-resources</goal>
 						</goals>
 						<configuration>
+							<encoding>UTF-8</encoding>
 							<outputDirectory>${project.basedir}/sklearn2pmml/resources</outputDirectory>
 							<resources>
 								<resource>
@@ -169,6 +187,7 @@
 				</executions>
 			</plugin>
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-antrun-plugin</artifactId>
 				<version>3.1.0</version>
 				<executions>
@@ -205,6 +224,45 @@
 									message="${classpath.txt}"
 								/>
 							</target>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>properties-maven-plugin</artifactId>
+				<version>1.1.0</version>
+				<executions>
+					<execution>
+						<phase>initialize</phase>
+						<goals>
+							<goal>read-project-properties</goal>
+						</goals>
+						<configuration>
+							<files>
+								<file>sklearn2pmml/metadata.py</file>
+							</files>
+							<keyPrefix>sklearn2pmml.metadata.</keyPrefix>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				<version>3.3.0</version>
+				<executions>
+					<execution>
+						<phase>initialize</phase>
+						<goals>
+							<goal>regex-property</goal>
+						</goals>
+						<configuration>
+							<name>sklearn2pmml.version</name>
+							<value>${sklearn2pmml.metadata.__version__}</value>
+							<regex>\&quot;</regex>
+							<replacement></replacement>
+							<failIfNoMatch>true</failIfNoMatch>
 						</configuration>
 					</execution>
 				</executions>
