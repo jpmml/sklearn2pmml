@@ -1,5 +1,6 @@
 from collections import defaultdict, Hashable
 from datetime import datetime
+from io import StringIO
 from pandas import DataFrame, Series
 from scipy.interpolate import BSpline
 from scipy.sparse import lil_matrix
@@ -234,6 +235,32 @@ class ExpressionTransformer(BaseEstimator, TransformerMixin):
 			Xt = eval_rows(X, func)
 		if self.dtype is not None:
 			Xt = cast(Xt, self.dtype)
+		return _col2d(Xt)
+
+class NumberFormatter(BaseEstimator, TransformerMixin):
+	"""Formats numbers according to a pattern. Analogous to C's printf() function.
+
+	Parameters:
+	----------
+	pattern: string
+		A POSIX-compliant formatting pattern.
+	"""
+
+	def __init__(self, pattern):
+		self.pattern = pattern
+
+	def _printf(self, x):
+		with StringIO() as buffer:
+			print(self.pattern % (x), sep = "", end = "", file = buffer)
+			return buffer.getvalue()
+
+	def fit(self, X):
+		return self
+
+	def transform(self, X):
+		X = ensure_1d(X)
+		func = lambda x: self._printf(x)
+		Xt = eval_rows(X, func)
 		return _col2d(Xt)
 
 class LookupTransformer(BaseEstimator, TransformerMixin):
