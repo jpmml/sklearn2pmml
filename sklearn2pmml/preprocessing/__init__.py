@@ -237,6 +237,30 @@ class ExpressionTransformer(BaseEstimator, TransformerMixin):
 			Xt = cast(Xt, self.dtype)
 		return _col2d(Xt)
 
+class DateTimeFormatter(BaseEstimator, TransformerMixin):
+	"""Formats dates, times and datetimes according to a pattern. Analogous to C's strftime() function.
+
+	Parameters:
+	----------
+	pattern: string
+		A POSIX-compliant formatting pattern.
+	"""
+
+	def __init__(self, pattern):
+		self.pattern = pattern
+
+	def _strftime(self, x):
+		return x.strftime(self.pattern)
+
+	def fit(self, X):
+		return self
+
+	def transform(self, X):
+		X = ensure_1d(X)
+		func = lambda x: self._strftime(x)
+		Xt = eval_rows(X, func)
+		return _col2d(Xt)
+
 class NumberFormatter(BaseEstimator, TransformerMixin):
 	"""Formats numbers according to a pattern. Analogous to C's printf() function.
 

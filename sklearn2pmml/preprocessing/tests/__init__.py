@@ -5,7 +5,7 @@ from sklearn.base import clone
 from sklearn.pipeline import FeatureUnion, Pipeline
 from sklearn.impute import SimpleImputer
 from sklearn2pmml.decoration import Alias, DateDomain, DateTimeDomain
-from sklearn2pmml.preprocessing import Aggregator, CastTransformer, ConcatTransformer, CutTransformer, DataFrameConstructor, DaysSinceYearTransformer, ExpressionTransformer, FilterLookupTransformer, LookupTransformer, MatchesTransformer, MultiLookupTransformer, NumberFormatter, PMMLLabelBinarizer, PMMLLabelEncoder, PowerFunctionTransformer, ReplaceTransformer, SecondsSinceMidnightTransformer, SecondsSinceYearTransformer, StringNormalizer, SubstringTransformer, WordCountTransformer
+from sklearn2pmml.preprocessing import Aggregator, CastTransformer, ConcatTransformer, CutTransformer, DataFrameConstructor, DateTimeFormatter, DaysSinceYearTransformer, ExpressionTransformer, FilterLookupTransformer, LookupTransformer, MatchesTransformer, MultiLookupTransformer, NumberFormatter, PMMLLabelBinarizer, PMMLLabelEncoder, PowerFunctionTransformer, ReplaceTransformer, SecondsSinceMidnightTransformer, SecondsSinceYearTransformer, StringNormalizer, SubstringTransformer, WordCountTransformer
 from sklearn2pmml.preprocessing.h2o import H2OFrameConstructor, H2OFrameCreator
 from sklearn2pmml.preprocessing.lightgbm import make_lightgbm_column_transformer, make_lightgbm_dataframe_mapper
 from sklearn2pmml.preprocessing.xgboost import make_xgboost_column_transformer, make_xgboost_dataframe_mapper
@@ -261,9 +261,21 @@ class NumberFormatterTest(TestCase):
 		transformer = NumberFormatter(pattern = "%3d")
 		self.assertTrue(hasattr(transformer, "pattern"))
 		X = Series([-1, 0, 1.5])
-		Xt = transformer.transform(X)
+		Xt = transformer.fit_transform(X)
 		self.assertIsInstance(Xt, numpy.ndarray)
 		self.assertEqual([[" -1"], ["  0"], ["  1"]], Xt.tolist())
+
+class DateTimeFormatterTest(TestCase):
+
+	def test_transform(self):
+		transformer = DateTimeFormatter(pattern = "%m/%d/%y")
+		self.assertTrue(hasattr(transformer, "pattern"))
+		X = DataFrame(["2004-08-20", "2004-08-21T03:15:00"], columns = ["timestamp"])
+		mapper = DataFrameMapper([
+			(["timestamp"], [DateTimeDomain(), transformer])
+		], input_df = True)
+		Xt = mapper.fit_transform(X)
+		self.assertEqual([["08/20/04"], ["08/21/04"]], Xt.tolist())
 
 class LookupTransformerTest(TestCase):
 
