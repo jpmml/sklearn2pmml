@@ -1,4 +1,8 @@
-from collections import defaultdict, Hashable
+from collections import defaultdict
+try:
+	from collections.abc import Hashable
+except ImportError:
+	from collections import Hashable
 from datetime import datetime
 from io import StringIO
 from pandas import DataFrame, Series
