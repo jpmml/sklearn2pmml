@@ -25,6 +25,7 @@ import java.io.OutputStream;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import org.dmg.pmml.PMML;
+import org.jpmml.converter.Application;
 import org.jpmml.model.metro.MetroJAXBUtil;
 import org.jpmml.python.CastFunction;
 import org.jpmml.python.ClassDictUtil;
@@ -34,7 +35,7 @@ import org.jpmml.python.StorageUtil;
 import org.jpmml.sklearn.SkLearnEncoder;
 import sklearn2pmml.pipeline.PMMLPipeline;
 
-public class Main {
+public class Main extends Application {
 
 	@Parameter (
 		names = {"--pkl-pipeline-input", "--pkl-input"},
@@ -59,7 +60,13 @@ public class Main {
 
 		commander.parse(args);
 
-		main.run();
+		try {
+			Application.setInstance(main);
+
+			main.run();
+		} finally {
+			Application.setInstance(null);
+		}
 	}
 
 	private void run() throws Exception {
