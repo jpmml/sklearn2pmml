@@ -4,6 +4,7 @@ from sklearn.datasets import load_iris
 from sklearn.dummy import DummyClassifier
 from sklearn.linear_model import ElasticNet, LinearRegression, LogisticRegression, SGDClassifier, SGDRegressor
 from sklearn.svm import LinearSVC
+from sklearn.tree import DecisionTreeClassifier
 from sklearn2pmml.ensemble import _checkLM, _checkLR, _step_params, MultiEstimatorChain, SelectFirstClassifier, SelectFirstRegressor
 
 from unittest import TestCase
@@ -58,7 +59,7 @@ class MultiEstimatorChainTest(TestCase):
 
 	def test_complex_fit_predict(self):
 		X, y = load_iris(return_X_y = True)
-		classifier = MultiEstimatorChain.Link(LogisticRegression(), augment_funcs = ["predict", "predict_proba"])
+		classifier = MultiEstimatorChain.Link(DecisionTreeClassifier(max_depth = 2, random_state = 13), augment_funcs = ["predict", "predict_proba"])
 		regressor = SelectFirstRegressor([
 			("not_setosa", LinearRegression(), "X[-3] < 0.5"),
 			("setosa", LinearRegression(), "X[-3] >= 0.5")
@@ -68,7 +69,7 @@ class MultiEstimatorChainTest(TestCase):
 			("regressor", regressor, str(True))
 		])
 		estimator.fit(X, y)
-		self.assertEqual((3, 4), classifier.estimator_.coef_.shape)
+		self.assertEqual(4, classifier.estimator_.n_features_)
 		self.assertEqual((4 + (1 + 3), ), regressor.steps[0][1].coef_.shape)
 		self.assertEqual((4 + (1 + 3), ), regressor.steps[1][1].coef_.shape)
 		preds = estimator.predict(X)
