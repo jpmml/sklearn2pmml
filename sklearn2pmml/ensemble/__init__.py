@@ -124,7 +124,7 @@ class GBDTLRClassifier(GBDTEstimator, ClassifierMixin):
 		idt = self._encoded_leaf_indices(X)
 		return self.lr_.predict_proba(idt)
 
-class SelectFirstEstimator(_BaseComposition):
+class _BaseEnsemble(_BaseComposition):
 
 	def __init__(self, steps):
 		for step in steps:
@@ -149,6 +149,53 @@ class SelectFirstEstimator(_BaseComposition):
 		self._set_params("_steps", **kwargs)
 		return self
 
+def _to_sparse(X, step_mask, step_result):
+	# Make array
+	if len(step_result.shape) == 1:
+		result = numpy.empty((X.shape[0], ), dtype = object)
+	else:
+		result = numpy.empty((X.shape[0], step_result.shape[1]), dtype = object)
+	# Fill array
+	if len(step_result.shape) == 1:
+		result[step_mask.ravel()] = step_result
+	else:
+		result[step_mask.ravel(), :] = step_result
+	return result
+
+class MultiEstimatorChain(_BaseEnsemble):
+
+	def __init__(self, steps):
+		super(MultiEstimatorChain, self).__init__(steps)
+
+	def fit(self, X, y, **fit_params):
+		for name, estimator, predicate in self.steps:
+			step_mask = eval_rows(X, lambda X: eval(predicate), dtype = bool)
+			if numpy.sum(step_mask) < 1:
+				raise ValueError(predicate)
+			estimator.fit(X[step_mask], y[step_mask], **_step_params(name, fit_params))
+		return self
+
+	def predict(self, X):
+		result = None
+		for name, estimator, predicate in self.steps:
+			step_mask = eval_rows(X, lambda X: eval(predicate), dtype = bool)
+			if numpy.sum(step_mask) < 1:
+				continue
+			step_result = estimator.predict(X[step_mask])
+			step_result = _to_sparse(X, step_mask, step_result)
+			# XXX
+			step_result = step_result.reshape(X.shape[0], -1)
+			if result is None:
+				result = step_result
+			else:
+				result = numpy.hstack((result, step_result))
+		return result
+
+class SelectFirstEstimator(_BaseEnsemble):
+
+	def __init__(self, steps):
+		super(SelectFirstEstimator, self).__init__(steps)
+
 	def fit(self, X, y, **fit_params):
 		mask = numpy.zeros(X.shape[0], dtype = bool)
 		for name, estimator, predicate in self.steps:
@@ -160,7 +207,7 @@ class SelectFirstEstimator(_BaseComposition):
 			mask = numpy.logical_or(mask, step_mask)
 		return self
 
-	def _ensemble_predict(self, predict_method, X):
+	def _predict(self, predict_method, X):
 		result = None
 		mask = numpy.zeros(X.shape[0], dtype = bool)
 		for name, estimator, predicate in self.steps:
@@ -169,25 +216,19 @@ class SelectFirstEstimator(_BaseComposition):
 			if numpy.sum(step_mask) < 1:
 				continue
 			step_result = getattr(estimator, predict_method)(X[step_mask])
-			# Ensure array
+			step_result = _to_sparse(X, step_mask, step_result)
 			if result is None:
-				if len(step_result.shape) == 1:
-					result = numpy.empty((X.shape[0], ), dtype = object)
-				else:
-					result = numpy.empty((X.shape[0], step_result.shape[1]), dtype = object)
-			# Fill in array values
-			if len(step_result.shape) == 1:
-				result[step_mask.ravel()] = step_result
+				result = step_result
 			else:
-				result[step_mask.ravel(), :] = step_result
+				result[step_mask] = step_result[step_mask]
 			mask = numpy.logical_or(mask, step_mask)
 		return result
 
 	def apply(self, X):
-		return self._ensemble_predict("apply", X)
+		return self._predict("apply", X)
 
 	def predict(self, X):
-		return self._ensemble_predict("predict", X)
+		return self._predict("predict", X)
 
 class SelectFirstRegressor(SelectFirstEstimator, RegressorMixin):
 
@@ -200,4 +241,4 @@ class SelectFirstClassifier(SelectFirstEstimator, ClassifierMixin):
 		super(SelectFirstClassifier, self).__init__(steps)
 
 	def predict_proba(self, X):
-		return self._ensemble_predict("predict_proba", X)
+		return self._predict("predict_proba", X)
