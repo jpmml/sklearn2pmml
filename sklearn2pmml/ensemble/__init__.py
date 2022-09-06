@@ -173,6 +173,8 @@ class MultiEstimatorChain(_BaseEnsemble):
 			if numpy.sum(step_mask) < 1:
 				raise ValueError(predicate)
 			estimator.fit(X[step_mask], y[step_mask], **_step_params(name, fit_params))
+			if isinstance(estimator, MultiEstimatorChain.Link):
+				X = estimator.augment(X)
 		return self
 
 	def predict(self, X):
@@ -189,7 +191,41 @@ class MultiEstimatorChain(_BaseEnsemble):
 				result = step_result
 			else:
 				result = numpy.hstack((result, step_result))
+			if isinstance(estimator, MultiEstimatorChain.Link):
+				X = estimator.augment(X)
 		return result
+
+	class Link(BaseEstimator):
+
+		def __init__(self, estimator, augment_funcs, prefit = False):
+			self.estimator = estimator
+			self.augment_funcs = augment_funcs
+			self.prefit = prefit
+			if prefit:
+				self.estimator_ = clone(self.estimator)
+
+		def fit(self, X, y):
+			self.estimator_ = clone(self.estimator)
+			self.estimator_.fit(X, y)
+			return self
+
+		def predict(self, X):
+			return self.estimator_.predict(X)
+
+		def augment(self, X):
+			Y = None
+			for augment_func in self.augment_funcs:
+				yt = getattr(self.estimator_, augment_func)(X)
+				# XXX
+				yt = yt.reshape(X.shape[0], -1)
+				if Y is None:
+					Y = yt
+				else:
+					Y = numpy.hstack((Y, yt))
+			if Y is None:
+				return X
+			else:
+				return numpy.hstack((X, Y))
 
 class SelectFirstEstimator(_BaseEnsemble):
 

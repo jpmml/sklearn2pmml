@@ -1,9 +1,10 @@
 from pandas import DataFrame
 from sklearn.base import clone
+from sklearn.datasets import load_iris
 from sklearn.dummy import DummyClassifier
 from sklearn.linear_model import ElasticNet, LinearRegression, LogisticRegression, SGDClassifier, SGDRegressor
 from sklearn.svm import LinearSVC
-from sklearn2pmml.ensemble import _checkLM, _checkLR, _step_params, MultiEstimatorChain, SelectFirstClassifier
+from sklearn2pmml.ensemble import _checkLM, _checkLR, _step_params, MultiEstimatorChain, SelectFirstClassifier, SelectFirstRegressor
 
 from unittest import TestCase
 
@@ -51,9 +52,27 @@ class MultiEstimatorChainTest(TestCase):
 		estimator.fit(X, y)
 		preds = estimator.predict(X)
 		self.assertEqual((5, 3), preds.shape)
-		self.assertEquals([-1, None, -1, None, -1], preds[:, 0].tolist())
-		self.assertEquals([None, 0, None, 0, None], preds[:, 1].tolist())
-		self.assertEquals([-1, -1, -1, -1, -1], preds[:, 2].tolist())
+		self.assertEqual([-1, None, -1, None, -1], preds[:, 0].tolist())
+		self.assertEqual([None, 0, None, 0, None], preds[:, 1].tolist())
+		self.assertEqual([-1, -1, -1, -1, -1], preds[:, 2].tolist())
+
+	def test_complex_fit_predict(self):
+		X, y = load_iris(return_X_y = True)
+		classifier = MultiEstimatorChain.Link(LogisticRegression(), augment_funcs = ["predict", "predict_proba"])
+		regressor = SelectFirstRegressor([
+			("not_setosa", LinearRegression(), "X[-3] < 0.5"),
+			("setosa", LinearRegression(), "X[-3] >= 0.5")
+		])
+		estimator = MultiEstimatorChain([
+			("classifier", classifier, str(True)),
+			("regressor", regressor, str(True))
+		])
+		estimator.fit(X, y)
+		self.assertEqual((3, 4), classifier.estimator_.coef_.shape)
+		self.assertEqual((4 + (1 + 3), ), regressor.steps[0][1].coef_.shape)
+		self.assertEqual((4 + (1 + 3), ), regressor.steps[1][1].coef_.shape)
+		preds = estimator.predict(X)
+		self.assertEqual((150, 2), preds.shape)
 
 class SelectFirstClassifierTest(TestCase):
 
