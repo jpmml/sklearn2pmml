@@ -164,8 +164,9 @@ def _to_sparse(X, step_mask, step_result):
 
 class EstimatorChain(_BaseEnsemble):
 
-	def __init__(self, steps):
+	def __init__(self, steps, multioutput = True):
 		super(EstimatorChain, self).__init__(steps)
+		self.multioutput = multioutput
 
 	def fit(self, X, y, **fit_params):
 		for name, estimator, predicate in self.steps:
@@ -185,12 +186,15 @@ class EstimatorChain(_BaseEnsemble):
 				continue
 			step_result = estimator.predict(X[step_mask])
 			step_result = _to_sparse(X, step_mask, step_result)
-			# XXX
-			step_result = step_result.reshape(X.shape[0], -1)
+			if self.multioutput:
+				step_result = step_result.reshape(X.shape[0], -1)
 			if result is None:
 				result = step_result
 			else:
-				result = numpy.hstack((result, step_result))
+				if self.multioutput:
+					result = numpy.hstack((result, step_result))
+				else:
+					result[step_mask] = step_result[step_mask]
 			if isinstance(estimator, EstimatorChain.Link):
 				X = estimator.augment(X)
 		return result
@@ -216,7 +220,6 @@ class EstimatorChain(_BaseEnsemble):
 			Y = None
 			for augment_func in self.augment_funcs:
 				yt = getattr(self.estimator_, augment_func)(X)
-				# XXX
 				yt = yt.reshape(X.shape[0], -1)
 				if Y is None:
 					Y = yt

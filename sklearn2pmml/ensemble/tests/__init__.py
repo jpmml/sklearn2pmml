@@ -41,11 +41,12 @@ class EstimatorChainTest(TestCase):
 		df = DataFrame([[-1, 0], [0, 0], [-1, -1], [1, 1], [-1, -1]], columns = ["X", "y"])
 		X = df[["X"]]
 		y = df["y"]
-		estimator = EstimatorChain([
+		steps = [
 			("negative", DummyClassifier(strategy = "most_frequent"), "X[0] < 0"),
 			("not_negative", DummyClassifier(strategy = "most_frequent"), "X[0] >= 0"),
 			("any", DummyClassifier(strategy = "most_frequent"), str(True))
-		])
+		]
+		estimator = EstimatorChain(steps, multioutput = True)
 		params = estimator.get_params(deep = True)
 		self.assertEqual("most_frequent", params["negative__strategy"])
 		self.assertEqual("most_frequent", params["not_negative__strategy"])
@@ -56,6 +57,11 @@ class EstimatorChainTest(TestCase):
 		self.assertEqual([-1, None, -1, None, -1], preds[:, 0].tolist())
 		self.assertEqual([None, 0, None, 0, None], preds[:, 1].tolist())
 		self.assertEqual([-1, -1, -1, -1, -1], preds[:, 2].tolist())
+		estimator = EstimatorChain(steps, multioutput = False)
+		estimator.fit(X, y)
+		preds = estimator.predict(X)
+		self.assertEqual((5, ), preds.shape)
+		self.assertEqual([-1, -1, -1, -1, -1], preds.tolist())
 
 	def test_complex_fit_predict(self):
 		X, y = load_iris(return_X_y = True)
