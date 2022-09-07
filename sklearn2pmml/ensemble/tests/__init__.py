@@ -5,7 +5,7 @@ from sklearn.dummy import DummyClassifier
 from sklearn.linear_model import ElasticNet, LinearRegression, LogisticRegression, SGDClassifier, SGDRegressor
 from sklearn.svm import LinearSVC
 from sklearn.tree import DecisionTreeClassifier
-from sklearn2pmml.ensemble import _checkLM, _checkLR, _step_params, MultiEstimatorChain, SelectFirstClassifier, SelectFirstRegressor
+from sklearn2pmml.ensemble import _checkLM, _checkLR, _step_params, EstimatorChain, SelectFirstClassifier, SelectFirstRegressor
 
 from unittest import TestCase
 
@@ -35,13 +35,13 @@ class GBDTLRTest(TestCase):
 		self.assertEqual({"first" : 1.0}, lr_params)
 		self.assertEqual({"any__any" : None}, params)
 
-class MultiEstimatorChainTest(TestCase):
+class EstimatorChainTest(TestCase):
 
 	def test_fit_predict(self):
 		df = DataFrame([[-1, 0], [0, 0], [-1, -1], [1, 1], [-1, -1]], columns = ["X", "y"])
 		X = df[["X"]]
 		y = df["y"]
-		estimator = MultiEstimatorChain([
+		estimator = EstimatorChain([
 			("negative", DummyClassifier(strategy = "most_frequent"), "X[0] < 0"),
 			("not_negative", DummyClassifier(strategy = "most_frequent"), "X[0] >= 0"),
 			("any", DummyClassifier(strategy = "most_frequent"), str(True))
@@ -59,12 +59,12 @@ class MultiEstimatorChainTest(TestCase):
 
 	def test_complex_fit_predict(self):
 		X, y = load_iris(return_X_y = True)
-		classifier = MultiEstimatorChain.Link(DecisionTreeClassifier(max_depth = 2, random_state = 13), augment_funcs = ["predict", "predict_proba"])
+		classifier = EstimatorChain.Link(DecisionTreeClassifier(max_depth = 2, random_state = 13), augment_funcs = ["predict", "predict_proba"])
 		regressor = SelectFirstRegressor([
 			("not_setosa", LinearRegression(), "X[-3] < 0.5"),
 			("setosa", LinearRegression(), "X[-3] >= 0.5")
 		])
-		estimator = MultiEstimatorChain([
+		estimator = EstimatorChain([
 			("classifier", classifier, str(True)),
 			("regressor", regressor, str(True))
 		])

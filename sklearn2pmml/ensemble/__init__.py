@@ -162,10 +162,10 @@ def _to_sparse(X, step_mask, step_result):
 		result[step_mask.ravel(), :] = step_result
 	return result
 
-class MultiEstimatorChain(_BaseEnsemble):
+class EstimatorChain(_BaseEnsemble):
 
 	def __init__(self, steps):
-		super(MultiEstimatorChain, self).__init__(steps)
+		super(EstimatorChain, self).__init__(steps)
 
 	def fit(self, X, y, **fit_params):
 		for name, estimator, predicate in self.steps:
@@ -173,7 +173,7 @@ class MultiEstimatorChain(_BaseEnsemble):
 			if numpy.sum(step_mask) < 1:
 				raise ValueError(predicate)
 			estimator.fit(X[step_mask], y[step_mask], **_step_params(name, fit_params))
-			if isinstance(estimator, MultiEstimatorChain.Link):
+			if isinstance(estimator, EstimatorChain.Link):
 				X = estimator.augment(X)
 		return self
 
@@ -191,7 +191,7 @@ class MultiEstimatorChain(_BaseEnsemble):
 				result = step_result
 			else:
 				result = numpy.hstack((result, step_result))
-			if isinstance(estimator, MultiEstimatorChain.Link):
+			if isinstance(estimator, EstimatorChain.Link):
 				X = estimator.augment(X)
 		return result
 
