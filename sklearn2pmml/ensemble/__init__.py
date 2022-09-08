@@ -162,6 +162,37 @@ def _to_sparse(X, step_mask, step_result):
 		result[step_mask.ravel(), :] = step_result
 	return result
 
+class Link(BaseEstimator):
+
+	def __init__(self, estimator, augment_funcs, prefit = False):
+		self.estimator = estimator
+		self.augment_funcs = augment_funcs
+		self.prefit = prefit
+		if prefit:
+			self.estimator_ = clone(self.estimator)
+
+	def fit(self, X, y):
+		self.estimator_ = clone(self.estimator)
+		self.estimator_.fit(X, y)
+		return self
+
+	def predict(self, X):
+		return self.estimator_.predict(X)
+
+	def augment(self, X):
+		Y = None
+		for augment_func in self.augment_funcs:
+			yt = getattr(self.estimator_, augment_func)(X)
+			yt = yt.reshape(X.shape[0], -1)
+			if Y is None:
+				Y = yt
+			else:
+				Y = numpy.hstack((Y, yt))
+		if Y is None:
+			return X
+		else:
+			return numpy.hstack((X, Y))
+
 class EstimatorChain(_BaseEnsemble):
 
 	def __init__(self, steps, multioutput = True):
@@ -174,7 +205,7 @@ class EstimatorChain(_BaseEnsemble):
 			if numpy.sum(step_mask) < 1:
 				raise ValueError(predicate)
 			estimator.fit(X[step_mask], y[step_mask], **_step_params(name, fit_params))
-			if isinstance(estimator, EstimatorChain.Link):
+			if isinstance(estimator, Link):
 				X = estimator.augment(X)
 		return self
 
@@ -195,40 +226,9 @@ class EstimatorChain(_BaseEnsemble):
 					result = numpy.hstack((result, step_result))
 				else:
 					result[step_mask] = step_result[step_mask]
-			if isinstance(estimator, EstimatorChain.Link):
+			if isinstance(estimator, Link):
 				X = estimator.augment(X)
 		return result
-
-	class Link(BaseEstimator):
-
-		def __init__(self, estimator, augment_funcs, prefit = False):
-			self.estimator = estimator
-			self.augment_funcs = augment_funcs
-			self.prefit = prefit
-			if prefit:
-				self.estimator_ = clone(self.estimator)
-
-		def fit(self, X, y):
-			self.estimator_ = clone(self.estimator)
-			self.estimator_.fit(X, y)
-			return self
-
-		def predict(self, X):
-			return self.estimator_.predict(X)
-
-		def augment(self, X):
-			Y = None
-			for augment_func in self.augment_funcs:
-				yt = getattr(self.estimator_, augment_func)(X)
-				yt = yt.reshape(X.shape[0], -1)
-				if Y is None:
-					Y = yt
-				else:
-					Y = numpy.hstack((Y, yt))
-			if Y is None:
-				return X
-			else:
-				return numpy.hstack((X, Y))
 
 class SelectFirstEstimator(_BaseEnsemble):
 

@@ -5,7 +5,7 @@ from sklearn.dummy import DummyClassifier
 from sklearn.linear_model import ElasticNet, LinearRegression, LogisticRegression, SGDClassifier, SGDRegressor
 from sklearn.svm import LinearSVC
 from sklearn.tree import DecisionTreeClassifier
-from sklearn2pmml.ensemble import _checkLM, _checkLR, _step_params, EstimatorChain, SelectFirstClassifier, SelectFirstRegressor
+from sklearn2pmml.ensemble import _checkLM, _checkLR, _step_params, EstimatorChain, Link, SelectFirstClassifier, SelectFirstRegressor
 
 from unittest import TestCase
 
@@ -65,7 +65,7 @@ class EstimatorChainTest(TestCase):
 
 	def test_complex_fit_predict(self):
 		X, y = load_iris(return_X_y = True)
-		classifier = EstimatorChain.Link(DecisionTreeClassifier(max_depth = 2, random_state = 13), augment_funcs = ["predict", "predict_proba"])
+		classifier = Link(DecisionTreeClassifier(max_depth = 2, random_state = 13), augment_funcs = ["predict", "predict_proba"])
 		regressor = SelectFirstRegressor([
 			("not_setosa", LinearRegression(), "X[-3] < 0.5"),
 			("setosa", LinearRegression(), "X[-3] >= 0.5")
