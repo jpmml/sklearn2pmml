@@ -18,11 +18,11 @@ pmml-lightgbm-1.4.4.jar
 pmml-model-1.6.4.jar
 pmml-model-metro-1.6.4.jar
 pmml-python-1.1.7.jar
-pmml-sklearn-1.7.11.jar
-pmml-sklearn-extension-1.7.11.jar
-pmml-sklearn-h2o-1.7.11.jar
-pmml-sklearn-lightgbm-1.7.11.jar
-pmml-sklearn-xgboost-1.7.11.jar
+pmml-sklearn-1.7.12.jar
+pmml-sklearn-extension-1.7.12.jar
+pmml-sklearn-h2o-1.7.12.jar
+pmml-sklearn-lightgbm-1.7.12.jar
+pmml-sklearn-xgboost-1.7.12.jar
 pmml-xgboost-1.7.1.jar
 serpent-1.40.jar
 slf4j-api-1.7.36.jar
