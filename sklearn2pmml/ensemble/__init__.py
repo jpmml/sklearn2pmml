@@ -200,13 +200,25 @@ class EstimatorChain(_BaseEnsemble):
 		self.multioutput = multioutput
 
 	def fit(self, X, y, **fit_params):
+		if len(y.shape) > 1:
+			if len(self.steps) != y.shape[1]:
+				raise ValueError()
+			y = numpy.asarray(y)
+		i = 0
 		for name, estimator, predicate in self.steps:
 			step_mask = eval_rows(X, lambda X: eval(predicate), dtype = bool)
 			if numpy.sum(step_mask) < 1:
 				raise ValueError(predicate)
-			estimator.fit(X[step_mask], y[step_mask], **_step_params(name, fit_params))
+			if len(y.shape) == 1:
+				step_y = y[step_mask]
+			elif len(y.shape) == 2:
+				step_y = y[step_mask, i]
+			else:
+				raise ValueError()
+			estimator.fit(X[step_mask], step_y, **_step_params(name, fit_params))
 			if isinstance(estimator, Link):
 				X = estimator.augment(X)
+			i += 1
 		return self
 
 	def predict(self, X):
