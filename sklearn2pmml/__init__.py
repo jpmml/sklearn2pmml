@@ -185,7 +185,7 @@ def _dump(obj, prefix):
 		os.close(fd)
 	return path
 
-def sklearn2pmml(pipeline, pmml, user_classpath = [], with_repr = False, debug = False):
+def sklearn2pmml(pipeline, pmml, with_repr = False, user_classpath = [], debug = False):
 	"""Converts a fitted PMML pipeline object to PMML file.
 
 	Parameters:
@@ -196,12 +196,12 @@ def sklearn2pmml(pipeline, pmml, user_classpath = [], with_repr = False, debug =
 	pmml: string
 		The output PMML file.
 
+	with_repr: boolean, optional
+		If true, insert the string representation of pipeline into the PMML document.
+
 	user_classpath: list of strings, optional
 		The paths to JAR files that provide custom Transformer, Selector and/or Estimator converter classes.
 		The SkLearn2PMML classpath is constructed by appending user JAR files to package JAR files.
-
-	with_repr: boolean, optional
-		If true, insert the string representation of pipeline into the PMML document.
 
 	debug: boolean, optional
 		If true, print information about the conversion process.
@@ -221,12 +221,12 @@ def sklearn2pmml(pipeline, pmml, user_classpath = [], with_repr = False, debug =
 		print("{0}: {1}".format(java_version[0], java_version[1]))
 	if not isinstance(pipeline, PMMLPipeline):
 		raise TypeError("The pipeline object is not an instance of {0}. Use the 'sklearn2pmml.make_pmml_pipeline(obj)' utility function to translate a regular Scikit-Learn pipeline or estimator to a PMML pipeline".format(PMMLPipeline.__name__))
-	estimator = pipeline._final_estimator
+	if with_repr:
+		pipeline.repr_ = repr(pipeline)
 	cmd = ["java", "-cp", os.pathsep.join(_classpath(user_classpath)), "com.sklearn2pmml.Main"]
 	dumps = []
 	try:
-		if with_repr:
-			pipeline.repr_ = repr(pipeline)
+		estimator = pipeline._final_estimator
 		# if isinstance(estimator, H2OEstimator):
 		if hasattr(estimator, "download_mojo"):
 			# Avoid MOJO (re-)download if the indicator attribute is set
