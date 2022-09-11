@@ -2,8 +2,10 @@ from datetime import datetime
 from pandas import Categorical, CategoricalDtype, DataFrame, Series
 from sklearn.base import clone
 from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import LabelBinarizer, StandardScaler
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import LabelBinarizer, OneHotEncoder, StandardScaler
 from sklearn2pmml.decoration import Alias, CategoricalDomain, ContinuousDomain, ContinuousDomainEraser, DateDomain, DateTimeDomain, DiscreteDomainEraser, Domain, MultiDomain
+from sklearn2pmml.preprocessing import ExpressionTransformer
 from sklearn_pandas import DataFrameMapper
 from unittest import TestCase
 
@@ -20,6 +22,20 @@ class AliasTest(TestCase):
 		alias = Alias(StandardScaler(), name = "standard_scaler(X)", prefit = True)
 		self.assertTrue(hasattr(alias, "transformer"))
 		self.assertTrue(hasattr(alias, "transformer_"))
+
+	def test_get_feature_names_out(self):
+		X = DataFrame([[0, 0], [0, 1], [1, 1]], columns = ["x1", "x2"])
+		alias = Alias(ExpressionTransformer("X[0] == X[1]", dtype = int), name = "flag", prefit = True)
+		self.assertEqual(["flag"], alias.get_feature_names_out(None))
+		ohe = OneHotEncoder()
+		pipeline = Pipeline([
+			("alias", alias),
+			("ohe", ohe)
+		])
+		Xt = pipeline.fit_transform(X)
+		self.assertEqual((3, 2), Xt.shape)
+		if hasattr(pipeline, "get_feature_names_out"):
+			self.assertEqual(["flag_0", "flag_1"], pipeline.get_feature_names_out(None).tolist())
 
 def _value_count(stats):
 	return dict(zip(stats[0].tolist(), stats[1].tolist()))

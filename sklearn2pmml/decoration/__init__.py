@@ -15,6 +15,12 @@ class Alias(BaseEstimator, TransformerMixin):
 		if prefit:
 			self.transformer_ = clone(self.transformer)
 
+	def get_feature_names(self, input_features = None):
+		return self.get_feature_names_out(input_features)
+
+	def get_feature_names_out(self, input_features = None):
+		return numpy.asarray([self.name])
+
 	def fit(self, X, y = None):
 		self.transformer_ = clone(self.transformer)
 		if y is None:
