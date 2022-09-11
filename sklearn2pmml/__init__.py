@@ -145,9 +145,27 @@ def make_pmml_pipeline(obj, active_fields = None, target_fields = None):
 		pipeline.target_fields = numpy.asarray(target_fields)
 	return pipeline
 
-def _java_version():
+def _make_java_command(java_home, java_opts, java_args):
+	result = []
+	if java_home is not None:
+		if not isinstance(java_home, str):
+			raise ValueError()
+		result.extend([os.path.join(java_home, "bin", "java")])
+	else:
+		result.extend(["java"])
+	if java_opts is not None:
+		if not isinstance(java_opts, list):
+			raise ValueError()
+		result.extend(java_opts)
+	if not isinstance(java_args, list):
+		raise ValueError()
+	result.extend(java_args)
+	return result
+
+def _java_version(java_home = None):
+	cmd = _make_java_command(java_home = java_home, java_opts = None, java_args = ["-version"])
 	try:
-		process = Popen(["java", "-version"], stdout = PIPE, stderr = PIPE, bufsize = 1, universal_newlines = True)
+		process = Popen(cmd, stdout = PIPE, stderr = PIPE, bufsize = 1, universal_newlines = True)
 	except:
 		return None
 	output, error = process.communicate()
@@ -185,7 +203,7 @@ def _dump(obj, prefix):
 		os.close(fd)
 	return path
 
-def sklearn2pmml(pipeline, pmml, with_repr = False, user_classpath = [], debug = False):
+def sklearn2pmml(pipeline, pmml, with_repr = False, java_home = None, java_opts = None, user_classpath = [], debug = False):
 	"""Converts a fitted PMML pipeline object to PMML file.
 
 	Parameters:
@@ -194,10 +212,18 @@ def sklearn2pmml(pipeline, pmml, with_repr = False, user_classpath = [], debug =
 		The input PMML pipeline object.
 
 	pmml: string
-		The output PMML file.
+		The path to output PMML file.
 
 	with_repr: boolean, optional
 		If true, insert the string representation of pipeline into the PMML document.
+
+	java_home: string, optional
+		The path to Java installation directory.
+		Functionally analogous to the JAVA_HOME environment variable.
+
+	java_opts: list of strings, optional
+		Java options.
+		Functionally analogous to the JAVA_OPTS environment variable.
 
 	user_classpath: list of strings, optional
 		The paths to JAR files that provide custom Transformer, Selector and/or Estimator converter classes.
@@ -208,7 +234,7 @@ def sklearn2pmml(pipeline, pmml, with_repr = False, user_classpath = [], debug =
 
 	"""
 	if debug:
-		java_version = _java_version()
+		java_version = _java_version(java_home = java_home)
 		if java_version is None:
 			java_version = ("java", "N/A")
 		print("python: {0}".format(platform.python_version()))
@@ -223,9 +249,9 @@ def sklearn2pmml(pipeline, pmml, with_repr = False, user_classpath = [], debug =
 		raise TypeError("The pipeline object is not an instance of {0}. Use the 'sklearn2pmml.make_pmml_pipeline(obj)' utility function to translate a regular Scikit-Learn pipeline or estimator to a PMML pipeline".format(PMMLPipeline.__name__))
 	if with_repr:
 		pipeline.repr_ = repr(pipeline)
-	cmd = ["java", "-cp", os.pathsep.join(_classpath(user_classpath)), "com.sklearn2pmml.Main"]
 	dumps = []
 	try:
+		java_args = ["-cp", os.pathsep.join(_classpath(user_classpath)), "com.sklearn2pmml.Main"]
 		estimator = pipeline._final_estimator
 		# if isinstance(estimator, H2OEstimator):
 		if hasattr(estimator, "download_mojo"):
@@ -235,9 +261,10 @@ def sklearn2pmml(pipeline, pmml, with_repr = False, user_classpath = [], debug =
 				dumps.append(estimator_mojo)
 				estimator._mojo_path = estimator_mojo
 		pipeline_pkl = _dump(pipeline, "pipeline")
-		cmd.extend(["--pkl-pipeline-input", pipeline_pkl])
+		java_args.extend(["--pkl-pipeline-input", pipeline_pkl])
 		dumps.append(pipeline_pkl)
-		cmd.extend(["--pmml-output", pmml])
+		java_args.extend(["--pmml-output", pmml])
+		cmd = _make_java_command(java_home = java_home, java_opts = java_opts, java_args = java_args)
 		if debug:
 			print("Executing command:\n{0}".format(" ".join(cmd)))
 		try:
