@@ -304,10 +304,28 @@ class LookupTransformer(BaseEstimator, TransformerMixin):
 	def __init__(self, mapping, default_value):
 		if type(mapping) is not dict:
 			raise ValueError("Input value to output value mapping is not a dict")
+		k_type = None
+		v_type = None
 		for k, v in mapping.items():
 			if k is None:
 				raise ValueError("Key is None")
+			if k_type is None:
+				k_type = type(k)
+			else:
+				if type(k) != k_type:
+					raise ValueError("Key is not a {0}".format(k_type.__name__))
+			if v is None:
+				continue
+			if v_type is None:
+				v_type = type(v)
+			else:
+				if type(v) != v_type:
+					raise ValueError("Value is not a {0}".format(v_type.__name__))
 		self.mapping = mapping
+		if default_value is not None:
+			if v_type is not None:
+				if type(default_value) != v_type:
+					raise ValueError("Default value is not a {0}".format(v_type.__name__))
 		self.default_value = default_value
 
 	def _transform_dict(self):
@@ -338,16 +356,11 @@ class FilterLookupTransformer(LookupTransformer):
 
 	def __init__(self, mapping):
 		super(FilterLookupTransformer, self).__init__(mapping, default_value = None)
-		kv_type = None
 		for k, v in mapping.items():
-			if kv_type is None:
-				kv_type = type(k)
-			if type(k) != kv_type:
-				raise ValueError("Key is not a {0}".format(kv_type.__name__))
 			if v is None:
 				raise ValueError("Value is None")
-			if type(v) != kv_type:
-				raise ValueError("Value is not a {0}".format(kv_type.__name__))
+			if type(k) != type(v):
+				raise ValueError("Key and Value type mismatch")
 
 	def _transform_dict(self):
 		return self.mapping
@@ -362,20 +375,23 @@ class FilterLookupTransformer(LookupTransformer):
 		Xt = eval_rows(X, func)
 		return _col2d(Xt)
 
+def _deeptype(t):
+	return tuple([type(e) for e in t])
+
 class MultiLookupTransformer(LookupTransformer):
 	"""Re-map multidimensional categorical data."""
 
 	def __init__(self, mapping, default_value):
 		super(MultiLookupTransformer, self).__init__(mapping, default_value)
-		length = -1
+		k_type = None
 		for k, v in mapping.items():
-			if type(k) is not tuple:
+			if not isinstance(k, tuple):
 				raise ValueError("Key is not a tuple")
-			if length == -1:
-				length = len(k)
-				continue
-			if length != len(k):
-				raise ValueError("Keys contain variable number of elements")
+			if k_type is None:
+				k_type = _deeptype(k)
+			else:
+				if _deeptype(k) != k_type:
+					raise ValueError("Key is not a tuple of {0}", ", ".join(e.__name__ for e in k_type))
 
 	def fit(self, X, y = None):
 		return self

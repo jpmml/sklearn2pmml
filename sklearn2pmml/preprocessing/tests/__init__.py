@@ -281,10 +281,19 @@ class LookupTransformerTest(TestCase):
 
 	def test_transform_float(self):
 		mapping = {
-			0.0 : math.cos(0.0),
+			int(0.0) : math.cos(0.0),
 			45.0 : math.cos(45.0),
 			90.0 : math.cos(90.0)
 		}
+		with self.assertRaises(ValueError):
+			LookupTransformer(mapping, None)
+		mapping[0.0] = mapping.pop(int(0.0))
+		try:
+			LookupTransformer(mapping, None)
+		except ValueError:
+			assert False
+		with self.assertRaises(ValueError):
+			LookupTransformer(mapping, int(0))
 		transformer = LookupTransformer(mapping, float("NaN"))
 		X = numpy.array([[0.0], [90.0]])
 		self.assertEqual([[math.cos(0.0)], [math.cos(90.0)]], transformer.transform(X).tolist())
@@ -357,7 +366,10 @@ class MultiLookupTransformerTest(TestCase):
 		}
 		with self.assertRaises(ValueError):
 			MultiLookupTransformer(mapping, None)
-		mapping.pop(tuple(["zero"]))
+		mapping[("zero", int(0))] = mapping.pop(tuple(["zero"]))
+		with self.assertRaises(ValueError):
+			MultiLookupTransformer(mapping, None)
+		mapping.pop(("zero", int(0)))
 		transformer = MultiLookupTransformer(mapping, None)
 		X = DataFrame([["one", None], ["one", True], [None, True], ["two", True], ["three", True]])
 		self.assertEqual([[None], ["ein"], [None], ["zwei"], ["drei"]], transformer.transform(X).tolist())
