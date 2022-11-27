@@ -98,29 +98,29 @@ def _get_steps(obj):
 	else:
 		raise TypeError("The object is not an instance of {0}".format(BaseEstimator.__name__))
 
-def _filter(obj):
+def _escape(obj):
 	if isinstance(obj, DataFrameMapper):
-		obj.features = _filter_steps(obj.features)
+		obj.features = _escape_steps(obj.features)
 		if hasattr(obj, "built_features"):
 			if obj.built_features is not None:
-				obj.built_features = _filter_steps(obj.built_features)
+				obj.built_features = _escape_steps(obj.built_features)
 	elif isinstance(obj, ColumnTransformer):
-		obj.transformers = _filter_steps(obj.transformers)
-		obj.remainder = _filter(obj.remainder)
+		obj.transformers = _escape_steps(obj.transformers)
+		obj.remainder = _escape(obj.remainder)
 		if hasattr(obj, "transformers_"):
-			obj.transformers_ = _filter_steps(obj.transformers_)
+			obj.transformers_ = _escape_steps(obj.transformers_)
 	elif isinstance(obj, FeatureUnion):
-		obj.transformer_list = _filter_steps(obj.transformer_list)
+		obj.transformer_list = _escape_steps(obj.transformer_list)
 	elif isinstance(obj, Pipeline):
-		obj.steps = _filter_steps(obj.steps)
+		obj.steps = _escape_steps(obj.steps)
 	elif isinstance(obj, SelectorMixin):
 		return SelectorProxy(obj)
 	elif isinstance(obj, list):
-		return [_filter(e) for e in obj]
+		return [_escape(e) for e in obj]
 	return obj
 
-def _filter_steps(steps):
-	return [(step[:1] + (_filter(step[1]), ) + step[2:]) for step in steps]
+def _escape_steps(steps):
+	return [(step[:1] + (_escape(step[1]), ) + step[2:]) for step in steps]
 
 def make_pmml_pipeline(obj, active_fields = None, target_fields = None):
 	"""Translates a regular Scikit-Learn estimator or pipeline to a PMML pipeline.
@@ -137,7 +137,7 @@ def make_pmml_pipeline(obj, active_fields = None, target_fields = None):
 		Label name(s). If missing, "y" is assumed.
 
 	"""
-	steps = _filter_steps(_get_steps(obj))
+	steps = _escape_steps(_get_steps(obj))
 	pipeline = PMMLPipeline(steps)
 	if active_fields is not None:
 		pipeline.active_fields = numpy.asarray(active_fields)
