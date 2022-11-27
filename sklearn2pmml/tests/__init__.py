@@ -3,7 +3,7 @@ from sklearn.dummy import DummyRegressor
 from sklearn.feature_selection import f_regression, SelectFromModel, SelectKBest
 from sklearn.pipeline import Pipeline
 from sklearn.tree import DecisionTreeRegressor
-from sklearn2pmml import _classpath, _escape_steps, _is_categorical, _java_version, _parse_java_version, _strip_module, _supported_classes, make_pmml_pipeline, make_tpot_pmml_config, EstimatorProxy, SelectorProxy
+from sklearn2pmml import _classpath, _escape, _escape_steps, _is_categorical, _java_version, _parse_java_version, _strip_module, _supported_classes, make_pmml_pipeline, make_tpot_pmml_config, EstimatorProxy, SelectorProxy
 from sklearn2pmml.pipeline import PMMLPipeline
 from unittest import TestCase
 
@@ -70,7 +70,7 @@ class SelectorProxyTest(TestCase):
 		self.assertIsInstance(selector, SelectFromModel)
 		self.assertIsInstance(selector.estimator, DecisionTreeRegressor)
 		self.assertFalse(hasattr(selector, "estimator_"))
-		selector_proxy = _escape_steps([("selector", selector)])[0][1]
+		selector_proxy = _escape_steps([("selector", selector)], escape_func = _escape)[0][1]
 		self.assertIsInstance(selector_proxy, SelectorProxy)
 		selector_proxy.fit(numpy.array([[0, 1], [0, 2], [0, 3]]), numpy.array([0.5, 1.0, 1.5]))
 		self.assertEqual([0, 1], selector_proxy.support_mask_.tolist())
@@ -81,7 +81,7 @@ class SelectorProxyTest(TestCase):
 		selector = SelectFromModel(regressor, prefit = True)
 		self.assertTrue(hasattr(selector, "estimator"))
 		self.assertFalse(hasattr(selector, "estimator_"))
-		selector_proxy = _escape_steps([("selector", selector, {})])[0][1]
+		selector_proxy = _escape_steps([("selector", selector, {})], escape_func = _escape)[0][1]
 		self.assertIsInstance(selector_proxy, SelectorProxy)
 		self.assertEqual([0, 1], selector_proxy.support_mask_.tolist())
 
