@@ -3,7 +3,7 @@ from sklearn.dummy import DummyRegressor
 from sklearn.feature_selection import f_regression, SelectFromModel, SelectKBest
 from sklearn.pipeline import Pipeline
 from sklearn.tree import DecisionTreeRegressor
-from sklearn2pmml import _classpath, _escape, _escape_steps, _is_categorical, _java_version, _parse_java_version, _strip_module, _supported_classes, make_pmml_pipeline, make_tpot_pmml_config, EstimatorProxy, SelectorProxy
+from sklearn2pmml import _classpath, _escape, _escape_steps, _is_categorical, _java_version, _parse_java_version, _strip_module, _supported_classes, make_pmml_pipeline, EstimatorProxy, SelectorProxy
 from sklearn2pmml.pipeline import PMMLPipeline
 from unittest import TestCase
 
@@ -28,7 +28,7 @@ class DTypeTest(TestCase):
 		self.assertEqual([1, 0, 1], x.values.tolist())
 		self.assertFalse(_is_categorical(x.dtype))
 		x = x.astype(CategoricalDtype())
-		self.assertEquals([1, 0, 1], x.values.tolist())
+		self.assertEqual([1, 0, 1], x.values.tolist())
 		self.assertTrue(_is_categorical(x.dtype))
 
 class EstimatorProxyTest(TestCase):
@@ -147,11 +147,3 @@ class FunctionTest(TestCase):
 		])
 		pmml_pipeline = make_pmml_pipeline(pipeline)
 		self.assertTrue(isinstance(pmml_pipeline, PMMLPipeline))
-
-	def test_make_tpot_pmml_config(self):
-		config = {
-			"sklearn.kernel_approximation.RBFSampler" : {"gamma" : numpy.arange(0.0, 1.01, 0.05)},
-			"sklearn.preprocessing.StandardScaler" : {}
-		}
-		tpot_pmml_config = make_tpot_pmml_config(config)
-		self.assertEqual({"sklearn.preprocessing.StandardScaler" : {}}, tpot_pmml_config)
