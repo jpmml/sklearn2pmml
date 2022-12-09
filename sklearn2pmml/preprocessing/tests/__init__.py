@@ -11,6 +11,7 @@ from sklearn2pmml.preprocessing.lightgbm import make_lightgbm_column_transformer
 from sklearn2pmml.preprocessing.xgboost import make_xgboost_column_transformer, make_xgboost_dataframe_mapper
 from unittest import TestCase
 
+import inspect
 import math
 import numpy
 import pandas
@@ -186,16 +187,22 @@ class SecondsSinceMidnightTransformerTest(TestCase):
 		Xt = mapper.fit_transform(X)
 		self.assertEqual([[0], [60], [19410]], Xt.tolist())
 
+def _signum(X):
+	if X[0] < 0: return -1
+	elif X[0] > 0: return 1
+	else: return 0
+
 class ExpressionTransformerTest(TestCase):
 
 	def test_transform(self):
 		begin_err_state = numpy.geterr()
-		transformer = ExpressionTransformer("X['a'] + X['b']", map_missing_to = -1, dtype = int)
+		transformer = clone(ExpressionTransformer("X[0]"))
 		self.assertTrue(hasattr(transformer, "expr"))
 		self.assertTrue(hasattr(transformer, "map_missing_to"))
 		self.assertTrue(hasattr(transformer, "default_value"))
 		self.assertTrue(hasattr(transformer, "invalid_value_treatment"))
 		self.assertTrue(hasattr(transformer, "dtype"))
+		transformer = ExpressionTransformer("X['a'] + X['b']", map_missing_to = -1, dtype = int)
 		X = DataFrame([[0, 1], [1, 2]], columns = ["a", "b"])
 		Xt = transformer.fit_transform(X)
 		self.assertIsInstance(Xt, numpy.ndarray)
@@ -246,6 +253,15 @@ class ExpressionTransformerTest(TestCase):
 		self.assertEqual([[-1], [13]], transformer.transform(X).tolist())
 		end_err_state = numpy.geterr()
 		self.assertEqual(begin_err_state, end_err_state)
+
+	def test_signum_transform(self):
+		transformer = clone(ExpressionTransformer(_signum))
+		self.assertTrue("\n" in transformer.expr)
+		X = numpy.array([[1.5], [0.0], [-3.0]])
+		self.assertEqual([[1], [0], [-1]], transformer.fit_transform(X).tolist())
+		_my_signum = inspect.getsource(_signum).replace("_signum", "_my_signum")
+		transformer = clone(ExpressionTransformer(_my_signum))
+		self.assertEqual([[1], [0], [-1]], transformer.fit_transform(X).tolist())
 
 	def test_sequence_transform(self):
 		X = DataFrame([[None], [1], [None]], columns = ["a"])

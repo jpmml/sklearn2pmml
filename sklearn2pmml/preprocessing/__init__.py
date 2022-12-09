@@ -12,8 +12,10 @@ from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.pipeline import Pipeline
 from sklearn2pmml.util import cast, ensure_1d, eval_rows, dt_transform
 
+import inspect
 import numpy
 import pandas
+import types
 import warnings
 
 def _regex_engine(pattern):
@@ -202,7 +204,16 @@ class ExpressionTransformer(BaseEstimator, TransformerMixin):
 	"""
 
 	def __init__(self, expr, map_missing_to = None, default_value = None, invalid_value_treatment = None, dtype = None):
-		self.expr = expr
+		if isinstance(expr, str):
+			self.expr = expr
+		elif isinstance(expr, types.FunctionType):
+			if expr.__code__.co_argcount != 1:
+				raise ValueError()
+			if expr.__code__.co_varnames[0] != "X":
+				raise ValueError()
+			self.expr = inspect.getsource(expr)
+		else:
+			raise ValueError()
 		self.map_missing_to = map_missing_to
 		self.default_value = default_value
 		invalid_value_treatments = ["return_invalid", "as_missing"]
@@ -211,12 +222,17 @@ class ExpressionTransformer(BaseEstimator, TransformerMixin):
 		self.invalid_value_treatment = invalid_value_treatment
 		self.dtype = dtype
 
-	def _eval_row(self, X):
+	def _eval_row(self, expr, X):
 		# X is array-like (row vector)
 		if (self.map_missing_to is not None) and ((pandas.isnull(X)).any()):
 			return self.map_missing_to
 		try:
-			Xt = eval(self.expr)
+			if isinstance(expr, str):
+				Xt = eval(expr)
+			elif isinstance(expr, types.FunctionType):
+				Xt = expr(X)
+			else:
+				raise ValueError()
 		except ArithmeticError as ae:
 			if self.invalid_value_treatment == "return_invalid":
 				raise ae
@@ -233,7 +249,20 @@ class ExpressionTransformer(BaseEstimator, TransformerMixin):
 		return self
 
 	def transform(self, X):
-		func = lambda x: self._eval_row(x)
+		if "\n" not in self.expr:
+			expr = self.expr
+		else:
+			expr_code = compile(self.expr, "<string>", "exec")
+
+			name = expr_code.co_names[0]
+
+			try:
+				expr = locals()[name]
+			except KeyError:
+				eval(expr_code)
+
+				expr = locals()[name]
+		func = lambda x: self._eval_row(expr, x)
 		# Evaluate in PMML compatibility mode
 		with numpy.errstate(divide = "raise"):
 			Xt = eval_rows(X, func)
