@@ -71,7 +71,7 @@ class BSplineTransformer(BaseEstimator, TransformerMixin):
 
 	def __init__(self, bspline):
 		if not isinstance(bspline, BSpline):
-			raise ValueError("The spline object is not an instance of {0}".format(BSpline.__name__))
+			raise TypeError("The spline object is not an instance of {0}".format(BSpline.__name__))
 		self.bspline = bspline
 
 	def fit(self, X, y = None):
@@ -332,7 +332,7 @@ class LookupTransformer(BaseEstimator, TransformerMixin):
 
 	def __init__(self, mapping, default_value):
 		if type(mapping) is not dict:
-			raise ValueError("Input value to output value mapping is not a dict")
+			raise TypeError("Input value to output value mapping is not a dict")
 		k_type = None
 		v_type = None
 		for k, v in mapping.items():
@@ -342,19 +342,19 @@ class LookupTransformer(BaseEstimator, TransformerMixin):
 				k_type = type(k)
 			else:
 				if type(k) != k_type:
-					raise ValueError("Key is not a {0}".format(k_type.__name__))
+					raise TypeError("Key is not a {0}".format(k_type.__name__))
 			if v is None:
 				continue
 			if v_type is None:
 				v_type = type(v)
 			else:
 				if type(v) != v_type:
-					raise ValueError("Value is not a {0}".format(v_type.__name__))
+					raise TypeError("Value is not a {0}".format(v_type.__name__))
 		self.mapping = mapping
 		if default_value is not None:
 			if v_type is not None:
 				if type(default_value) != v_type:
-					raise ValueError("Default value is not a {0}".format(v_type.__name__))
+					raise TypeError("Default value is not a {0}".format(v_type.__name__))
 		self.default_value = default_value
 
 	def _transform_dict(self):
@@ -389,7 +389,7 @@ class FilterLookupTransformer(LookupTransformer):
 			if v is None:
 				raise ValueError("Value is None")
 			if type(k) != type(v):
-				raise ValueError("Key and Value type mismatch")
+				raise TypeError("Key and Value type mismatch")
 
 	def _transform_dict(self):
 		return self.mapping
@@ -415,12 +415,12 @@ class MultiLookupTransformer(LookupTransformer):
 		k_type = None
 		for k, v in mapping.items():
 			if not isinstance(k, tuple):
-				raise ValueError("Key is not a tuple")
+				raise TypeError("Key is not a tuple")
 			if k_type is None:
 				k_type = _deeptype(k)
 			else:
 				if _deeptype(k) != k_type:
-					raise ValueError("Key is not a tuple of {0}", ", ".join(e.__name__ for e in k_type))
+					raise TypeError("Key is not a tuple of {0}", ", ".join(e.__name__ for e in k_type))
 
 	def fit(self, X, y = None):
 		return self
@@ -480,7 +480,7 @@ class PowerFunctionTransformer(BaseEstimator, TransformerMixin):
 
 	def __init__(self, power):
 		if not isinstance(power, int):
-			raise ValueError("Power {0} is not an integer".format(power))
+			raise TypeError("Power {0} is not an integer".format(power))
 		self.power = power
 
 	def fit(self, X, y = None):

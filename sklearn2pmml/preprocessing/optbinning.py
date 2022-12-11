@@ -6,7 +6,7 @@ class OptimalBinningWrapper(BaseEstimator, TransformerMixin):
 
 	def __init__(self, optimal_binning, prefit = False):
 		if not isinstance(optimal_binning, OptimalBinning):
-			raise TypeError()
+			raise TypeError("The optimal binning object is not an instance of {0}".format(OptimalBinning.__name__))
 		self.optimal_binning = optimal_binning
 		self.prefit = prefit
 		if self.prefit:

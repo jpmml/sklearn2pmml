@@ -23,12 +23,12 @@ def _checkGBDTRegressor(gbdt):
 				return gbdt
 		except ImportError:
 			pass
-	raise ValueError("GBDT class {0} is not supported".format(_class_name(gbdt)))
+	raise TypeError("GBDT object (class {0}) is not supported".format(_class_name(gbdt)))
 
 def _checkLM(lm):
 	if isinstance(lm, (LinearModel, LinearRegression, SparseCoefMixin)):
 		return lm
-	raise ValueError("LM class {0} is not supported".format(_class_name(lm)))
+	raise TypeError("LM object (class {0}) is not supported".format(_class_name(lm)))
 
 def _checkGBDTClassifier(gbdt):
 	if hasattr(gbdt, "apply"):
@@ -40,12 +40,12 @@ def _checkGBDTClassifier(gbdt):
 				return gbdt
 		except ImportError:
 			pass
-	raise ValueError("GBDT class {0} is not supported".format(_class_name(gbdt)))
+	raise TypeError("GBDT object (class {0}) is not supported".format(_class_name(gbdt)))
 
 def _checkLR(lr):
 	if isinstance(lr, LinearClassifierMixin):
 		return lr
-	raise ValueError("LR class {0} is not supported".format(_class_name(lr)))
+	raise TypeError("LR object (class {0}) is not supported".format(_class_name(lr)))
 
 def _step_params(name, params):
 	prefix = name + "__"
@@ -129,9 +129,9 @@ class _BaseEnsemble(_BaseComposition):
 	def __init__(self, steps):
 		for step in steps:
 			if type(step) is not tuple:
-				raise ValueError("Step is not a tuple")
+				raise TypeError("Step is not a tuple")
 			if len(step) != 3:
-				raise ValueError("Step is not a three-element (name, estimator, predicate) tuple")
+				raise TypeError("Step is not a three-element (name, estimator, predicate) tuple")
 		self.steps = steps
 
 	@property

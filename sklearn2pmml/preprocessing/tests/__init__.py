@@ -301,14 +301,14 @@ class LookupTransformerTest(TestCase):
 			45.0 : math.cos(45.0),
 			90.0 : math.cos(90.0)
 		}
-		with self.assertRaises(ValueError):
+		with self.assertRaises(TypeError):
 			LookupTransformer(mapping, None)
 		mapping[0.0] = mapping.pop(int(0.0))
 		try:
 			LookupTransformer(mapping, None)
-		except ValueError:
+		except TypeError:
 			assert False
-		with self.assertRaises(ValueError):
+		with self.assertRaises(TypeError):
 			LookupTransformer(mapping, int(0))
 		transformer = LookupTransformer(mapping, float("NaN"))
 		X = numpy.array([[0.0], [90.0]])
@@ -342,7 +342,7 @@ class FilterLookupTransformerTest(TestCase):
 			1 : "1",
 			2 : 1,
 		}
-		with self.assertRaises(ValueError):
+		with self.assertRaises(TypeError):
 			FilterLookupTransformer(mapping)
 		mapping.pop(1)
 		transformer = FilterLookupTransformer(mapping)
@@ -380,10 +380,10 @@ class MultiLookupTransformerTest(TestCase):
 			("two", True) : "zwei",
 			("three", True) : "drei"
 		}
-		with self.assertRaises(ValueError):
+		with self.assertRaises(TypeError):
 			MultiLookupTransformer(mapping, None)
 		mapping[("zero", int(0))] = mapping.pop(tuple(["zero"]))
-		with self.assertRaises(ValueError):
+		with self.assertRaises(TypeError):
 			MultiLookupTransformer(mapping, None)
 		mapping.pop(("zero", int(0)))
 		transformer = MultiLookupTransformer(mapping, None)
