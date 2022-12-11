@@ -78,6 +78,10 @@ def to_pydatetime(X, dtype):
 		raise ValueError(dtype)
 	return Xt.to_pydatetime()
 
+def fqn(obj):
+	clazz = obj.__class__
+	return ".".join([clazz.__module__, clazz.__name__])
+
 def is_instance_attr(obj, name):
 	if not hasattr(obj, name):
 		return False
@@ -128,8 +132,7 @@ def deep_sizeof(obj, with_overhead = False, verbose = False):
 		return sum
 	# Reference type values
 	else:
-		clazz = obj.__class__
-		qualname = ".".join([clazz.__module__, clazz.__name__])
+		qualname = fqn(obj)
 		# Restrict the circle of competence to Scikit-Learn classes
 		if not (qualname.startswith("_abc.") or qualname.startswith("sklearn.")):
 			raise TypeError("The object (class {0}) is not supported ".format(qualname))

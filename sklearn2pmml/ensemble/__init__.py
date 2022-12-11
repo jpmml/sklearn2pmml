@@ -6,12 +6,9 @@ except ImportError:
 	from sklearn.linear_model.base import LinearClassifierMixin, LinearModel, LinearRegression, SparseCoefMixin
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.utils.metaestimators import _BaseComposition
-from sklearn2pmml.util import eval_rows
+from sklearn2pmml.util import eval_rows, fqn
 
 import numpy
-
-def _class_name(x):
-	return str(x.__class__)
 
 def _checkGBDTRegressor(gbdt):
 	if hasattr(gbdt, "apply"):
@@ -23,12 +20,12 @@ def _checkGBDTRegressor(gbdt):
 				return gbdt
 		except ImportError:
 			pass
-	raise TypeError("GBDT object (class {0}) is not supported".format(_class_name(gbdt)))
+	raise TypeError("GBDT object (class {0}) is not supported".format(fqn(gbdt)))
 
 def _checkLM(lm):
 	if isinstance(lm, (LinearModel, LinearRegression, SparseCoefMixin)):
 		return lm
-	raise TypeError("LM object (class {0}) is not supported".format(_class_name(lm)))
+	raise TypeError("LM object (class {0}) is not supported".format(fqn(lm)))
 
 def _checkGBDTClassifier(gbdt):
 	if hasattr(gbdt, "apply"):
@@ -40,12 +37,12 @@ def _checkGBDTClassifier(gbdt):
 				return gbdt
 		except ImportError:
 			pass
-	raise TypeError("GBDT object (class {0}) is not supported".format(_class_name(gbdt)))
+	raise TypeError("GBDT object (class {0}) is not supported".format(fqn(gbdt)))
 
 def _checkLR(lr):
 	if isinstance(lr, LinearClassifierMixin):
 		return lr
-	raise TypeError("LR object (class {0}) is not supported".format(_class_name(lr)))
+	raise TypeError("LR object (class {0}) is not supported".format(fqn(lr)))
 
 def _step_params(name, params):
 	prefix = name + "__"
