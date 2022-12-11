@@ -168,9 +168,9 @@ class Link(BaseEstimator):
 		if prefit:
 			self.estimator_ = clone(self.estimator)
 
-	def fit(self, X, y):
+	def fit(self, X, y, **fit_params):
 		self.estimator_ = clone(self.estimator)
-		self.estimator_.fit(X, y)
+		self.estimator_.fit(X, y, **fit_params)
 		return self
 
 	def predict(self, X):

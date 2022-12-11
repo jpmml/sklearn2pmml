@@ -13,10 +13,10 @@ class OptimalBinningWrapper(BaseEstimator, TransformerMixin):
 		if self.prefit:
 			self.optimal_binning_ = clone(self.optimal_binning)
 
-	def fit(self, X, y = None):
+	def fit(self, X, y = None, **fit_params):
 		X = ensure_1d(X)
 		self.optimal_binning_ = clone(self.optimal_binning)
-		return self.optimal_binning_.fit(X, y)
+		return self.optimal_binning_.fit(X, y, **fit_params)
 
 	def transform(self, X):
 		X = ensure_1d(X)
