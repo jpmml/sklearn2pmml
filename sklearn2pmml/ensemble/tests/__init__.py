@@ -75,7 +75,10 @@ class EstimatorChainTest(TestCase):
 			("regressor", regressor, str(True))
 		])
 		estimator.fit(X, y)
-		self.assertEqual(4, classifier.estimator_.n_features_)
+		if hasattr(classifier.estimator_, "n_features_"):
+			self.assertEqual(4, classifier.estimator_.n_features_)
+		else:
+			self.assertEqual(4, classifier.estimator_.n_features_in_)
 		self.assertEqual((4 + (1 + 3), ), regressor.steps[0][1].coef_.shape)
 		self.assertEqual((4 + (1 + 3), ), regressor.steps[1][1].coef_.shape)
 		preds = estimator.predict(X)
