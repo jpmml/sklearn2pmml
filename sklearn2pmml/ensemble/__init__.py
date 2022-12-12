@@ -44,7 +44,7 @@ def _checkLR(lr):
 		return lr
 	raise TypeError("LR object (class {0}) is not supported".format(fqn(lr)))
 
-def _step_params(name, params):
+def _extract_step_params(name, params):
 	prefix = name + "__"
 	step_params = dict()
 	for k, v in (params.copy()).items():
@@ -52,6 +52,16 @@ def _step_params(name, params):
 			step_params[k[len(prefix):len(k)]] = v
 			del params[k]
 	return step_params
+
+def _mask_params(params, mask):
+	masked_params = dict()
+	for k, v in params.items():
+		if isinstance(v, numpy.ndarray):
+			if v.shape[0] != mask.shape[0]:
+				raise ValueError()
+			v = v[mask]
+		masked_params[k] = v
+	return masked_params
 
 class GBDTEstimator(BaseEstimator):
 
@@ -83,13 +93,13 @@ class GBDTLMRegressor(GBDTEstimator, RegressorMixin):
 
 	def fit(self, X, y, **fit_params):
 		self.gbdt_ = clone(self.gbdt)
-		self.gbdt_.fit(X, y, **_step_params("gbdt", fit_params))
+		self.gbdt_.fit(X, y, **_extract_step_params("gbdt", fit_params))
 		id = self._leaf_indices(X)
 		self.ohe_ = OneHotEncoder(categories = "auto")
 		self.ohe_.fit(id)
 		idt = self.ohe_.transform(id)
 		self.lm_ = clone(self.lm)
-		self.lm_.fit(idt, y, **_step_params("lm", fit_params))
+		self.lm_.fit(idt, y, **_extract_step_params("lm", fit_params))
 		return self
 
 	def predict(self, X):
@@ -104,13 +114,13 @@ class GBDTLRClassifier(GBDTEstimator, ClassifierMixin):
 
 	def fit(self, X, y, **fit_params):
 		self.gbdt_ = clone(self.gbdt)
-		self.gbdt_.fit(X, y, **_step_params("gbdt", fit_params))
+		self.gbdt_.fit(X, y, **_extract_step_params("gbdt", fit_params))
 		id = self._leaf_indices(X)
 		self.ohe_ = OneHotEncoder(categories = "auto")
 		self.ohe_.fit(id)
 		idt = self.ohe_.transform(id)
 		self.lr_ = clone(self.lr)
-		self.lr_.fit(idt, y, **_step_params("lr", fit_params))
+		self.lr_.fit(idt, y, **_extract_step_params("lr", fit_params))
 		return self
 
 	def predict(self, X):
@@ -212,7 +222,8 @@ class EstimatorChain(_BaseEnsemble):
 				step_y = y[step_mask, i]
 			else:
 				raise ValueError()
-			estimator.fit(X[step_mask], step_y, **_step_params(name, fit_params))
+			step_fit_params = _extract_step_params(name, fit_params)
+			estimator.fit(X[step_mask], step_y, **_mask_params(step_fit_params, step_mask))
 			if isinstance(estimator, Link):
 				X = estimator.augment(X)
 			i += 1
@@ -251,7 +262,8 @@ class SelectFirstEstimator(_BaseEnsemble):
 			step_mask[mask] = False
 			if numpy.sum(step_mask) < 1:
 				raise ValueError(predicate)
-			estimator.fit(X[step_mask], y[step_mask], **_step_params(name, fit_params))
+			step_fit_params = _extract_step_params(name, fit_params)
+			estimator.fit(X[step_mask], y[step_mask], **_mask_params(step_fit_params, step_mask))
 			mask = numpy.logical_or(mask, step_mask)
 		return self
 

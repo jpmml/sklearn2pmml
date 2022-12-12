@@ -5,9 +5,10 @@ from sklearn.dummy import DummyClassifier
 from sklearn.linear_model import ElasticNet, LinearRegression, LogisticRegression, SGDClassifier, SGDRegressor
 from sklearn.svm import LinearSVC
 from sklearn.tree import DecisionTreeClassifier
-from sklearn2pmml.ensemble import _checkLM, _checkLR, _step_params, EstimatorChain, Link, SelectFirstClassifier, SelectFirstRegressor
-
+from sklearn2pmml.ensemble import _checkLM, _checkLR, _extract_step_params, _mask_params, EstimatorChain, Link, SelectFirstClassifier, SelectFirstRegressor
 from unittest import TestCase
+
+import numpy
 
 class GBDTLRTest(TestCase):
 
@@ -20,20 +21,6 @@ class GBDTLRTest(TestCase):
 		_checkLR(LinearSVC())
 		_checkLR(LogisticRegression())
 		_checkLR(SGDClassifier())
-
-	def test_step_params(self):
-		params = {
-			"gbdt__first" : 1,
-			"lr__first" : 1.0,
-			"gbdt__second" : 2,
-			"any__any" : None
-		}
-		gbdt_params = _step_params("gbdt", params)
-		self.assertEqual({"first" : 1, "second" : 2}, gbdt_params)
-		self.assertEqual({"lr__first" : 1.0, "any__any" : None}, params)
-		lr_params = _step_params("lr", params)
-		self.assertEqual({"first" : 1.0}, lr_params)
-		self.assertEqual({"any__any" : None}, params)
 
 class EstimatorChainTest(TestCase):
 
@@ -109,3 +96,41 @@ class SelectFirstClassifierTest(TestCase):
 
 class SelectFirstRegressorTest(TestCase):
 	pass
+
+class FunctionTest(TestCase):
+
+	def test_extract_step_params(self):
+		params = {
+			"gbdt__first" : 1,
+			"lr__first" : 1.0,
+			"gbdt__second" : 2,
+			"any__any" : None
+		}
+		gbdt_params = _extract_step_params("gbdt", params)
+		self.assertEqual({"first" : 1, "second" : 2}, gbdt_params)
+		self.assertEqual({"lr__first" : 1.0, "any__any" : None}, params)
+		lr_params = _extract_step_params("lr", params)
+		self.assertEqual({"first" : 1.0}, lr_params)
+		self.assertEqual({"any__any" : None}, params)
+
+	def test_mask_params(self):
+		params = {
+			"first" : numpy.asarray([[0], [1], [1], [2], [0]]),
+			"second" : numpy.asarray([[False, "A"], [False, "B"], [True, "C"], [False, "D"], [True, "E"]], dtype = object),
+			"any" : "any"
+		}
+		mask = numpy.full((5, ), True)
+		masked_params = _mask_params(params, mask)
+		self.assertTrue(params["first"].tolist(), masked_params["first"].tolist())
+		self.assertTrue(params["second"].tolist(), masked_params["second"].tolist())
+		self.assertTrue(params["any"], masked_params["any"])
+		mask = numpy.asarray([False, True, False, False, True], dtype = bool)
+		masked_params = _mask_params(params, mask)
+		self.assertEqual([[1], [0]], masked_params["first"].tolist())
+		self.assertEqual([[False, "B"], [True, "E"]], masked_params["second"].tolist())
+		self.assertEqual(params["any"], masked_params["any"])
+		mask = numpy.full((5, ), False)
+		masked_params = _mask_params(params, mask)
+		self.assertEqual([], masked_params["first"].tolist())
+		self.assertEqual([], masked_params["second"].tolist())
+		self.assertEqual(params["any"], masked_params["any"])
