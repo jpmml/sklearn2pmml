@@ -1,5 +1,6 @@
 from optbinning import OptimalBinning
 from sklearn.base import clone, BaseEstimator, TransformerMixin
+from sklearn2pmml.preprocessing import _col2d
 from sklearn2pmml.util import ensure_1d
 
 class OptimalBinningWrapper(BaseEstimator, TransformerMixin):
@@ -20,4 +21,5 @@ class OptimalBinningWrapper(BaseEstimator, TransformerMixin):
 
 	def transform(self, X):
 		X = ensure_1d(X)
-		return self.optimal_binning_.transform(X, metric = self.metric)
+		Xt = self.optimal_binning_.transform(X, metric = self.metric)
+		return _col2d(Xt)
