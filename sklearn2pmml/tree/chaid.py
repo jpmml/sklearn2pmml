@@ -49,8 +49,8 @@ class CHAIDClassifier(CHAIDEstimator, ClassifierMixin):
 		classes, y_encoded = numpy.unique(y, return_inverse = True)
 		self.classes_ = classes
 		y_encoded = Series(y_encoded, name = y.name)
-		y = y_encoded
-		super(CHAIDClassifier, self).fit(X, y, **fit_params)
+		super(CHAIDClassifier, self).fit(X, y_encoded, **fit_params)
+		return self
 
 	def predict(self, X):
 		raise NotImplementedError()
