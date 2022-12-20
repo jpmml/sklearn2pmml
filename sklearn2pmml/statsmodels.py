@@ -7,9 +7,9 @@ class StatsModelsEstimator(BaseEstimator):
 
 	def __init__(self, model_class, **init_params):
 		if not isinstance(model_class, type):
-			raise TypeError()
+			raise TypeError("The model class object is not a Python class")
 		if not issubclass(model_class, Model):
-			raise TypeError()
+			raise TypeError("The model class is not a subclass of {}".format(Model.__name__))
 		self.model_class = model_class
 		self.init_params = init_params
 
