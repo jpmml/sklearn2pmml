@@ -19,7 +19,7 @@ class StatsModelsEstimator(BaseEstimator):
 		if self.fit_intercept:
 			X = add_constant(X, has_constant = "add")
 		self.model_ = self.model_class(endog = y, exog = X, **self.init_params)
-		self.result_ = self.model_.fit(**fit_params)
+		self.results_ = self.model_.fit(**fit_params)
 		return self
 
 class StatsModelsClassifier(StatsModelsEstimator, ClassifierMixin):
@@ -41,7 +41,7 @@ class StatsModelsClassifier(StatsModelsEstimator, ClassifierMixin):
 	def predict_proba(self, X, **predict_proba_params):
 		if self.fit_intercept:
 			X = add_constant(X, has_constant = "add")
-		proba = self.result_.predict(X, **predict_proba_params)
+		proba = self.results_.predict(X, **predict_proba_params)
 		if proba.ndim == 1:
 			proba = numpy.vstack((1 - proba, proba)).T
 		return proba
@@ -54,4 +54,4 @@ class StatsModelsRegressor(StatsModelsEstimator, RegressorMixin):
 	def predict(self, X, **predict_params):
 		if self.fit_intercept:
 			X = add_constant(X, has_constant = "add")
-		return self.result_.predict(exog = X, **predict_params)
+		return self.results_.predict(exog = X, **predict_params)

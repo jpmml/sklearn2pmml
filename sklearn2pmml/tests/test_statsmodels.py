@@ -15,7 +15,7 @@ class StatsModelsClassifierTest(TestCase):
 		self.assertTrue(hasattr(classifier, "fit_intercept"))
 		classifier.fit(iris_X, iris_y)
 		self.assertTrue(hasattr(classifier, "model_"))
-		self.assertTrue(hasattr(classifier, "result_"))
+		self.assertTrue(hasattr(classifier, "results_"))
 		self.assertIsInstance(classifier.model_, Logit)
 		self.assertEqual([False, True], classifier.classes_.tolist())
 		species = classifier.predict(iris_X)
@@ -33,7 +33,7 @@ class StatsModelsClassifierTest(TestCase):
 		# See https://stackoverflow.com/a/31511894
 		classifier.fit(iris_X, iris_y, method = "bfgs")
 		self.assertTrue(hasattr(classifier, "model_"))
-		self.assertTrue(hasattr(classifier, "result_"))
+		self.assertTrue(hasattr(classifier, "results_"))
 		self.assertIsInstance(classifier.model_, MNLogit)
 		self.assertEqual([0, 1, 2], classifier.classes_.tolist())
 		species = classifier.predict(iris_X)
