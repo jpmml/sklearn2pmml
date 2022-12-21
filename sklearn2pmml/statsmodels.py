@@ -25,7 +25,7 @@ class StatsModelsEstimator(BaseEstimator):
 class StatsModelsClassifier(StatsModelsEstimator, ClassifierMixin):
 
 	def __init__(self, model_class, fit_intercept = True, **init_params):
-		super(StatsModelsClassifier, self).__init__(model_class, fit_intercept = fit_intercept, **init_params)
+		super(StatsModelsClassifier, self).__init__(model_class = model_class, fit_intercept = fit_intercept, **init_params)
 
 	def fit(self, X, y, **fit_params):
 		classes, y_encoded = numpy.unique(y, return_inverse = True)
@@ -49,7 +49,7 @@ class StatsModelsClassifier(StatsModelsEstimator, ClassifierMixin):
 class StatsModelsRegressor(StatsModelsEstimator, RegressorMixin):
 
 	def __init__(self, model_class, fit_intercept = True, **init_params):
-		super(StatsModelsRegressor, self).__init__(model_class, fit_intercept = fit_intercept, **init_params)
+		super(StatsModelsRegressor, self).__init__(model_class = model_class, fit_intercept = fit_intercept, **init_params)
 
 	def predict(self, X, **predict_params):
 		if self.fit_intercept:

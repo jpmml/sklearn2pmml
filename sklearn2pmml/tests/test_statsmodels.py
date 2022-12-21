@@ -12,6 +12,7 @@ class StatsModelsClassifierTest(TestCase):
 		iris_y = (iris_y == 1)
 		classifier = StatsModelsClassifier(Logit)
 		self.assertTrue(hasattr(classifier, "model_class"))
+		self.assertTrue(hasattr(classifier, "fit_intercept"))
 		classifier.fit(iris_X, iris_y)
 		self.assertTrue(hasattr(classifier, "model_"))
 		self.assertTrue(hasattr(classifier, "result_"))
@@ -28,6 +29,7 @@ class StatsModelsClassifierTest(TestCase):
 		iris_X, iris_y = load_iris(return_X_y = True)
 		classifier = StatsModelsClassifier(MNLogit)
 		self.assertTrue(hasattr(classifier, "model_class"))
+		self.assertTrue(hasattr(classifier, "fit_intercept"))
 		# See https://stackoverflow.com/a/31511894
 		classifier.fit(iris_X, iris_y, method = "bfgs")
 		self.assertTrue(hasattr(classifier, "model_"))
