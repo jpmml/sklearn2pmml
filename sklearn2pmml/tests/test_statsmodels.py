@@ -26,6 +26,19 @@ class StatsModelsClassifierTest(TestCase):
 		self.assertEqual((150, 2), species_proba.shape)
 		self.assertEqual(150, numpy.sum(species_proba))
 
+	def test_binary_classification_shape(self):
+		iris_X, iris_y = load_iris(return_X_y = True)
+		iris_y = (iris_y == 1)
+		classifier = StatsModelsClassifier(Logit, fit_intercept = False)
+		classifier.fit(iris_X, iris_y)
+		self.assertEqual((1, 4), classifier.coef_.shape)
+		self.assertEqual((1,), classifier.intercept_.shape)
+		self.assertEqual([0], classifier.intercept_.tolist())
+		classifier = StatsModelsClassifier(Logit, fit_intercept = True)
+		classifier.fit(iris_X, iris_y)
+		self.assertEqual((1, 4), classifier.coef_.shape)
+		self.assertEqual((1,), classifier.intercept_.shape)
+
 	def test_multiclass_classification(self):
 		iris_X, iris_y = load_iris(return_X_y = True)
 		classifier = StatsModelsClassifier(MNLogit)
@@ -44,6 +57,18 @@ class StatsModelsClassifierTest(TestCase):
 		species_proba = classifier.predict_proba(iris_X)
 		self.assertEqual((150, 3), species_proba.shape)
 		self.assertEqual(150, numpy.sum(species_proba))
+
+	def test_multiclass_classification_shape(self):
+		iris_X, iris_y = load_iris(return_X_y = True)
+		classifier = StatsModelsClassifier(MNLogit, fit_intercept = False)
+		classifier.fit(iris_X, iris_y)
+		self.assertEqual((2, 4), classifier.coef_.shape)
+		self.assertEqual((2,), classifier.intercept_.shape)
+		self.assertEqual([0, 0], classifier.intercept_.tolist())
+		classifier = StatsModelsClassifier(MNLogit, fit_intercept = True)
+		classifier.fit(iris_X, iris_y)
+		self.assertEqual((2, 4), classifier.coef_.shape)
+		self.assertEqual((2,), classifier.intercept_.shape)
 
 class StatsModelsRegressorTest(TestCase):
 
