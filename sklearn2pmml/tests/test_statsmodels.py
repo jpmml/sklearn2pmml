@@ -1,6 +1,6 @@
-from sklearn.datasets import load_iris
+from sklearn.datasets import load_diabetes, load_iris
 from sklearn2pmml.statsmodels import StatsModelsClassifier, StatsModelsRegressor
-from statsmodels.api import Logit, MNLogit
+from statsmodels.api import Logit, MNLogit, OLS
 from unittest import TestCase
 
 import numpy
@@ -73,4 +73,22 @@ class StatsModelsClassifierTest(TestCase):
 class StatsModelsRegressorTest(TestCase):
 
 	def test_regression(self):
-		pass
+		diabetes_X, diabetes_y = load_diabetes(return_X_y = True)
+		regressor = StatsModelsRegressor(OLS)
+		self.assertTrue(hasattr(regressor, "model_class"))
+		self.assertTrue(hasattr(regressor, "fit_intercept"))
+		regressor.fit(diabetes_X, diabetes_y)
+		self.assertTrue(hasattr(regressor, "model_"))
+		self.assertTrue(hasattr(regressor, "results_"))
+		self.assertIsInstance(regressor.model_, OLS)
+
+	def test_regression_shape(self):
+		diabetes_X, diabetes_y = load_diabetes(return_X_y = True)
+		regressor = StatsModelsRegressor(OLS, fit_intercept = False)
+		regressor.fit(diabetes_X, diabetes_y)
+		self.assertEqual((10,), regressor.coef_.shape)
+		self.assertEqual(0, regressor.intercept_)
+		regressor = StatsModelsRegressor(OLS, fit_intercept = True)
+		regressor.fit(diabetes_X, diabetes_y)
+		self.assertEqual((10,), regressor.coef_.shape)
+		self.assertNotEqual(0, regressor.intercept_)

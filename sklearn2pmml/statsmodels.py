@@ -48,7 +48,7 @@ class StatsModelsClassifier(StatsModelsEstimator, ClassifierMixin):
 		reg_table = self.regression_table_()
 		if self.fit_intercept:
 			return reg_table[:, 0]
-		return numpy.zeros((reg_table.shape[0],))
+		return numpy.zeros((reg_table.shape[0],), dtype = float)
 
 	def fit(self, X, y, **fit_params):
 		classes, y_encoded = numpy.unique(y, return_inverse = True)
@@ -73,6 +73,23 @@ class StatsModelsRegressor(StatsModelsEstimator, RegressorMixin):
 
 	def __init__(self, model_class, fit_intercept = True, **init_params):
 		super(StatsModelsRegressor, self).__init__(model_class = model_class, fit_intercept = fit_intercept, **init_params)
+
+	def regression_table_(self):
+		return self.results_.params.T
+
+	@property
+	def coef_(self):
+		reg_table = self.regression_table_()
+		if self.fit_intercept:
+			reg_table = reg_table[1:]
+		return reg_table
+
+	@property
+	def intercept_(self):
+		reg_table = self.regression_table_()
+		if self.fit_intercept:
+			return reg_table[0]
+		return 0.0
 
 	def predict(self, X, **predict_params):
 		if self.fit_intercept:
