@@ -22,6 +22,9 @@ class StatsModelsEstimator(BaseEstimator):
 		self.results_ = self.model_.fit(**fit_params)
 		return self
 
+	def remove_data(self):
+		self.results_.remove_data()
+
 class StatsModelsClassifier(StatsModelsEstimator, ClassifierMixin):
 
 	def __init__(self, model_class, fit_intercept = True, **init_params):
