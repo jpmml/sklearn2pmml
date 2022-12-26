@@ -33,7 +33,7 @@
 	</issueManagement>
 
 	<properties>
-		<jpmml-sklearn.version>1.7.19</jpmml-sklearn.version>
+		<jpmml-sklearn.version>1.7.20</jpmml-sklearn.version>
 	</properties>
 
 	<dependencies>
@@ -72,6 +72,17 @@
 				<exclusion>
 					<groupId>org.jpmml</groupId>
 					<artifactId>pmml-converter-testing</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.jpmml</groupId>
+			<artifactId>pmml-sklearn-statsmodels</artifactId>
+			<version>${jpmml-sklearn.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.jpmml</groupId>
+					<artifactId>pmml-python-testing</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
