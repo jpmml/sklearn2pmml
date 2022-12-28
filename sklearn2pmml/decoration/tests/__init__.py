@@ -4,9 +4,10 @@ from sklearn.base import clone
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import LabelBinarizer, OneHotEncoder, StandardScaler
-from sklearn2pmml.decoration import Alias, CategoricalDomain, ContinuousDomain, ContinuousDomainEraser, DateDomain, DateTimeDomain, DiscreteDomainEraser, Domain, MultiDomain
+from sklearn2pmml.decoration import Alias, CategoricalDomain, ContinuousDomain, ContinuousDomainEraser, DateDomain, DateTimeDomain, DiscreteDomainEraser, Domain, MultiAlias, MultiDomain
 from sklearn2pmml.preprocessing import ExpressionTransformer
 from sklearn_pandas import DataFrameMapper
+from sklego.preprocessing import IdentityTransformer
 from unittest import TestCase
 
 import numpy
@@ -26,7 +27,7 @@ class AliasTest(TestCase):
 	def test_get_feature_names_out(self):
 		X = DataFrame([[0, 0], [0, 1], [1, 1]], columns = ["x1", "x2"])
 		alias = Alias(ExpressionTransformer("X[0] == X[1]", dtype = int), name = "flag", prefit = True)
-		self.assertEqual(["flag"], alias.get_feature_names_out(None))
+		self.assertEqual(["flag"], alias.get_feature_names_out(None).tolist())
 		ohe = OneHotEncoder()
 		pipeline = Pipeline([
 			("alias", alias),
@@ -36,6 +37,22 @@ class AliasTest(TestCase):
 		self.assertEqual((3, 2), Xt.shape)
 		if hasattr(pipeline, "get_feature_names_out"):
 			self.assertEqual(["flag_0", "flag_1"], pipeline.get_feature_names_out(None).tolist())
+
+class MultiAliasTest(TestCase):
+
+	def test_get_feature_names_out(self):
+		X = DataFrame([[0, 0], [0, 1], [1, 1]], columns = ["x1", "x2"])
+		multi_alias = MultiAlias(IdentityTransformer(), names = ["left", "right"])
+		self.assertEqual(["left", "right"], multi_alias.get_feature_names_out(None).tolist())
+		ohe = OneHotEncoder()
+		pipeline = Pipeline([
+			("multi_alias", multi_alias),
+			("ohe", ohe)
+		])
+		Xt = pipeline.fit_transform(X)
+		self.assertEqual((3, 4), Xt.shape)
+		if hasattr(pipeline, "get_feature_names_out"):
+			self.assertEqual(["left_0", "left_1", "right_0", "right_1"], pipeline.get_feature_names_out(None).tolist())
 
 def _value_count(stats):
 	return dict(zip(stats[0].tolist(), stats[1].tolist()))

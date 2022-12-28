@@ -6,20 +6,13 @@ from sklearn2pmml.util import cast, common_dtype, ensure_1d, eval_rows
 import numpy
 import pandas
 
-class Alias(BaseEstimator, TransformerMixin):
+class TransformerWrapper(BaseEstimator, TransformerMixin):
 
-	def __init__(self, transformer, name, prefit = False):
+	def __init__(self, transformer, prefit = False):
 		self.transformer = transformer
-		self.name = name
 		self.prefit = prefit
 		if prefit:
 			self.transformer_ = clone(self.transformer)
-
-	def get_feature_names(self, input_features = None):
-		return self.get_feature_names_out(input_features)
-
-	def get_feature_names_out(self, input_features = None):
-		return numpy.asarray([self.name])
 
 	def fit(self, X, y = None):
 		self.transformer_ = clone(self.transformer)
@@ -31,6 +24,35 @@ class Alias(BaseEstimator, TransformerMixin):
 
 	def transform(self, X):
 		return self.transformer_.transform(X)
+
+class Alias(TransformerWrapper):
+
+	def __init__(self, transformer, name, prefit = False):
+		super(Alias, self).__init__(transformer = transformer, prefit = prefit)
+		if not isinstance(name, str):
+			raise TypeError("Name is not a string")
+		self.name = name
+
+	def get_feature_names(self, input_features = None):
+		return self.get_feature_names_out(input_features)
+
+	def get_feature_names_out(self, input_features = None):
+		return numpy.asarray([self.name])
+
+class MultiAlias(TransformerWrapper):
+
+	def __init__(self, transformer, names, prefit = True):
+		super(MultiAlias, self).__init__(transformer = transformer, prefit = prefit)
+		for name in names:
+			if not isinstance(name, str):
+				raise TypeError("Name is not a string")
+		self.names = names
+
+	def get_feature_names(self, input_features = None):
+		return self.get_feature_names_out(input_features)
+
+	def get_feature_names_out(self, input_features = None):
+		return numpy.asarray(self.names)
 
 def _count(mask):
 	if hasattr(mask, "values"):
