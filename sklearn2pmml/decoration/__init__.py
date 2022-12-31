@@ -244,7 +244,7 @@ class ContinuousDomain(Domain):
 			self.data_max_ = max
 		if self.with_statistics:
 			self.counts_ = _count(mask)
-			X = numpy.ma.asarray(X, dtype = numpy.float).filled(float("NaN"))
+			X = numpy.ma.asarray(X, dtype = numpy.float64).filled(float("NaN"))
 			self.numeric_info_ = {
 				"minimum" : min,
 				"maximum" : max,

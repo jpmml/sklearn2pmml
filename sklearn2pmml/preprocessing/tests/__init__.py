@@ -93,7 +93,7 @@ class CastTransformerTest(TestCase):
 		self.assertEqual([0, 1, 1, 0], transformer.transform(X).tolist())
 		transformer = CastTransformer(dtype = float)
 		self.assertEqual([0.0, 1.0, 1.0, 0.0], transformer.transform(X).tolist())
-		transformer = CastTransformer(dtype = numpy.float)
+		transformer = CastTransformer(dtype = numpy.float64)
 		self.assertEqual([0.0, 1.0, 1.0, 0.0], transformer.transform(X).tolist())
 		transformer = CastTransformer(dtype = bool)
 		self.assertEqual([False, True, True, False], transformer.transform(X).tolist())

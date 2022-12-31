@@ -448,9 +448,9 @@ class PMMLLabelBinarizer(BaseEstimator, TransformerMixin):
 		X = ensure_1d(X)
 		index = list(self.classes_)
 		if self.sparse_output:
-			Xt = lil_matrix((len(X), len(index)), dtype = numpy.int)
+			Xt = lil_matrix((len(X), len(index)), dtype = int)
 		else:
-			Xt = numpy.zeros((len(X), len(index)), dtype = numpy.int)
+			Xt = numpy.zeros((len(X), len(index)), dtype = int)
 		for i, v in enumerate(X):
 			if not pandas.isnull(v):
 				Xt[i, index.index(v)] = 1
