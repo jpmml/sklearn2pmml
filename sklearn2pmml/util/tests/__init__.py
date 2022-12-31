@@ -1,4 +1,5 @@
-from sklearn2pmml.util import sizeof, deep_sizeof
+from pandas import DataFrame
+from sklearn2pmml.util import sizeof, deep_sizeof, Slicer, Reshaper
 from unittest import TestCase
 
 import numpy
@@ -41,3 +42,41 @@ class MeasurementTest(TestCase):
 
 		self.assertEqual(deep_sizeof(("aaa", "bbb", "ccc"), with_overhead = False), deep_sizeof(("a", "b", "c"), with_overhead = False) + 6)
 		self.assertEqual(deep_sizeof(("aaa", "bbb", "ccc"), with_overhead = True), deep_sizeof(("a", "b", "c"), with_overhead = True) + 6)
+
+class ReshaperTest(TestCase):
+
+	def test_transform(self):
+		transformer = Reshaper((1, 6))
+		X = numpy.asarray([[0, "zero"], [1, "one"], [2, "two"]], dtype = object)
+		Xt = transformer.fit_transform(X)
+		self.assertEqual([[0, "zero", 1, "one", 2, "two"]], Xt.tolist())
+		transformer = Reshaper((6, 1))
+		Xt = transformer.fit_transform(X)
+		self.assertEqual([[0], ["zero"], [1], ["one"], [2], ["two"]], Xt.tolist())
+
+class SlicerTest(TestCase):
+
+	def test_transform(self):
+		transformer = Slicer()
+		X = DataFrame([[1.5, False, 0], [1.0, True, 1], [0.5, False, 0]], columns = ["a", "b", "c"])
+		Xt = transformer.fit_transform(X)
+		self.assertEqual((3, 3), Xt.shape)
+		self.assertEqual(["a", "b", "c"], Xt.columns.tolist())
+		transformer = Slicer(start = 1)
+		Xt = transformer.fit_transform(X)
+		self.assertEqual((3, 2), Xt.shape)
+		self.assertEqual(["b", "c"], Xt.columns.tolist())
+		transformer = Slicer(stop = -1)
+		Xt = transformer.fit_transform(X)
+		self.assertEqual((3, 2), Xt.shape)
+		self.assertEqual(["a", "b"], Xt.columns.tolist())
+		transformer = Slicer(start = 1, stop = -1)
+		Xt = transformer.fit_transform(X)
+		self.assertIsInstance(Xt, DataFrame)
+		self.assertEqual((3, 1), Xt.shape)
+		self.assertEqual(["b"], Xt.columns.tolist())
+		X = X.values
+		Xt = transformer.fit_transform(X)
+		self.assertIsInstance(Xt, numpy.ndarray)
+		self.assertEqual((3, 1), Xt.shape)
+		self.assertEqual([[False], [True], [False]], Xt.tolist())

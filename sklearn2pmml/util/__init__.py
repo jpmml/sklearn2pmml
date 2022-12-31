@@ -161,3 +161,23 @@ class Reshaper(BaseEstimator, TransformerMixin):
 
 	def transform(self, X):
 		return X.reshape(self.newshape)
+
+class Slicer(BaseEstimator, TransformerMixin):
+
+	def __init__(self, start = None, stop = None, step = None):
+		self.start = start
+		self.stop = stop
+		if (step is not None) and (step <= 0):
+			raise ValueError("Step must be positive integer")
+		self.step = step
+
+	def fit(self, X, y = None):
+		return self
+
+	def transform(self, X):
+		rows = slice(None, None)
+		columns = slice(self.start, self.stop, self.step)
+		if isinstance(X, DataFrame):
+			return X.iloc[rows, columns]
+		else:
+			return X[rows, columns]
