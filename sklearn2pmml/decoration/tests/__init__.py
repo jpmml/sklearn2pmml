@@ -18,7 +18,7 @@ class AliasTest(TestCase):
 		alias = Alias(StandardScaler(), name = "standard_scaler(X)")
 		self.assertTrue(hasattr(alias, "transformer"))
 		self.assertFalse(hasattr(alias, "transformer_"))
-		alias.fit_transform(numpy.array([[0.0], [1.0], [2.0]]))
+		alias.fit_transform(numpy.array([[0.0], [1.0], [2.0]]), sample_weight = None)
 		self.assertTrue(hasattr(alias, "transformer_"))
 		alias = Alias(StandardScaler(), name = "standard_scaler(X)", prefit = True)
 		self.assertTrue(hasattr(alias, "transformer"))

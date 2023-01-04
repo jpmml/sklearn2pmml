@@ -14,12 +14,12 @@ class TransformerWrapper(BaseEstimator, TransformerMixin):
 		if prefit:
 			self.transformer_ = clone(self.transformer)
 
-	def fit(self, X, y = None):
+	def fit(self, X, y = None, **fit_params):
 		self.transformer_ = clone(self.transformer)
 		if y is None:
-			self.transformer_.fit(X)
+			self.transformer_.fit(X, **fit_params)
 		else:
-			self.transformer_.fit(X, y)
+			self.transformer_.fit(X, y, **fit_params)
 		return self
 
 	def transform(self, X):
