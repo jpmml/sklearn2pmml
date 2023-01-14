@@ -98,6 +98,7 @@ sklearn2pmml(pipeline, "LogisticRegressionIris.pmml", with_repr = True)
 
 Up-to-date:
 
+* [Converting Scikit-Learn based PyCaret 3 pipelines to PMML documents](https://openscoring.io/blog/2023/01/12/converting_sklearn_pycaret3_pipeline_pmml/)
 * [Training Scikit-Learn based H2O.ai pipelines](https://openscoring.io/blog/2022/11/11/sklearn_h2o_pipeline/)
 * [Measuring the memory consumption of Scikit-Learn models](https://openscoring.io/blog/2022/11/09/measuring_memory_sklearn/)
 * [Extending Scikit-Learn with CHAID model type](https://openscoring.io/blog/2022/07/14/sklearn_chaid_pmml/)
@@ -115,7 +116,7 @@ Up-to-date:
 * [Stacking Scikit-Learn, LightGBM and XGBoost models](https://openscoring.io/blog/2020/01/02/stacking_sklearn_lightgbm_xgboost/)
 * [Converting Scikit-Learn hyperparameter-tuned pipelines to PMML documents](https://openscoring.io/blog/2019/12/25/converting_sklearn_gridsearchcv_pipeline_pmml/)
 * [Extending Scikit-Learn with GBDT plus LR ensemble (GBDT+LR) model type](https://openscoring.io/blog/2019/06/19/sklearn_gbdt_lr_ensemble/)
-* [Converting Scikit-Learn based TPOT automated machine learning (AutoML) pipelines to PMML documents](https://openscoring.io/blog/2019/06/10/converting_sklearn_tpot_pipeline_pmml/)
+* [Converting Scikit-Learn based TPOT pipelines to PMML documents](https://openscoring.io/blog/2019/06/10/converting_sklearn_tpot_pipeline_pmml/)
 * [Converting Scikit-Learn based LightGBM pipelines to PMML documents](https://openscoring.io/blog/2019/04/07/converting_sklearn_lightgbm_pipeline_pmml/)
 * [Extending Scikit-Learn with business rules (BR) model type](https://openscoring.io/blog/2018/09/17/sklearn_business_rules/)
 
