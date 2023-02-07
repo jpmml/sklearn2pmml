@@ -96,32 +96,42 @@ sklearn2pmml(pipeline, "LogisticRegressionIris.pmml", with_repr = True)
 
 # Documentation #
 
-Up-to-date:
+Extensions:
 
-* [Training Python-based XGBoost accelerated failure time (AFT) models](https://openscoring.io/blog/2023/01/28/python_xgboost_aft_pmml/)
-* [Converting Scikit-Learn based PyCaret 3 pipelines to PMML documents](https://openscoring.io/blog/2023/01/12/converting_sklearn_pycaret3_pipeline_pmml/)
-* [Training Scikit-Learn based H2O.ai pipelines](https://openscoring.io/blog/2022/11/11/sklearn_h2o_pipeline/)
-* [Measuring the memory consumption of Scikit-Learn models](https://openscoring.io/blog/2022/11/09/measuring_memory_sklearn/)
 * [Extending Scikit-Learn with CHAID model type](https://openscoring.io/blog/2022/07/14/sklearn_chaid_pmml/)
 * [Extending Scikit-Learn with prediction post-processing](https://openscoring.io/blog/2022/05/06/sklearn_prediction_postprocessing/)
-* [One-hot-encoding (OHE) categorical features in Scikit-Learn based XGBoost pipelines](https://openscoring.io/blog/2022/04/12/onehot_encoding_sklearn_xgboost_pipeline/)
-* [Benchmarking Scikit-Learn against JPMML-Evaluator in Java and Python environments](https://openscoring.io/blog/2021/08/04/benchmarking_sklearn_jpmml_evaluator/)
 * [Extending Scikit-Learn with outlier detector transformer type](https://openscoring.io/blog/2021/07/16/sklearn_outlier_detector_transformer/)
-* [Analyzing Scikit-Learn feature importances via PMML](https://openscoring.io/blog/2021/07/11/analyzing_sklearn_feature_importances_pmml/)
-* [Training Scikit-Learn based TF(-IDF) plus XGBoost pipelines](https://openscoring.io/blog/2021/02/27/sklearn_tf_tfidf_xgboost_pipeline/)
-* [Converting Scikit-Learn based TF(-IDF) pipelines to PMML documents](https://openscoring.io/blog/2021/01/17/converting_sklearn_tf_tfidf_pipeline_pmml/)
-* [Converting Scikit-Learn based Imbalanced-Learn (imblearn) pipelines to PMML documents](https://openscoring.io/blog/2020/10/24/converting_sklearn_imblearn_pipeline_pmml/)
 * [Extending Scikit-Learn with date and datetime features](https://openscoring.io/blog/2020/03/08/sklearn_date_datetime_pmml/)
 * [Extending Scikit-Learn with feature specifications](https://openscoring.io/blog/2020/02/23/sklearn_feature_specification_pmml/)
-* [Converting logistic regression models to PMML documents](https://openscoring.io/blog/2020/01/19/converting_logistic_regression_pmml/#scikit-learn)
-* [Stacking Scikit-Learn, LightGBM and XGBoost models](https://openscoring.io/blog/2020/01/02/stacking_sklearn_lightgbm_xgboost/)
-* [Converting Scikit-Learn hyperparameter-tuned pipelines to PMML documents](https://openscoring.io/blog/2019/12/25/converting_sklearn_gridsearchcv_pipeline_pmml/)
 * [Extending Scikit-Learn with GBDT plus LR ensemble (GBDT+LR) model type](https://openscoring.io/blog/2019/06/19/sklearn_gbdt_lr_ensemble/)
-* [Converting Scikit-Learn based TPOT pipelines to PMML documents](https://openscoring.io/blog/2019/06/10/converting_sklearn_tpot_pipeline_pmml/)
-* [Converting Scikit-Learn based LightGBM pipelines to PMML documents](https://openscoring.io/blog/2019/04/07/converting_sklearn_lightgbm_pipeline_pmml/)
 * [Extending Scikit-Learn with business rules (BR) model type](https://openscoring.io/blog/2018/09/17/sklearn_business_rules/)
 
-Slightly outdated:
+AutoML and other kinds of workflow automations:
+
+* [Converting Scikit-Learn based PyCaret 3 pipelines to PMML documents](https://openscoring.io/blog/2023/01/12/converting_sklearn_pycaret3_pipeline_pmml/)
+* [Converting Scikit-Learn based Imbalanced-Learn (imblearn) pipelines to PMML documents](https://openscoring.io/blog/2020/10/24/converting_sklearn_imblearn_pipeline_pmml/)
+* [Converting Scikit-Learn hyperparameter-tuned pipelines to PMML documents](https://openscoring.io/blog/2019/12/25/converting_sklearn_gridsearchcv_pipeline_pmml/)
+* [Converting Scikit-Learn based TPOT pipelines to PMML documents](https://openscoring.io/blog/2019/06/10/converting_sklearn_tpot_pipeline_pmml/)
+
+Integrations:
+
+* [Upgrading Scikit-Learn based XGBoost pipelines](https://openscoring.io/blog/2023/02/06/upgrading_sklearn_xgboost_pipeline_pmml/)
+* [Training Python-based XGBoost accelerated failure time (AFT) models](https://openscoring.io/blog/2023/01/28/python_xgboost_aft_pmml/)
+* [Training Scikit-Learn based H2O.ai pipelines](https://openscoring.io/blog/2022/11/11/sklearn_h2o_pipeline/)
+* [One-hot-encoding (OHE) categorical features in Scikit-Learn based XGBoost pipelines](https://openscoring.io/blog/2022/04/12/onehot_encoding_sklearn_xgboost_pipeline/)
+* [Training Scikit-Learn based TF(-IDF) plus XGBoost pipelines](https://openscoring.io/blog/2021/02/27/sklearn_tf_tfidf_xgboost_pipeline/)
+* [Stacking Scikit-Learn, LightGBM and XGBoost models](https://openscoring.io/blog/2020/01/02/stacking_sklearn_lightgbm_xgboost/)
+* [Converting Scikit-Learn based LightGBM pipelines to PMML documents](https://openscoring.io/blog/2019/04/07/converting_sklearn_lightgbm_pipeline_pmml/)
+
+Miscellaneous:
+
+* [Measuring the memory consumption of Scikit-Learn models](https://openscoring.io/blog/2022/11/09/measuring_memory_sklearn/)
+* [Benchmarking Scikit-Learn against JPMML-Evaluator in Java and Python environments](https://openscoring.io/blog/2021/08/04/benchmarking_sklearn_jpmml_evaluator/)
+* [Analyzing Scikit-Learn feature importances via PMML](https://openscoring.io/blog/2021/07/11/analyzing_sklearn_feature_importances_pmml/)
+* [Converting Scikit-Learn based TF(-IDF) pipelines to PMML documents](https://openscoring.io/blog/2021/01/17/converting_sklearn_tf_tfidf_pipeline_pmml/)
+* [Converting logistic regression models to PMML documents](https://openscoring.io/blog/2020/01/19/converting_logistic_regression_pmml/#scikit-learn)
+
+Archived:
 
 * [Converting Scikit-Learn to PMML](https://www.slideshare.net/VilluRuusmann/converting-scikitlearn-to-pmml)
 
