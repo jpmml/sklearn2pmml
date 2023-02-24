@@ -1,5 +1,5 @@
 from pandas import DataFrame
-from sklearn2pmml.util import sizeof, deep_sizeof, Slicer, Reshaper
+from sklearn2pmml.util import sizeof, deep_sizeof, Evaluatable, Slicer, Reshaper
 from unittest import TestCase
 
 import numpy
@@ -42,6 +42,37 @@ class MeasurementTest(TestCase):
 
 		self.assertEqual(deep_sizeof(("aaa", "bbb", "ccc"), with_overhead = False), deep_sizeof(("a", "b", "c"), with_overhead = False) + 6)
 		self.assertEqual(deep_sizeof(("aaa", "bbb", "ccc"), with_overhead = True), deep_sizeof(("a", "b", "c"), with_overhead = True) + 6)
+
+class EvaluatableTest(TestCase):
+
+	def test_setup_and_evaluate(self):
+		isNegativeDef = "def _is_negative(x):\n	return (x < 0)\n"
+		isPositiveDef = "def _is_positive(x):\n	return (x > 0)\n"
+		expr = "_is_negative(X[0])"
+		evaluatable = Evaluatable(expr, function_defs = [])
+		with self.assertRaises(NameError):
+			evaluatable.setup_and_evaluate([-1.5], env = dict())
+		evaluatable = Evaluatable(expr, function_defs = [isNegativeDef])
+		env = dict()
+		self.assertTrue(evaluatable.setup_and_evaluate([-1.5], env = env))
+		self.assertFalse(evaluatable.setup_and_evaluate([1.5], env = env))
+		expr = "_is_negative(X[0]) or _is_positive(X[0])"
+		evaluatable = Evaluatable(expr, function_defs = [isNegativeDef])
+		with self.assertRaises(NameError):
+			evaluatable.setup_and_evaluate([0], env = dict())
+		evaluatable = Evaluatable(expr, function_defs = [isNegativeDef, isPositiveDef])
+		env = dict()
+		self.assertTrue(evaluatable.setup_and_evaluate([-1.5], env = env))
+		self.assertFalse(evaluatable.setup_and_evaluate([0], env = env))
+		self.assertTrue(evaluatable.setup_and_evaluate([1.5], env = env))
+
+		signumDef = "def _signum(x):\n\timport numpy\n\tif _is_negative(x):\n\t\treturn numpy.ceil(-1.5)\n\telif _is_positive(x):\n\t\treturn numpy.floor(1.5)\n\telse:\n\t\treturn 0\n"
+		expr = "_signum(X[0])"
+		evaluatable = Evaluatable(expr, function_defs = [signumDef, isNegativeDef, isPositiveDef])
+		env = dict()
+		self.assertEqual(-1, evaluatable.setup_and_evaluate([-1.5], env = env))
+		self.assertEqual(0, evaluatable.setup_and_evaluate([0], env = env))
+		self.assertEqual(1, evaluatable.setup_and_evaluate([1.5], env = env))
 
 class ReshaperTest(TestCase):
 

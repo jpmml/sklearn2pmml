@@ -10,7 +10,7 @@ from scipy.interpolate import BSpline
 from scipy.sparse import lil_matrix
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.pipeline import Pipeline
-from sklearn2pmml.util import cast, ensure_1d, eval_rows, dt_transform
+from sklearn2pmml.util import cast, ensure_1d, ensure_def, eval_rows, dt_transform, Expression
 
 import inspect
 import numpy
@@ -212,8 +212,10 @@ class ExpressionTransformer(BaseEstimator, TransformerMixin):
 			if expr.__code__.co_varnames[0] != "X":
 				raise ValueError()
 			self.expr = inspect.getsource(expr)
+		elif isinstance(expr, Expression):
+			self.expr = expr
 		else:
-			raise ValueError()
+			raise TypeError()
 		self.map_missing_to = map_missing_to
 		self.default_value = default_value
 		invalid_value_treatments = ["return_invalid", "as_missing"]
@@ -222,17 +224,21 @@ class ExpressionTransformer(BaseEstimator, TransformerMixin):
 		self.invalid_value_treatment = invalid_value_treatment
 		self.dtype = dtype
 
-	def _eval_row(self, expr, X):
+	def _eval_row(self, expr, X, env):
 		# X is array-like (row vector)
 		if (self.map_missing_to is not None) and ((pandas.isnull(X)).any()):
 			return self.map_missing_to
 		try:
 			if isinstance(expr, str):
-				Xt = eval(expr)
+				variables = dict(env)
+				variables["X"] = X
+				Xt = eval(expr, globals(), variables)
 			elif isinstance(expr, types.FunctionType):
 				Xt = expr(X)
+			elif isinstance(expr, Expression):
+				Xt = expr.evaluate(X, env = env)
 			else:
-				raise ValueError()
+				raise TypeError()
 		except ArithmeticError as ae:
 			if self.invalid_value_treatment == "return_invalid":
 				raise ae
@@ -249,20 +255,18 @@ class ExpressionTransformer(BaseEstimator, TransformerMixin):
 		return self
 
 	def transform(self, X):
-		if "\n" not in self.expr:
+		env = dict()
+		if isinstance(self.expr, str):
+			if not "\n" in self.expr:
+				expr = self.expr
+			else:
+				expr = ensure_def(self.expr, env)
+		elif isinstance(self.expr, Expression):
 			expr = self.expr
+			expr.setup(env = env)
 		else:
-			expr_code = compile(self.expr, "<string>", "exec")
-
-			name = expr_code.co_names[0]
-
-			try:
-				expr = locals()[name]
-			except KeyError:
-				eval(expr_code)
-
-				expr = locals()[name]
-		func = lambda x: self._eval_row(expr, x)
+			raise TypeError()
+		func = lambda x: self._eval_row(expr, X = x, env = env)
 		# Evaluate in PMML compatibility mode
 		with numpy.errstate(divide = "raise"):
 			Xt = eval_rows(X, func)

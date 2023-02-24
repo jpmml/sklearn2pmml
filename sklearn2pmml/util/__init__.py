@@ -1,6 +1,7 @@
 from pandas import Categorical, DataFrame, Index, Series
 from sklearn.base import clone, BaseEstimator, TransformerMixin
 
+import inspect
 import numpy
 import pandas
 import sys
@@ -150,6 +151,61 @@ def deep_sizeof(obj, with_overhead = False, verbose = False):
 				if verbose:
 					print("| {} | {} | {} |".format(name, v_type, v_sizeof))
 		return sum
+
+def ensure_def(expr, env):
+	expr_code = compile(expr, "<string>", "exec")
+
+	name = expr_code.co_names[0]
+
+	if name in globals():
+		return globals()[name]
+
+	try:
+		return env[name]
+	except KeyError:
+		eval(expr_code, env)
+
+		return env[name]
+
+class Evaluatable:
+
+	def __init__(self, expr, function_defs = []):
+		if isinstance(expr, str):
+			if "\n" in expr:
+				raise ValueError()
+			self.expr = expr
+		else:
+			raise TypeError()
+		def to_source(function_def):
+			if isinstance(function_def, str):
+				if not "\n" in function_def:
+					raise ValueError()
+				if not "def" in function_def:
+					raise ValueError()
+				return function_def
+			elif isinstance(function_def, types.FunctionType):
+				return inspect.getsource(function_def)
+			else:
+				raise TypeError()
+		self.function_defs = [to_source(function_def) for function_def in function_defs]
+
+	def setup(self, env):
+		for function_def in self.function_defs:
+			ensure_def(function_def, env)
+
+	def evaluate(self, X, env):
+		variables = dict(env)
+		variables["X"] = X
+		return eval(self.expr, globals(), variables)
+
+	def setup_and_evaluate(self, X, env):
+		self.setup(env = env)
+		return self.evaluate(X = X, env = env)
+
+class Expression(Evaluatable):
+
+	def __init__(self, expr, function_defs = []):
+		super(Expression, self).__init__(expr = expr, function_defs = function_defs)
 
 class Reshaper(BaseEstimator, TransformerMixin):
 
