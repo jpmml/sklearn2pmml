@@ -10,9 +10,8 @@ from scipy.interpolate import BSpline
 from scipy.sparse import lil_matrix
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.pipeline import Pipeline
-from sklearn2pmml.util import cast, ensure_1d, ensure_def, eval_rows, dt_transform, Expression
+from sklearn2pmml.util import cast, dt_transform, ensure_1d, ensure_def, eval_rows, Expression
 
-import inspect
 import numpy
 import pandas
 import types
@@ -204,18 +203,9 @@ class ExpressionTransformer(BaseEstimator, TransformerMixin):
 	"""
 
 	def __init__(self, expr, map_missing_to = None, default_value = None, invalid_value_treatment = None, dtype = None):
-		if isinstance(expr, str):
-			self.expr = expr
-		elif isinstance(expr, types.FunctionType):
-			if expr.__code__.co_argcount != 1:
-				raise ValueError()
-			if expr.__code__.co_varnames[0] != "X":
-				raise ValueError()
-			self.expr = inspect.getsource(expr)
-		elif isinstance(expr, Expression):
-			self.expr = expr
-		else:
+		if not isinstance(expr, (str, Expression)):
 			raise TypeError()
+		self.expr = expr
 		self.map_missing_to = map_missing_to
 		self.default_value = default_value
 		invalid_value_treatments = ["return_invalid", "as_missing"]

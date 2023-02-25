@@ -9,7 +9,7 @@ from sklearn2pmml.preprocessing import Aggregator, CastTransformer, ConcatTransf
 from sklearn2pmml.preprocessing.h2o import H2OFrameConstructor, H2OFrameCreator
 from sklearn2pmml.preprocessing.lightgbm import make_lightgbm_column_transformer, make_lightgbm_dataframe_mapper
 from sklearn2pmml.preprocessing.xgboost import make_xgboost_column_transformer, make_xgboost_dataframe_mapper
-from sklearn2pmml.util import Expression
+from sklearn2pmml.util import Expression, to_expr
 from unittest import TestCase
 
 import inspect
@@ -261,6 +261,20 @@ class ExpressionTransformerTest(TestCase):
 		end_err_state = numpy.geterr()
 		self.assertEqual(begin_err_state, end_err_state)
 
+	def test_func_transform(self):
+		expr = to_expr(_signum)
+		transformer = clone(ExpressionTransformer(expr))
+		X = numpy.array([[1.5], [0.0], [-3.0]])
+		self.assertEqual([[1], [0], [-1]], transformer.fit_transform(X).tolist())
+		expr = inspect.getsource(_signum).replace("_signum", "_my_signum")
+		transformer = clone(ExpressionTransformer(expr))
+		self.assertEqual([[1], [0], [-1]], transformer.fit_transform(X).tolist())
+
+		expr = Expression("-1 if _is_negative(X[0]) else (1 if _is_positive(X[0]) else 0)", function_defs = [_is_negative, _is_positive])
+		transformer = clone(ExpressionTransformer(expr))
+		X = numpy.array([[1.5], [0.0], [-3.0]])
+		self.assertEqual([[1], [0], [-1]], transformer.fit_transform(X).tolist())
+
 	def test_sequence_transform(self):
 		X = DataFrame([[None], [1], [None]], columns = ["a"])
 		mapper = DataFrameMapper([
@@ -268,23 +282,6 @@ class ExpressionTransformerTest(TestCase):
 		])
 		Xt = mapper.fit_transform(X)
 		self.assertEqual([[1], [1], [1]], Xt.tolist())
-
-	def test_func_expr(self):
-		expr = _signum
-		transformer = clone(ExpressionTransformer(expr))
-		self.assertIsInstance(transformer.expr, str)
-		self.assertTrue("\n" in transformer.expr)
-		X = numpy.array([[1.5], [0.0], [-3.0]])
-		self.assertEqual([[1], [0], [-1]], transformer.fit_transform(X).tolist())
-		expr = inspect.getsource(_signum).replace("_signum", "_my_signum")
-		transformer = clone(ExpressionTransformer(expr))
-		self.assertEqual([[1], [0], [-1]], transformer.fit_transform(X).tolist())
-
-	def test_evaluatable_expr(self):
-		expr = Expression("-1 if _is_negative(X[0]) else (1 if _is_positive(X[0]) else 0)", function_defs = [_is_negative, _is_positive])
-		transformer = clone(ExpressionTransformer(expr))
-		X = numpy.array([[1.5], [0.0], [-3.0]])
-		self.assertEqual([[1], [0], [-1]], transformer.fit_transform(X).tolist())
 
 class NumberFormatterTest(TestCase):
 

@@ -6,7 +6,7 @@ except ImportError:
 	from sklearn.linear_model.base import LinearClassifierMixin, LinearModel, LinearRegression, SparseCoefMixin
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.utils.metaestimators import _BaseComposition
-from sklearn2pmml.util import eval_rows, fqn
+from sklearn2pmml.util import eval_rows, fqn, Predicate
 
 import numpy
 
@@ -139,6 +139,9 @@ class _BaseEnsemble(_BaseComposition):
 				raise TypeError("Step is not a tuple")
 			if len(step) != 3:
 				raise TypeError("Step is not a three-element (name, estimator, predicate) tuple")
+			name, estimator, predicate = step
+			if not isinstance(predicate, (str, Predicate)):
+				raise TypeError()
 		self.steps = steps
 
 	@property
