@@ -29,9 +29,9 @@ class EstimatorChainTest(TestCase):
 		X = df[["X"]]
 		y = df["y"]
 		steps = [
-			("negative", DummyClassifier(strategy = "most_frequent"), "X[0] < 0"),
-			("not_negative", DummyClassifier(strategy = "most_frequent"), "X[0] >= 0"),
-			("any", DummyClassifier(strategy = "most_frequent"), str(True))
+			("negative", DummyClassifier(strategy = "most_frequent"), "X[0] < 0"), # binary
+			("not_negative", DummyClassifier(strategy = "most_frequent"), "X[0] >= 0"), # binary
+			("any", DummyClassifier(strategy = "most_frequent"), str(True)) # multiclass
 		]
 		estimator = EstimatorChain(steps, multioutput = True)
 		params = estimator.get_params(deep = True)
@@ -44,11 +44,28 @@ class EstimatorChainTest(TestCase):
 		self.assertEqual([-1, None, -1, None, -1], preds[:, 0].tolist())
 		self.assertEqual([None, 0, None, 0, None], preds[:, 1].tolist())
 		self.assertEqual([-1, -1, -1, -1, -1], preds[:, 2].tolist())
+		pred_probs = estimator.predict_proba(X)
+		self.assertEqual((5, 2 + 2 + 3), pred_probs.shape)
+		self.assertEqual([[1, 0], [None, None], [1, 0], [None, None], [1, 0]], pred_probs[:, 0:2].tolist())
+		self.assertEqual([[None, None], [1, 0], [None, None], [1, 0], [None, None]], pred_probs[:, 2:4].tolist())
+		self.assertEqual([[1, 0, 0], [1, 0, 0], [1, 0, 0], [1, 0, 0], [1, 0, 0]], pred_probs[:, 4:7].tolist())
+
 		estimator = EstimatorChain(steps, multioutput = False)
 		estimator.fit(X, y)
 		preds = estimator.predict(X)
 		self.assertEqual((5, ), preds.shape)
 		self.assertEqual([-1, -1, -1, -1, -1], preds.tolist())
+		with self.assertRaises(ValueError):
+			estimator.predict_proba(X)
+		estimator = EstimatorChain(steps[0:2], multioutput = False)
+		estimator.fit(X, y)
+		preds = estimator.predict(X)
+		self.assertEqual((5, ), preds.shape)
+		self.assertEqual([-1, 0, -1, 0, -1], preds.tolist())
+		pred_probs = estimator.predict_proba(X)
+		self.assertEqual((5, 2), pred_probs.shape)
+		# XXX: non-sensical, because the two binary classifiers have different class labels ("negative/not negative" vs "not-negative/not not-negative")
+		self.assertEqual([[1, 0], [1, 0], [1, 0], [1, 0], [1, 0]], pred_probs.tolist())
 
 	def test_complex_fit_predict(self):
 		X, y = load_iris(return_X_y = True)
@@ -70,6 +87,8 @@ class EstimatorChainTest(TestCase):
 		self.assertEqual((4 + (1 + 3), ), regressor.steps[1][1].coef_.shape)
 		preds = estimator.predict(X)
 		self.assertEqual((150, 2), preds.shape)
+		with self.assertRaises(AttributeError):
+			estimator.predict_proba(X)
 
 class SelectFirstClassifierTest(TestCase):
 

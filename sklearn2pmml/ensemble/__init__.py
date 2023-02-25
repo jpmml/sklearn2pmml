@@ -186,6 +186,9 @@ class Link(BaseEstimator):
 	def predict(self, X):
 		return self.estimator_.predict(X)
 
+	def predict_proba(self, X):
+		return self.estimator_.predict_proba(X)
+
 	def augment(self, X):
 		Y = None
 		for augment_func in self.augment_funcs:
@@ -245,6 +248,8 @@ class EstimatorChain(_BaseEnsemble):
 				if self.multioutput:
 					result = numpy.hstack((result, step_result))
 				else:
+					if step_result.shape != result.shape:
+						raise ValueError()
 					result[step_mask] = step_result[step_mask]
 			if isinstance(estimator, Link):
 				X = estimator.augment(X)
@@ -252,6 +257,9 @@ class EstimatorChain(_BaseEnsemble):
 
 	def predict(self, X):
 		return self._predict("predict", X)
+
+	def predict_proba(self, X):
+		return self._predict("predict_proba", X)
 
 class SelectFirstEstimator(_BaseEnsemble):
 
