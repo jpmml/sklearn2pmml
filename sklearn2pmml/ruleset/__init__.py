@@ -1,5 +1,5 @@
 from sklearn.base import BaseEstimator, ClassifierMixin
-from sklearn2pmml.util import eval_rows, Predicate, to_expr_func
+from sklearn2pmml.util import eval_rows, to_expr_func, Predicate
 
 class RuleSetClassifier(BaseEstimator, ClassifierMixin):
 

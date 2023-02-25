@@ -9,7 +9,7 @@ from sklearn2pmml.preprocessing import Aggregator, CastTransformer, ConcatTransf
 from sklearn2pmml.preprocessing.h2o import H2OFrameConstructor, H2OFrameCreator
 from sklearn2pmml.preprocessing.lightgbm import make_lightgbm_column_transformer, make_lightgbm_dataframe_mapper
 from sklearn2pmml.preprocessing.xgboost import make_xgboost_column_transformer, make_xgboost_dataframe_mapper
-from sklearn2pmml.util import Expression, to_expr
+from sklearn2pmml.util import to_expr, Expression
 from unittest import TestCase
 
 import inspect
