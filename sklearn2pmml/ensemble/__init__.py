@@ -232,7 +232,7 @@ class EstimatorChain(_BaseEnsemble):
 			i += 1
 		return self
 
-	def _predict(self, predict_method, X):
+	def _predict(self, X, predict_method):
 		result = None
 		for name, estimator, predicate in self.steps:
 			step_mask = eval_rows(X, lambda X: eval(predicate), dtype = bool)
@@ -256,10 +256,10 @@ class EstimatorChain(_BaseEnsemble):
 		return result
 
 	def predict(self, X):
-		return self._predict("predict", X)
+		return self._predict(X, "predict")
 
 	def predict_proba(self, X):
-		return self._predict("predict_proba", X)
+		return self._predict(X, "predict_proba")
 
 class SelectFirstEstimator(_BaseEnsemble):
 
@@ -278,7 +278,7 @@ class SelectFirstEstimator(_BaseEnsemble):
 			mask = numpy.logical_or(mask, step_mask)
 		return self
 
-	def _predict(self, predict_method, X):
+	def _predict(self, X, predict_method):
 		result = None
 		mask = numpy.zeros(X.shape[0], dtype = bool)
 		for name, estimator, predicate in self.steps:
@@ -296,10 +296,10 @@ class SelectFirstEstimator(_BaseEnsemble):
 		return result
 
 	def apply(self, X):
-		return self._predict("apply", X)
+		return self._predict(X, "apply")
 
 	def predict(self, X):
-		return self._predict("predict", X)
+		return self._predict(X, "predict")
 
 class SelectFirstRegressor(SelectFirstEstimator, RegressorMixin):
 
@@ -312,4 +312,4 @@ class SelectFirstClassifier(SelectFirstEstimator, ClassifierMixin):
 		super(SelectFirstClassifier, self).__init__(steps)
 
 	def predict_proba(self, X):
-		return self._predict("predict_proba", X)
+		return self._predict(X, "predict_proba")
