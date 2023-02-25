@@ -108,11 +108,12 @@ class Evaluatable:
 	def setup(self, env):
 		for function_def in self.function_defs:
 			ensure_def(function_def, env)
+		main_function_def = "def _evaluate(X):\n\treturn ({})".format(self.expr)
+		ensure_def(main_function_def, env)
 
 	def evaluate(self, X, env):
-		variables = dict(env)
-		variables["X"] = X
-		return eval(self.expr, globals(), variables)
+		func = env["_evaluate"]
+		return func(X)
 
 	def setup_and_evaluate(self, X, env):
 		self.setup(env = env)
@@ -148,8 +149,8 @@ def to_expr_func(expr):
 			return lambda x: eval(expr, globals(), {"X" : x})
 		else:
 			env = dict()
-			expr = ensure_def(expr, env)
-			return lambda x: expr(x)
+			func = ensure_def(expr, env)
+			return lambda x: func(x)
 	elif isinstance(expr, Evaluatable):
 		env = dict()
 		expr.setup(env = env)

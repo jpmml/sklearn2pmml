@@ -56,6 +56,7 @@ class EvaluatableTest(TestCase):
 		env = dict()
 		self.assertTrue(evaluatable.setup_and_evaluate([-1.5], env = env))
 		self.assertFalse(evaluatable.setup_and_evaluate([1.5], env = env))
+		self.assertTrue({"_is_negative", "_evaluate"} <= env.keys())
 		expr = "_is_negative(X[0]) or _is_positive(X[0])"
 		evaluatable = Evaluatable(expr, function_defs = [isNegativeDef])
 		with self.assertRaises(NameError):
@@ -65,6 +66,7 @@ class EvaluatableTest(TestCase):
 		self.assertTrue(evaluatable.setup_and_evaluate([-1.5], env = env))
 		self.assertFalse(evaluatable.setup_and_evaluate([0], env = env))
 		self.assertTrue(evaluatable.setup_and_evaluate([1.5], env = env))
+		self.assertTrue({"_is_negative", "_is_positive", "_evaluate"} <= env.keys())
 
 		signumDef = "def _signum(x):\n\timport numpy\n\tif _is_negative(x):\n\t\treturn numpy.ceil(-1.5)\n\telif _is_positive(x):\n\t\treturn numpy.floor(1.5)\n\telse:\n\t\treturn 0\n"
 		expr = "_signum(X[0])"
@@ -73,6 +75,7 @@ class EvaluatableTest(TestCase):
 		self.assertEqual(-1, evaluatable.setup_and_evaluate([-1.5], env = env))
 		self.assertEqual(0, evaluatable.setup_and_evaluate([0], env = env))
 		self.assertEqual(1, evaluatable.setup_and_evaluate([1.5], env = env))
+		self.assertTrue({"_signum", "_is_negative", "_is_positive", "_evaluate"} <= env.keys())
 
 class ReshaperTest(TestCase):
 
