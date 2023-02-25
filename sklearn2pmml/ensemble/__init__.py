@@ -229,13 +229,13 @@ class EstimatorChain(_BaseEnsemble):
 			i += 1
 		return self
 
-	def predict(self, X):
+	def _predict(self, predict_method, X):
 		result = None
 		for name, estimator, predicate in self.steps:
 			step_mask = eval_rows(X, lambda X: eval(predicate), dtype = bool)
 			if numpy.sum(step_mask) < 1:
 				continue
-			step_result = estimator.predict(X[step_mask])
+			step_result = getattr(estimator, predict_method)(X[step_mask])
 			step_result = _to_sparse(X, step_mask, step_result)
 			if self.multioutput:
 				step_result = step_result.reshape(X.shape[0], -1)
@@ -249,6 +249,9 @@ class EstimatorChain(_BaseEnsemble):
 			if isinstance(estimator, Link):
 				X = estimator.augment(X)
 		return result
+
+	def predict(self, X):
+		return self._predict("predict", X)
 
 class SelectFirstEstimator(_BaseEnsemble):
 
