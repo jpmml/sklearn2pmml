@@ -1,5 +1,5 @@
 from sklearn.base import BaseEstimator, ClassifierMixin
-from sklearn2pmml.util import eval_rows, Predicate
+from sklearn2pmml.util import eval_rows, Predicate, to_expr_func
 
 class RuleSetClassifier(BaseEstimator, ClassifierMixin):
 
@@ -15,15 +15,16 @@ class RuleSetClassifier(BaseEstimator, ClassifierMixin):
 		self.rules = rules
 		self.default_score = default_score
 
-	def _eval_row(self, X):
-		for predicate, score in self.rules:
-			if eval(predicate):
-				return score
-		return self.default_score
-
 	def fit(self, X, y = None):
 		return self
 
 	def predict(self, X):
-		func = lambda x: self._eval_row(x)
-		return eval_rows(X, func)
+		rules = [(to_expr_func(predicate), score) for (predicate, score) in self.rules]
+
+		def _eval_row(x):
+			for (expr_func, score) in rules:
+				if expr_func(x):
+					return score
+			return self.default_score
+
+		return eval_rows(X, _eval_row)
