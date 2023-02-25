@@ -10,7 +10,7 @@ from scipy.interpolate import BSpline
 from scipy.sparse import lil_matrix
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.pipeline import Pipeline
-from sklearn2pmml.util import cast, dt_transform, ensure_1d, ensure_def, eval_rows, Expression
+from sklearn2pmml.util import cast, dt_transform, ensure_1d, ensure_def, eval_rows, to_expr_func, Expression
 
 import numpy
 import pandas
@@ -214,52 +214,33 @@ class ExpressionTransformer(BaseEstimator, TransformerMixin):
 		self.invalid_value_treatment = invalid_value_treatment
 		self.dtype = dtype
 
-	def _eval_row(self, expr, X, env):
-		# X is array-like (row vector)
-		if (self.map_missing_to is not None) and ((pandas.isnull(X)).any()):
-			return self.map_missing_to
-		try:
-			if isinstance(expr, str):
-				variables = dict(env)
-				variables["X"] = X
-				Xt = eval(expr, globals(), variables)
-			elif isinstance(expr, types.FunctionType):
-				Xt = expr(X)
-			elif isinstance(expr, Expression):
-				Xt = expr.evaluate(X, env = env)
-			else:
-				raise TypeError()
-		except ArithmeticError as ae:
-			if self.invalid_value_treatment == "return_invalid":
-				raise ae
-			elif self.invalid_value_treatment == "as_missing":
-				Xt = None
-			else:
-				pass
-		# Xt is scalar
-		if (self.default_value is not None) and (pandas.isnull(Xt)):
-			return self.default_value
-		return Xt
-
 	def fit(self, X, y = None):
 		return self
 
 	def transform(self, X):
-		env = dict()
-		if isinstance(self.expr, str):
-			if not "\n" in self.expr:
-				expr = self.expr
-			else:
-				expr = ensure_def(self.expr, env)
-		elif isinstance(self.expr, Expression):
-			expr = self.expr
-			expr.setup(env = env)
-		else:
-			raise TypeError()
-		func = lambda x: self._eval_row(expr, X = x, env = env)
+		expr_func = to_expr_func(self.expr)
+
+		def _eval_row(x):
+			# x is array-like (row vector)
+			if (self.map_missing_to is not None) and ((pandas.isnull(x)).any()):
+				return self.map_missing_to
+			try:
+				xt = expr_func(x)
+			except ArithmeticError as ae:
+				if self.invalid_value_treatment == "return_invalid":
+					raise ae
+				elif self.invalid_value_treatment == "as_missing":
+					xt = None
+				else:
+					pass
+			# xt is scalar
+			if (self.default_value is not None) and (pandas.isnull(xt)):
+				return self.default_value
+			return xt
+
 		# Evaluate in PMML compatibility mode
 		with numpy.errstate(divide = "raise"):
-			Xt = eval_rows(X, func)
+			Xt = eval_rows(X, _eval_row)
 		if self.dtype is not None:
 			Xt = cast(Xt, self.dtype)
 		return _col2d(Xt)
