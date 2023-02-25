@@ -43,17 +43,6 @@ def ensure_1d(X):
 	else:
 		raise ValueError("Expected 1d array, got {0}d array of shape {1}".format(len(shape), str(shape)))
 
-def eval_rows(X, func, dtype = object):
-	if hasattr(X, "apply"):
-		if isinstance(X, Series):
-			return X.apply(func)
-		return X.apply(func, axis = 1)
-	nrow = X.shape[0]
-	Xt = numpy.empty(shape = (nrow, ), dtype = dtype)
-	for i in range(0, nrow):
-		Xt[i] = func(X[i])
-	return Xt
-
 def dt_transform(X, func):
 	if hasattr(X, "applymap"):
 		return X.applymap(func)
@@ -152,6 +141,36 @@ def to_expr(expr):
 		return expr
 	else:
 		raise TypeError()
+
+def to_expr_func(expr):
+	if isinstance(expr, str):
+		if not "\n" in expr:
+			return lambda x: eval(expr, globals(), {"X" : x})
+		else:
+			env = dict()
+			expr = ensure_def(expr, env)
+			return lambda x: expr(x)
+	elif isinstance(expr, Evaluatable):
+		env = dict()
+		expr.setup(env = env)
+		return lambda x: expr.evaluate(x, env)
+	else:
+		raise TypeError()
+
+def eval_rows(X, func, dtype = object):
+	if hasattr(X, "apply"):
+		if isinstance(X, Series):
+			return X.apply(func)
+		return X.apply(func, axis = 1)
+	nrow = X.shape[0]
+	Xt = numpy.empty(shape = (nrow, ), dtype = dtype)
+	for i in range(0, nrow):
+		Xt[i] = func(X[i])
+	return Xt
+
+def eval_expr_rows(X, expr, dtype = object):
+	func = to_expr_func(expr)
+	return eval_rows(X, func, dtype = dtype)
 
 def fqn(obj):
 	clazz = obj.__class__

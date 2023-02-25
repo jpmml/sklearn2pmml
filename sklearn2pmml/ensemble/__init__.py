@@ -6,7 +6,7 @@ except ImportError:
 	from sklearn.linear_model.base import LinearClassifierMixin, LinearModel, LinearRegression, SparseCoefMixin
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.utils.metaestimators import _BaseComposition
-from sklearn2pmml.util import eval_rows, fqn, Predicate
+from sklearn2pmml.util import eval_expr_rows, fqn, Predicate
 
 import numpy
 
@@ -219,7 +219,7 @@ class EstimatorChain(_BaseEnsemble):
 			y = numpy.asarray(y)
 		i = 0
 		for name, estimator, predicate in self.steps:
-			step_mask = eval_rows(X, lambda X: eval(predicate), dtype = bool)
+			step_mask = eval_expr_rows(X, predicate, dtype = bool)
 			if numpy.sum(step_mask) < 1:
 				raise ValueError(predicate)
 			if len(y.shape) == 1:
@@ -238,7 +238,7 @@ class EstimatorChain(_BaseEnsemble):
 	def _predict(self, X, predict_method):
 		result = None
 		for name, estimator, predicate in self.steps:
-			step_mask = eval_rows(X, lambda X: eval(predicate), dtype = bool)
+			step_mask = eval_expr_rows(X, predicate, dtype = bool)
 			if numpy.sum(step_mask) < 1:
 				continue
 			step_result = getattr(estimator, predict_method)(X[step_mask])
@@ -272,7 +272,7 @@ class SelectFirstEstimator(_BaseEnsemble):
 	def fit(self, X, y, **fit_params):
 		mask = numpy.zeros(X.shape[0], dtype = bool)
 		for name, estimator, predicate in self.steps:
-			step_mask = eval_rows(X, lambda X: eval(predicate), dtype = bool)
+			step_mask = eval_expr_rows(X, predicate, dtype = bool)
 			step_mask[mask] = False
 			if numpy.sum(step_mask) < 1:
 				raise ValueError(predicate)
@@ -285,7 +285,7 @@ class SelectFirstEstimator(_BaseEnsemble):
 		result = None
 		mask = numpy.zeros(X.shape[0], dtype = bool)
 		for name, estimator, predicate in self.steps:
-			step_mask = eval_rows(X, lambda X: eval(predicate), dtype = bool)
+			step_mask = eval_expr_rows(X, predicate, dtype = bool)
 			step_mask[mask] = False
 			if numpy.sum(step_mask) < 1:
 				continue
