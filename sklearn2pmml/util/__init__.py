@@ -143,16 +143,25 @@ def to_expr(expr):
 	else:
 		raise TypeError()
 
-def to_expr_func(expr):
+def to_expr_func(expr, modules = ["math", "numpy", "pandas"]):
+	env = dict()
+
+	# Import modules
+	for module in modules:
+		exec("import {}".format(module), env)
+
 	if isinstance(expr, str):
 		if not "\n" in expr:
-			return lambda x: eval(expr, globals(), {"X" : x})
+
+			def _eval_row(x):
+				env["X"] = x
+				return eval(expr, env)
+
+			return _eval_row
 		else:
-			env = dict()
 			func = ensure_def(expr, env)
 			return lambda x: func(x)
 	elif isinstance(expr, Evaluatable):
-		env = dict()
 		expr.setup(env = env)
 		return lambda x: expr.evaluate(x, env)
 	else:
