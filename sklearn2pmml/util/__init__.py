@@ -115,10 +115,6 @@ class Evaluatable:
 		func = env["_evaluate"]
 		return func(X)
 
-	def setup_and_evaluate(self, X, env):
-		self.setup(env = env)
-		return self.evaluate(X = X, env = env)
-
 class Expression(Evaluatable):
 
 	def __init__(self, expr, function_defs = []):
