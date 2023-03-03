@@ -48,7 +48,7 @@ class StatsModelsClassifier(StatsModelsEstimator, ClassifierMixin):
 		reg_table = self.regression_table_()
 		if self.fit_intercept:
 			return reg_table[:, 0]
-		return numpy.zeros((reg_table.shape[0],), dtype = float)
+		return numpy.zeros((reg_table.shape[0], ), dtype = float)
 
 	def fit(self, X, y, **fit_params):
 		classes, y_encoded = numpy.unique(y, return_inverse = True)

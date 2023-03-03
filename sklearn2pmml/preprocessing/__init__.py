@@ -427,7 +427,7 @@ class PMMLLabelBinarizer(BaseEstimator, TransformerMixin):
 		else:
 			Xt = numpy.zeros((len(X), len(index)), dtype = int)
 		for i, v in enumerate(X):
-			if not pandas.isnull(v):
+			if pandas.notnull(v):
 				Xt[i, index.index(v)] = 1
 		if self.sparse_output:
 			Xt = Xt.tocsr()

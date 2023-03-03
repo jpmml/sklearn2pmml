@@ -94,9 +94,9 @@ class Evaluatable:
 			raise TypeError()
 		def to_source(function_def):
 			if isinstance(function_def, str):
-				if not "\n" in function_def:
+				if "\n" not in function_def:
 					raise ValueError()
-				if not "def" in function_def:
+				if "def" not in function_def:
 					raise ValueError()
 				return function_def
 			elif isinstance(function_def, types.FunctionType):
@@ -147,7 +147,7 @@ def to_expr_func(expr, modules = ["math", "numpy", "pandas"]):
 		exec("import {}".format(module), env)
 
 	if isinstance(expr, str):
-		if not "\n" in expr:
+		if "\n" not in expr:
 
 			def _eval_row(x):
 				env["X"] = x
