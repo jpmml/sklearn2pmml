@@ -117,6 +117,7 @@ AutoML and other kinds of workflow automations:
 
 Extensions:
 
+* [Extending Scikit-Learn with UDF expression transformer](https://openscoring.io/blog/2023/03/09/sklearn_udf_expression_transformer/)
 * [Extending Scikit-Learn with CHAID models](https://openscoring.io/blog/2022/07/14/sklearn_chaid_pmml/)
 * [Extending Scikit-Learn with prediction post-processing](https://openscoring.io/blog/2022/05/06/sklearn_prediction_postprocessing/)
 * [Extending Scikit-Learn with outlier detector transformer](https://openscoring.io/blog/2021/07/16/sklearn_outlier_detector_transformer/)
