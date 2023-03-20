@@ -13,7 +13,7 @@ class StatsModelsClassifierTest(TestCase):
 		classifier = StatsModelsClassifier(Logit)
 		self.assertTrue(hasattr(classifier, "model_class"))
 		self.assertTrue(hasattr(classifier, "fit_intercept"))
-		classifier.fit(iris_X, iris_y)
+		classifier.fit(iris_X, iris_y, fit_method = "fit_regularized")
 		self.assertTrue(hasattr(classifier, "model_"))
 		self.assertTrue(hasattr(classifier, "results_"))
 		self.assertIsInstance(classifier.model_, Logit)

@@ -19,7 +19,10 @@ class StatsModelsEstimator(BaseEstimator):
 		if self.fit_intercept:
 			X = add_constant(X, has_constant = "add")
 		self.model_ = self.model_class(endog = y, exog = X, **self.init_params)
-		self.results_ = self.model_.fit(**fit_params)
+		fit_method = fit_params.pop("fit_method", "fit")
+		if (fit_method != "fit") and (not fit_method.startswith("fit_")):
+			raise ValueError()
+		self.results_ = getattr(self.model_, fit_method)(**fit_params)
 		return self
 
 	def remove_data(self):
