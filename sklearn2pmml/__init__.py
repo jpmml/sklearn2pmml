@@ -302,6 +302,9 @@ def _parse_properties(lines):
 		properties[key] = value
 	return properties
 
+def _format_properties(properties):
+	return ["{0} = {1}\n".format(k, v) for k, v in properties.items()]
+
 def _supported_classes(user_classpath):
 	classes = []
 	parser = lambda x: classes.extend(_parse_properties(x.readlines()).keys())
@@ -314,3 +317,20 @@ def _strip_module(name):
 		parts.pop(-2)
 		return ".".join(parts)
 	return name
+
+def make_customizations_jar(path, mapping):
+	"""Generates a customizations JAR file.
+
+	Parameters:
+	----------
+	path: string
+		The path to output JAR file.
+
+	mapping: dict of strings
+		Mapping from Python class names to Java converter class names.
+
+	"""
+	lines = _format_properties(mapping)
+
+	with ZipFile(path, mode = "w") as zipfile:
+		zipfile.writestr("META-INF/sklearn2pmml.properties", "".join(lines))

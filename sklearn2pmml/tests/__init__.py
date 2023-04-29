@@ -3,11 +3,12 @@ from sklearn.dummy import DummyRegressor
 from sklearn.feature_selection import f_regression, SelectFromModel, SelectKBest
 from sklearn.pipeline import Pipeline
 from sklearn.tree import DecisionTreeRegressor
-from sklearn2pmml import _classpath, _escape, _escape_steps, _is_categorical, _java_version, _parse_java_version, _strip_module, _supported_classes, make_pmml_pipeline, EstimatorProxy, SelectorProxy
+from sklearn2pmml import _classpath, _escape, _escape_steps, _is_categorical, _java_version, _parse_java_version, _strip_module, _supported_classes, make_customizations_jar, make_pmml_pipeline, EstimatorProxy, SelectorProxy
 from sklearn2pmml.pipeline import PMMLPipeline
 from unittest import TestCase
 
 import numpy
+import tempfile
 
 class DTypeTest(TestCase):
 
@@ -126,7 +127,19 @@ class ClasspathTest(TestCase):
 
 	def test_supported_classes(self):
 		classes = _supported_classes([])
-		self.assertTrue(len(classes) > 100)
+		self.assertTrue(len(classes) > 200)
+
+		with tempfile.NamedTemporaryFile() as tmp:
+			mapping = {
+				"__main__.MyTransformer" : "mycompany.MyTransformer",
+				"__main__.MyEstimator" : "mycompany.MyEstimator"
+			}
+			make_customizations_jar(tmp.name, mapping)
+			classes_ext = _supported_classes([tmp.name])
+
+			self.assertEqual(len(classes) + 2, len(classes_ext))
+			self.assertTrue("__main__.MyTransformer" in classes_ext)
+			self.assertTrue("__main__.MyEstimator" in classes_ext)
 
 	def test_strip_module(self):
 		self.assertEqual("sklearn.decomposition.PCA", _strip_module("sklearn.decomposition.pca.PCA"))
