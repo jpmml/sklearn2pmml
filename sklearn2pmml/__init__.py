@@ -305,18 +305,49 @@ def _parse_properties(lines):
 def _format_properties(properties):
 	return ["{0} = {1}\n".format(k, v) for k, v in properties.items()]
 
-def _supported_classes(user_classpath):
-	classes = []
-	parser = lambda x: classes.extend(_parse_properties(x.readlines()).keys())
-	_process_classpath("META-INF/sklearn2pmml.properties", parser, user_classpath)
-	return classes
+def _expand_complex_key(key):
+	begin = key.find("(")
+	end = key.find(")", begin + 1)
+	if begin < 0 or end < 0:
+		return [key]
 
-def _strip_module(name):
-	parts = name.split(".")
-	if len(parts) > 1:
-		parts.pop(-2)
-		return ".".join(parts)
-	return name
+	prefix = key[:begin]
+	body = key[begin + 1:end]
+	suffix = key[end + 1:]
+
+	result = []
+	parts = body.split("|")
+	for part in parts:
+		result += _expand_complex_key(prefix + part + suffix)
+	return result
+
+def _expand_mapping(mapping):
+	result = dict()
+	for k, v in mapping.items():
+		pythonClazzes = _expand_complex_key(k)
+		javaClazz = v
+		for pythonClazz in pythonClazzes:
+			result[pythonClazz] = (javaClazz if javaClazz else pythonClazz)
+	return result
+
+def load_class_mapping(user_classpath = []):
+	"""Loads the class mapping.
+
+	Parameters:
+	----------
+	user_classpath: list of strings, optional
+		The paths to JAR files that provide custom Transformer, Selector and/or Estimator converter classes.
+
+	Returns:
+	-------
+	mapping: dict
+		Mapping from Python class names to Java converter class names.
+
+	"""
+	mapping = dict()
+	processor = lambda x: mapping.update(_expand_mapping(_parse_properties(x.readlines())))
+	_process_classpath("META-INF/sklearn2pmml.properties", processor, user_classpath)
+	return mapping
 
 def make_customizations_jar(path, mapping):
 	"""Generates a customizations JAR file.
@@ -334,3 +365,10 @@ def make_customizations_jar(path, mapping):
 
 	with ZipFile(path, mode = "w") as zipfile:
 		zipfile.writestr("META-INF/sklearn2pmml.properties", "".join(lines))
+
+def _strip_module(name):
+	parts = name.split(".")
+	if len(parts) > 1:
+		parts.pop(-2)
+		return ".".join(parts)
+	return name

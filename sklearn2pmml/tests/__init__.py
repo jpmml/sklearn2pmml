@@ -3,7 +3,7 @@ from sklearn.dummy import DummyRegressor
 from sklearn.feature_selection import f_regression, SelectFromModel, SelectKBest
 from sklearn.pipeline import Pipeline
 from sklearn.tree import DecisionTreeRegressor
-from sklearn2pmml import _classpath, _escape, _escape_steps, _is_categorical, _java_version, _parse_java_version, _strip_module, _supported_classes, make_customizations_jar, make_pmml_pipeline, EstimatorProxy, SelectorProxy
+from sklearn2pmml import _classpath, _escape, _escape_steps, _expand_complex_key, _is_categorical, _java_version, _parse_java_version, _strip_module, load_class_mapping, make_customizations_jar, make_pmml_pipeline, EstimatorProxy, SelectorProxy
 from sklearn2pmml.pipeline import PMMLPipeline
 from unittest import TestCase
 
@@ -125,21 +125,29 @@ class ClasspathTest(TestCase):
 		classpath = _classpath(["A.jar", "B.jar"])
 		self.assertEqual(33 + 2, len(classpath))
 
-	def test_supported_classes(self):
-		classes = _supported_classes([])
-		self.assertTrue(len(classes) > 200)
+	def test_expand_complex_key(self):
+		self.assertEqual(["a.b.C"], _expand_complex_key("a.b.C"))
+		self.assertEqual(["a._b.C", "a.b.C"], _expand_complex_key("a.(_b|b).C"))
+		self.assertEqual(["_a._b.C", "_a.b.C", "a._b.C", "a.b.C"], _expand_complex_key("(_a|a).(_b|b).C"))
+
+	def test_load_class_mapping(self):
+		mapping = load_class_mapping()
+		self.assertTrue(len(mapping) > 300)
+		self.assertTrue("sklearn.decomposition._pca.PCA" in mapping)
+		self.assertTrue("sklearn.decomposition.pca.PCA" in mapping)
+		self.assertTrue("sklearn.decomposition.(_pca|pca).PCA" not in mapping)
 
 		with tempfile.NamedTemporaryFile() as tmp:
-			mapping = {
+			mapping_ext = {
 				"__main__.MyTransformer" : "mycompany.MyTransformer",
 				"__main__.MyEstimator" : "mycompany.MyEstimator"
 			}
-			make_customizations_jar(tmp.name, mapping)
-			classes_ext = _supported_classes([tmp.name])
+			make_customizations_jar(tmp.name, mapping_ext)
+			mapping_ext = load_class_mapping([tmp.name])
 
-			self.assertEqual(len(classes) + 2, len(classes_ext))
-			self.assertTrue("__main__.MyTransformer" in classes_ext)
-			self.assertTrue("__main__.MyEstimator" in classes_ext)
+			self.assertEqual(len(mapping) + 2, len(mapping_ext))
+			self.assertTrue("__main__.MyTransformer" in mapping_ext)
+			self.assertTrue("__main__.MyEstimator" in mapping_ext)
 
 	def test_strip_module(self):
 		self.assertEqual("sklearn.decomposition.PCA", _strip_module("sklearn.decomposition.pca.PCA"))
