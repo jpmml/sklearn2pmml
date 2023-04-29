@@ -179,7 +179,7 @@ def eval_expr_rows(X, expr, dtype = object):
 	return eval_rows(X, func, dtype = dtype)
 
 def fqn(obj):
-	clazz = obj.__class__
+	clazz = obj if inspect.isclass(obj) else obj.__class__
 	return ".".join([clazz.__module__, clazz.__name__])
 
 def is_instance_attr(obj, name):

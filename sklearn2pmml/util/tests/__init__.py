@@ -133,15 +133,15 @@ class FunctionTest(TestCase):
 		self.assertEqual(1, expr_func([1.5]))
 
 	def test_fqn(self):
-		self.assertEqual("builtins.type", fqn(str))
+		obj = ""
+		self.assertEqual("builtins.str", fqn(str))
+		self.assertEqual("builtins.type", fqn(str.__class__))
+		self.assertEqual("builtins.str", fqn(obj))
 
-		self.assertEqual("builtins.str", fqn(""))
-
-		self.assertEqual("builtins.type", fqn(Dummy))
+		obj = Dummy()
+		self.assertEqual("sklearn2pmml.util.tests.Dummy", fqn(Dummy))
 		self.assertEqual("builtins.type", fqn(Dummy.__class__))
-
-		dummy = Dummy()
-		self.assertEqual("sklearn2pmml.util.tests.Dummy", fqn(dummy))
+		self.assertEqual("sklearn2pmml.util.tests.Dummy", fqn(obj))
 
 class ReshaperTest(TestCase):
 
