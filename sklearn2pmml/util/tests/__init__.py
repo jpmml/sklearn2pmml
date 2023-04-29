@@ -1,5 +1,5 @@
 from pandas import DataFrame
-from sklearn2pmml.util import sizeof, deep_sizeof, to_expr, to_expr_func, Evaluatable, Slicer, Reshaper
+from sklearn2pmml.util import sizeof, deep_sizeof, to_expr, to_expr_func, fqn, Evaluatable, Slicer, Reshaper
 from unittest import TestCase
 
 import inspect
@@ -63,6 +63,9 @@ def _is_positive(x):
 
 def _trunc(x):
 	return math.trunc(x)
+
+class Dummy:
+	pass
 
 class FunctionTest(TestCase):
 
@@ -128,6 +131,17 @@ class FunctionTest(TestCase):
 		self.assertEqual(-1, expr_func([-1.5]))
 		self.assertEqual(0, expr_func([0]))
 		self.assertEqual(1, expr_func([1.5]))
+
+	def test_fqn(self):
+		self.assertEqual("builtins.type", fqn(str))
+
+		self.assertEqual("builtins.str", fqn(""))
+
+		self.assertEqual("builtins.type", fqn(Dummy))
+		self.assertEqual("builtins.type", fqn(Dummy.__class__))
+
+		dummy = Dummy()
+		self.assertEqual("sklearn2pmml.util.tests.Dummy", fqn(dummy))
 
 class ReshaperTest(TestCase):
 
