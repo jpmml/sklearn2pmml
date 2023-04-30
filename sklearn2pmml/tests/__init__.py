@@ -3,7 +3,7 @@ from sklearn.dummy import DummyRegressor
 from sklearn.feature_selection import f_regression, SelectFromModel, SelectKBest
 from sklearn.pipeline import Pipeline
 from sklearn.tree import DecisionTreeRegressor
-from sklearn2pmml import _classpath, _escape, _escape_steps, _expand_complex_key, _is_categorical, _java_version, _parse_java_version, _strip_module, load_class_mapping, make_customizations_jar, make_pmml_pipeline, EstimatorProxy, SelectorProxy
+from sklearn2pmml import _classpath, _escape, _escape_steps, _expand_complex_key, _is_categorical, _java_version, _parse_java_version, _strip_module, load_class_mapping, make_class_mapping_jar, make_pmml_pipeline, EstimatorProxy, SelectorProxy
 from sklearn2pmml.pipeline import PMMLPipeline
 from unittest import TestCase
 
@@ -142,7 +142,7 @@ class ClasspathTest(TestCase):
 				"__main__.MyTransformer" : "mycompany.MyTransformer",
 				"__main__.MyEstimator" : "mycompany.MyEstimator"
 			}
-			make_customizations_jar(tmp.name, mapping_ext)
+			make_class_mapping_jar(tmp.name, mapping_ext)
 			mapping_ext = load_class_mapping([tmp.name])
 
 			self.assertEqual(len(mapping) + 2, len(mapping_ext))

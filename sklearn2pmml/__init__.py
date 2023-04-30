@@ -349,8 +349,8 @@ def load_class_mapping(user_classpath = []):
 	_process_classpath("META-INF/sklearn2pmml.properties", processor, user_classpath)
 	return mapping
 
-def make_customizations_jar(path, mapping):
-	"""Generates a customizations JAR file.
+def make_class_mapping_jar(path, mapping):
+	"""Generates a class mapping JAR file.
 
 	Parameters:
 	----------
