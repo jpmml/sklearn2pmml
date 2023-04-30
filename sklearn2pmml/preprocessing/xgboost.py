@@ -8,7 +8,7 @@ from sklearn2pmml.preprocessing import PMMLLabelBinarizer
 def make_xgboost_dataframe_mapper(dtypes, missing_value_aware = True):
 	"""Construct a DataFrameMapper for feeding complex data into an XGBModel.
 
-	Parameters
+	Parameters:
 	----------
 
 	dtypes: iterable of tuples (column, dtype)
@@ -16,7 +16,7 @@ def make_xgboost_dataframe_mapper(dtypes, missing_value_aware = True):
 	missing_value_aware: boolean
 		If true, use missing value aware transformers.
 
-	Returns
+	Returns:
 	-------
 	DataFrameMapper
 
@@ -32,7 +32,7 @@ def make_xgboost_dataframe_mapper(dtypes, missing_value_aware = True):
 def make_xgboost_column_transformer(dtypes, missing_value_aware = True):
 	"""Construct a ColumnTransformer for feeding complex data into an XGBModel.
 
-	Parameters
+	Parameters:
 	----------
 
 	dtypes: iterable of tuples (column, dtype)
@@ -40,7 +40,7 @@ def make_xgboost_column_transformer(dtypes, missing_value_aware = True):
 	missing_value_aware: boolean
 		If true, use missing value aware transformers.
 
-	Returns
+	Returns:
 	-------
 	ColumnTransformer
 

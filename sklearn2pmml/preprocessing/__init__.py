@@ -300,9 +300,10 @@ class LookupTransformer(BaseEstimator, TransformerMixin):
 
 	If the mapping is not found, returns `default_value`.
 
-	See also
+	See also:
 	--------
 	FilterLookupTransformer
+
 	"""
 
 	def __init__(self, mapping, default_value):
@@ -353,9 +354,10 @@ class FilterLookupTransformer(LookupTransformer):
 
 	If the mapping is not found, returns the original value unchanged.
 
-	See also
+	See also:
 	--------
 	LookupTransformer
+
 	"""
 
 	def __init__(self, mapping):

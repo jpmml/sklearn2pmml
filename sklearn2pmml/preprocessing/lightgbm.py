@@ -7,7 +7,7 @@ from sklearn2pmml.preprocessing import PMMLLabelEncoder
 def make_lightgbm_dataframe_mapper(dtypes, missing_value_aware = True):
 	"""Construct a DataFrameMapper for feeding complex data into a LGBMModel.
 
-	Parameters
+	Parameters:
 	----------
 
 	dtypes: iterable of tuples (column, dtype)
@@ -15,7 +15,7 @@ def make_lightgbm_dataframe_mapper(dtypes, missing_value_aware = True):
 	missing_value_aware: boolean
 		If true, use missing value aware transformers.
 
-	Returns
+	Returns:
 	-------
 	Tuple (DataFrameMapper, list of categorical columns indices)
 
@@ -35,7 +35,7 @@ def make_lightgbm_dataframe_mapper(dtypes, missing_value_aware = True):
 def make_lightgbm_column_transformer(dtypes, missing_value_aware = True):
 	"""Construct a ColumnTransformer for feeding complex data into a LGBMModel.
 
-	Parameters
+	Parameters:
 	----------
 
 	dtypes: iterable of tuples (column, dtype)
@@ -44,6 +44,7 @@ def make_lightgbm_column_transformer(dtypes, missing_value_aware = True):
 		If true, use missing value aware transformers.
 
 	Returns:
+	-------
 	Tuple (ColumnTransformer, list of categorical column indices)
 
 	"""
