@@ -1,8 +1,8 @@
 sklearn2pmml-1.0-SNAPSHOT.jar
 gson-2.10.jar
 guava-21.0.jar
-h2o-genmodel-3.40.0.2.jar
-h2o-logger-3.40.0.2.jar
+h2o-genmodel-3.40.0.4.jar
+h2o-logger-3.40.0.4.jar
 h2o-tree-api-0.3.17.jar
 istack-commons-runtime-4.0.1.jar
 jackson-annotations-2.13.3.jar
