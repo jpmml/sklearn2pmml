@@ -98,6 +98,7 @@ sklearn2pmml(pipeline, "LogisticRegressionIris.pmml", with_repr = True)
 
 Integrations:
 
+* [Converting customized Scikit-Learn estimators to PMML](https://openscoring.io/blog/2023/05/03/converting_sklearn_subclass_pmml/)
 * [Training Scikit-Learn StatsModels pipelines](https://openscoring.io/blog/2023/03/28/sklearn_statsmodels_pipeline/)
 * [Upgrading Scikit-Learn XGBoost pipelines](https://openscoring.io/blog/2023/02/06/upgrading_sklearn_xgboost_pipeline_pmml/)
 * [Training Python-based XGBoost accelerated failure time models](https://openscoring.io/blog/2023/01/28/python_xgboost_aft_pmml/)
