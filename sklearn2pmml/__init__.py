@@ -349,16 +349,16 @@ def load_class_mapping(user_classpath = []):
 	_process_classpath("META-INF/sklearn2pmml.properties", processor, user_classpath)
 	return mapping
 
-def make_class_mapping_jar(path, mapping):
+def make_class_mapping_jar(mapping, path):
 	"""Generates a class mapping JAR file.
 
 	Parameters:
 	----------
-	path: string
-		The path to output JAR file.
-
 	mapping: dict of strings
 		Mapping from Python class names to Java converter class names.
+
+	path: string
+		The path to output JAR file.
 
 	"""
 	lines = _format_properties(mapping)

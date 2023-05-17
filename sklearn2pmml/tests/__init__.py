@@ -142,7 +142,7 @@ class ClasspathTest(TestCase):
 				"__main__.MyTransformer" : "mycompany.MyTransformer",
 				"__main__.MyEstimator" : "mycompany.MyEstimator"
 			}
-			make_class_mapping_jar(tmp.name, mapping_ext)
+			make_class_mapping_jar(mapping_ext, tmp.name)
 			mapping_ext = load_class_mapping([tmp.name])
 
 			self.assertEqual(len(mapping) + 2, len(mapping_ext))
