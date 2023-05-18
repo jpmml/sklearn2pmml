@@ -222,14 +222,15 @@ class EstimatorChain(_BaseEnsemble):
 			step_mask = eval_expr_rows(X, predicate, dtype = bool)
 			if numpy.sum(step_mask) < 1:
 				raise ValueError(predicate)
+			step_X = X[step_mask]
 			if len(y.shape) == 1:
 				step_y = y[step_mask]
 			elif len(y.shape) == 2:
 				step_y = y[step_mask, i]
 			else:
 				raise ValueError()
-			step_fit_params = _extract_step_params(name, fit_params)
-			estimator.fit(X[step_mask], step_y, **_mask_params(step_fit_params, step_mask))
+			step_fit_params = _mask_params(_extract_step_params(name, fit_params), step_mask)
+			estimator.fit(step_X, step_y, **step_fit_params)
 			if isinstance(estimator, Link):
 				X = estimator.augment(X)
 			i += 1
@@ -241,7 +242,8 @@ class EstimatorChain(_BaseEnsemble):
 			step_mask = eval_expr_rows(X, predicate, dtype = bool)
 			if numpy.sum(step_mask) < 1:
 				continue
-			step_result = getattr(estimator, predict_method)(X[step_mask])
+			step_X = X[step_mask]
+			step_result = getattr(estimator, predict_method)(step_X)
 			step_result = _to_sparse(X, step_mask, step_result)
 			if self.multioutput:
 				step_result = step_result.reshape(X.shape[0], -1)
@@ -276,8 +278,10 @@ class SelectFirstEstimator(_BaseEnsemble):
 			step_mask[mask] = False
 			if numpy.sum(step_mask) < 1:
 				raise ValueError(predicate)
-			step_fit_params = _extract_step_params(name, fit_params)
-			estimator.fit(X[step_mask], y[step_mask], **_mask_params(step_fit_params, step_mask))
+			step_X = X[step_mask]
+			step_y = y[step_mask]
+			step_fit_params = _mask_params(_extract_step_params(name, fit_params), step_mask)
+			estimator.fit(step_X, step_y, **step_fit_params)
 			mask = numpy.logical_or(mask, step_mask)
 		return self
 
@@ -289,7 +293,8 @@ class SelectFirstEstimator(_BaseEnsemble):
 			step_mask[mask] = False
 			if numpy.sum(step_mask) < 1:
 				continue
-			step_result = getattr(estimator, predict_method)(X[step_mask])
+			step_X = X[step_mask]
+			step_result = getattr(estimator, predict_method)(step_X)
 			step_result = _to_sparse(X, step_mask, step_result)
 			if result is None:
 				result = step_result
