@@ -410,6 +410,12 @@ class MultiLookupTransformer(LookupTransformer):
 		Xt = eval_rows(X, func)
 		return _col2d(Xt)
 
+def _make_indexer(values):
+	result = {}
+	for idx, value in enumerate(values):
+		result[value] = idx
+	return result
+
 class PMMLLabelBinarizer(BaseEstimator, TransformerMixin):
 	"""Binarize categorical data in a missing value-aware way."""
 
@@ -428,9 +434,10 @@ class PMMLLabelBinarizer(BaseEstimator, TransformerMixin):
 			Xt = lil_matrix((len(X), len(index)), dtype = int)
 		else:
 			Xt = numpy.zeros((len(X), len(index)), dtype = int)
+		mapping = _make_indexer(index)
 		for i, v in enumerate(X):
 			if pandas.notnull(v):
-				Xt[i, index.index(v)] = 1
+				Xt[i, mapping[v]] = 1
 		if self.sparse_output:
 			Xt = Xt.tocsr()
 		return Xt
@@ -449,9 +456,7 @@ class PMMLLabelEncoder(BaseEstimator, TransformerMixin):
 	def transform(self, X):
 		X = ensure_1d(X)
 		index = list(self.classes_)
-		mapping = {}
-		for i, x in enumerate(index):
-			mapping[x] = i
+		mapping = _make_indexer(index)
 		Xt = numpy.array([self.missing_values if pandas.isnull(v) else mapping[v] for v in X])
 		return _col2d(Xt)
 
