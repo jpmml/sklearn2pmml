@@ -449,7 +449,10 @@ class PMMLLabelEncoder(BaseEstimator, TransformerMixin):
 	def transform(self, X):
 		X = ensure_1d(X)
 		index = list(self.classes_)
-		Xt = numpy.array([self.missing_values if pandas.isnull(v) else index.index(v) for v in X])
+		mapping = {}
+		for i, x in enumerate(index):
+			mapping[x] = i
+		Xt = numpy.array([self.missing_values if pandas.isnull(v) else mapping[v] for v in X])
 		return _col2d(Xt)
 
 class PowerFunctionTransformer(BaseEstimator, TransformerMixin):
