@@ -410,10 +410,12 @@ class MultiLookupTransformer(LookupTransformer):
 		Xt = eval_rows(X, func)
 		return _col2d(Xt)
 
-def _make_indexer(values):
+def _make_index(values):
 	result = {}
-	for idx, value in enumerate(values):
-		result[value] = idx
+	for i, v in enumerate(list(values)):
+		result[v] = i
+	if len(result) != len(values):
+		raise ValueError()
 	return result
 
 class PMMLLabelBinarizer(BaseEstimator, TransformerMixin):
@@ -429,12 +431,11 @@ class PMMLLabelBinarizer(BaseEstimator, TransformerMixin):
 
 	def transform(self, X):
 		X = ensure_1d(X)
-		index = list(self.classes_)
+		mapping = _make_index(self.classes_)
 		if self.sparse_output:
-			Xt = lil_matrix((len(X), len(index)), dtype = int)
+			Xt = lil_matrix((len(X), len(mapping)), dtype = int)
 		else:
-			Xt = numpy.zeros((len(X), len(index)), dtype = int)
-		mapping = _make_indexer(index)
+			Xt = numpy.zeros((len(X), len(mapping)), dtype = int)
 		for i, v in enumerate(X):
 			if pandas.notnull(v):
 				Xt[i, mapping[v]] = 1
@@ -455,8 +456,7 @@ class PMMLLabelEncoder(BaseEstimator, TransformerMixin):
 
 	def transform(self, X):
 		X = ensure_1d(X)
-		index = list(self.classes_)
-		mapping = _make_indexer(index)
+		mapping = _make_index(self.classes_)
 		Xt = numpy.array([self.missing_values if pandas.isnull(v) else mapping[v] for v in X])
 		return _col2d(Xt)
 
