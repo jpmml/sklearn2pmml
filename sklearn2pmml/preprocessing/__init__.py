@@ -437,7 +437,7 @@ class PMMLLabelBinarizer(BaseEstimator, TransformerMixin):
 		else:
 			Xt = numpy.zeros((len(X), len(mapping)), dtype = int)
 		for i, v in enumerate(X):
-			if pandas.notnull(v):
+			if (pandas.notnull(v)) and (v in mapping):
 				Xt[i, mapping[v]] = 1
 		if self.sparse_output:
 			Xt = Xt.tocsr()
@@ -457,7 +457,7 @@ class PMMLLabelEncoder(BaseEstimator, TransformerMixin):
 	def transform(self, X):
 		X = ensure_1d(X)
 		mapping = _make_index(self.classes_)
-		Xt = numpy.array([self.missing_values if pandas.isnull(v) else mapping[v] for v in X])
+		Xt = numpy.array([self.missing_values if (pandas.isnull(v) or (v not in mapping)) else mapping[v] for v in X])
 		return _col2d(Xt)
 
 class PowerFunctionTransformer(BaseEstimator, TransformerMixin):

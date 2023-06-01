@@ -429,12 +429,12 @@ class PMMLLabelBinarizerTest(TestCase):
 		X = [1.0, float("NaN"), 2.0, 3.0]
 		dense_binarizer = PMMLLabelBinarizer()
 		dense_binarizer.fit(X)
-		Xt_dense = dense_binarizer.transform([1.0, 3.0, float("NaN"), 2.0])
+		Xt_dense = dense_binarizer.transform([1.0, 3.0, float("NaN"), -1.0, 2.0])
 		self.assertIsInstance(Xt_dense, numpy.ndarray)
-		self.assertEqual([[1, 0, 0], [0, 0, 1], [0, 0, 0], [0, 1, 0]], Xt_dense.tolist())
+		self.assertEqual([[1, 0, 0], [0, 0, 1], [0, 0, 0], [0, 0, 0], [0, 1, 0]], Xt_dense.tolist())
 		sparse_binarizer = PMMLLabelBinarizer(sparse_output = True)
 		sparse_binarizer.fit(X)
-		Xt_sparse = sparse_binarizer.transform([1.0, 3.0, float("NaN"), 2.0])
+		Xt_sparse = sparse_binarizer.transform([1.0, 3.0, float("NaN"), -1.0, 2.0])
 		self.assertIsInstance(Xt_sparse, scipy.sparse.csr_matrix)
 		self.assertEqual(Xt_dense.tolist(), Xt_sparse.toarray().tolist())
 
@@ -442,14 +442,12 @@ class PMMLLabelBinarizerTest(TestCase):
 		X = ["A", None, "B", "C"]
 		dense_binarizer = PMMLLabelBinarizer()
 		dense_binarizer.fit(X)
-		Xt_dense = dense_binarizer.transform(["A", "C", None, "B"])
+		Xt_dense = dense_binarizer.transform(["A", "C", None, "D", "B"])
 		self.assertIsInstance(Xt_dense, numpy.ndarray)
-		self.assertEqual([[1, 0, 0], [0, 0, 1], [0, 0, 0], [0, 1, 0]], Xt_dense.tolist())
-		self.assertEqual([[0, 0, 0]], dense_binarizer.transform([None]).tolist())
-		self.assertEqual([[1, 0, 0], [0, 1, 0], [0, 0, 1]], dense_binarizer.transform(["A", "B", "C"]).tolist())
+		self.assertEqual([[1, 0, 0], [0, 0, 1], [0, 0, 0], [0, 0, 0], [0, 1, 0]], Xt_dense.tolist())
 		sparse_binarizer = PMMLLabelBinarizer(sparse_output = True)
 		sparse_binarizer.fit(X)
-		Xt_sparse = sparse_binarizer.transform(["A", "C", None, "B"])
+		Xt_sparse = sparse_binarizer.transform(["A", "C", None, "D", "B"])
 		self.assertIsInstance(Xt_sparse, scipy.sparse.csr_matrix)
 		self.assertEqual(Xt_dense.tolist(), Xt_sparse.toarray().tolist())
 
@@ -479,13 +477,13 @@ class PMMLLabelEncoderTest(TestCase):
 		X = [1.0, float("NaN"), 2.0, 3.0]
 		encoder = PMMLLabelEncoder(missing_values = -999)
 		encoder.fit(X)
-		self.assertEqual([[0], [2], [-999], [1]], encoder.transform([1.0, 3.0, float("NaN"), 2.0]).tolist())
+		self.assertEqual([[0], [2], [-999], [-999], [1]], encoder.transform([1.0, 3.0, float("NaN"), -1.0, 2.0]).tolist())
 
 	def test_transform_string(self):
 		X = ["A", None, "B", "C"]
 		encoder = PMMLLabelEncoder()
 		encoder.fit(X)
-		self.assertEqual([[0], [2], [None], [1]], encoder.transform(["A", "C", None, "B"]).tolist())
+		self.assertEqual([[0], [2], [None], [None], [1]], encoder.transform(["A", "C", None, "D", "B"]).tolist())
 		self.assertEqual([[None]], encoder.transform(numpy.array([None])).tolist())
 		self.assertEqual([[0], [1], [2]], encoder.transform(Series(numpy.array(["A", "B", "C"]))).tolist())
 
