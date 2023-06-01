@@ -8,6 +8,7 @@ from sklearn.preprocessing import OneHotEncoder
 from sklearn.utils.metaestimators import _BaseComposition
 from sklearn2pmml.util import eval_expr_rows, fqn, Predicate
 
+import copy
 import numpy
 
 def _checkGBDTRegressor(gbdt):
@@ -179,7 +180,7 @@ class Link(BaseEstimator):
 		self.augment_funcs = augment_funcs
 		self.prefit = prefit
 		if prefit:
-			self.estimator_ = clone(self.estimator)
+			self.estimator_ = copy.deepcopy(self.estimator)
 
 	def fit(self, X, y, **fit_params):
 		self.estimator_ = clone(self.estimator)

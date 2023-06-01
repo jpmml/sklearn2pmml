@@ -3,6 +3,7 @@ from sklearn.base import clone, BaseEstimator, TransformerMixin
 from sklearn2pmml import _is_pandas_categorical
 from sklearn2pmml.util import cast, common_dtype, ensure_1d, eval_rows
 
+import copy
 import numpy
 import pandas
 
@@ -12,7 +13,7 @@ class TransformerWrapper(BaseEstimator, TransformerMixin):
 		self.transformer = transformer
 		self.prefit = prefit
 		if prefit:
-			self.transformer_ = clone(self.transformer)
+			self.transformer_ = copy.deepcopy(self.transformer)
 
 	def fit(self, X, y = None, **fit_params):
 		self.transformer_ = clone(self.transformer)
