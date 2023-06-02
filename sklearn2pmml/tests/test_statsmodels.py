@@ -1,6 +1,9 @@
+from pandas import CategoricalDtype, Series
 from sklearn.datasets import load_diabetes, load_iris
-from sklearn2pmml.statsmodels import StatsModelsClassifier, StatsModelsRegressor
+from sklearn.preprocessing import KBinsDiscretizer
+from sklearn2pmml.statsmodels import StatsModelsClassifier, StatsModelsOrdinalClassifier, StatsModelsRegressor
 from statsmodels.api import Logit, MNLogit, OLS
+from statsmodels.miscmodels.ordinal_model import OrderedModel
 from unittest import TestCase
 
 import numpy
@@ -69,6 +72,28 @@ class StatsModelsClassifierTest(TestCase):
 		classifier.fit(iris_X, iris_y)
 		self.assertEqual((2, 4), classifier.coef_.shape)
 		self.assertEqual((2, ), classifier.intercept_.shape)
+
+class StatsModelsOrdinalClassifierTest(TestCase):
+
+	def test_ordinal_classification(self):
+		diabetes_X, diabetes_y = load_diabetes(return_X_y = True)
+		discretizer = KBinsDiscretizer(n_bins = 5, encode = "ordinal", strategy = "kmeans")
+		diabetes_y = discretizer.fit_transform(diabetes_y.reshape((-1, 1))).astype(int)
+		diabetes_y = numpy.vectorize(lambda x:"c{}".format(x + 1))(diabetes_y)
+		diabetes_y = Series(diabetes_y.ravel(), dtype = CategoricalDtype(["c1", "c2", "c3", "c4", "c5"], ordered = True))
+		classifier = StatsModelsOrdinalClassifier(OrderedModel, distr = "logit")
+		classifier.fit(diabetes_X, diabetes_y)
+		self.assertTrue(hasattr(classifier, "model_"))
+		self.assertTrue(hasattr(classifier, "results_"))
+		self.assertEqual(["c1", "c2", "c3", "c4", "c5"], classifier.classes_.tolist())
+		self.assertEqual((10, ), classifier.coef_.shape)
+		self.assertEquals(0, classifier.intercept_)
+		self.assertEqual((4, ), classifier.threshold_.shape)
+		classifier.remove_data()
+		bins = classifier.predict(diabetes_X)
+		self.assertEqual((442, ), bins.shape)
+		bins_proba = classifier.predict_proba(diabetes_X)
+		self.assertEqual((442, 5), bins_proba.shape)
 
 class StatsModelsRegressorTest(TestCase):
 
