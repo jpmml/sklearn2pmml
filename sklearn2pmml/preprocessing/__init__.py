@@ -195,6 +195,14 @@ class MultiLookupTransformer(LookupTransformer):
 			Xt = numpy.array([func((numpy.squeeze(numpy.asarray(row))).tolist()) for row in X])
 		return _col2d(Xt)
 
+def _make_index(values):
+	result = {}
+	for i, v in enumerate(list(values)):
+		result[v] = i
+	if len(result) != len(values):
+		raise ValueError()
+	return result
+
 class PMMLLabelBinarizer(BaseEstimator, TransformerMixin):
 
 	def __init__(self, sparse_output = False):
@@ -207,14 +215,14 @@ class PMMLLabelBinarizer(BaseEstimator, TransformerMixin):
 
 	def transform(self, X):
 		X = column_or_1d(X, warn = True)
-		index = list(self.classes_)
+		mapping = _make_index(self.classes_)
 		if self.sparse_output:
-			Xt = lil_matrix((len(X), len(index)), dtype = numpy.int)
+			Xt = lil_matrix((len(X), len(mapping)), dtype = numpy.int)
 		else:
-			Xt = numpy.zeros((len(X), len(index)), dtype = numpy.int)
+			Xt = numpy.zeros((len(X), len(mapping)), dtype = numpy.int)
 		for i, v in enumerate(X):
-			if not pandas.isnull(v):
-				Xt[i, index.index(v)] = 1
+			if (pandas.notnull(v)) and (v in mapping):
+				Xt[i, mapping[v]] = 1
 		if self.sparse_output:
 			Xt = Xt.tocsr()
 		return Xt
@@ -231,8 +239,8 @@ class PMMLLabelEncoder(BaseEstimator, TransformerMixin):
 
 	def transform(self, X):
 		X = column_or_1d(X, warn = True)
-		index = list(self.classes_)
-		Xt = numpy.array([self.missing_values if pandas.isnull(v) else index.index(v) for v in X])
+		mapping = _make_index(self.classes_)
+		Xt = numpy.array([self.missing_values if pandas.isnull(v) else mapping.get(v, self.missing_values) for v in X])
 		return _col2d(Xt)
 
 class PowerFunctionTransformer(BaseEstimator, TransformerMixin):
