@@ -42,7 +42,7 @@ class MultiAliasTest(TestCase):
 
 	def test_get_feature_names_out(self):
 		X = DataFrame([[0, 0], [0, 1], [1, 1]], columns = ["x1", "x2"])
-		multi_alias = MultiAlias(IdentityTransformer(), names = ["left", "right"])
+		multi_alias = MultiAlias(IdentityTransformer(check_X = True), names = ["left", "right"])
 		self.assertEqual(["left", "right"], multi_alias.get_feature_names_out(None).tolist())
 		ohe = OneHotEncoder()
 		pipeline = Pipeline([
