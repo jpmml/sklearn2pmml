@@ -16,6 +16,7 @@ from sklearn2pmml.resources import _package_classpath
 from subprocess import PIPE, Popen
 from zipfile import ZipFile
 
+import dill
 import joblib
 import numpy
 import os
@@ -25,6 +26,7 @@ import re
 import sklearn
 import sklearn_pandas
 import tempfile
+import warnings
 
 from .metadata import __copyright__, __license__, __version__
 from .pipeline import PMMLPipeline
@@ -195,7 +197,16 @@ def _process_classpath(name, fun, user_classpath):
 			else:
 				fun(zipfile.open(zipentry))
 
-def _dump(obj, prefix):
+def _dill_dump(obj, prefix):
+	fd, path = tempfile.mkstemp(prefix = (prefix + "-"), suffix = ".pkl")
+	try:
+		with open(path, "wb") as dill_file:
+			dill.dump(obj, dill_file)
+	finally:
+		os.close(fd)
+	return path
+
+def _joblib_dump(obj, prefix):
 	fd, path = tempfile.mkstemp(prefix = (prefix + "-"), suffix = ".pkl.z")
 	try:
 		joblib.dump(obj, path, compress = 3)
@@ -203,7 +214,7 @@ def _dump(obj, prefix):
 		os.close(fd)
 	return path
 
-def sklearn2pmml(pipeline, pmml, with_repr = False, java_home = None, java_opts = None, user_classpath = [], debug = False):
+def sklearn2pmml(pipeline, pmml, with_repr = False, java_home = None, java_opts = None, user_classpath = [], dump_flavour = "joblib", debug = False):
 	"""Converts a fitted PMML pipeline object to PMML file.
 
 	Parameters:
@@ -228,6 +239,9 @@ def sklearn2pmml(pipeline, pmml, with_repr = False, java_home = None, java_opts 
 	user_classpath: list of strings, optional
 		The paths to JAR files that provide custom Transformer, Selector and/or Estimator converter classes.
 		The SkLearn2PMML classpath is constructed by appending user JAR files to package JAR files.
+
+	dump_flavour: string, optional
+		The flavour of pickle dump files.
 
 	debug: boolean, optional
 		If true, print information about the conversion process.
@@ -255,12 +269,20 @@ def sklearn2pmml(pipeline, pmml, with_repr = False, java_home = None, java_opts 
 		estimator = pipeline._final_estimator
 		# if isinstance(estimator, H2OEstimator):
 		if hasattr(estimator, "download_mojo"):
+			if dump_flavour != "dill":
+				warnings.warn("Changing dump flavour to dill")
+				dump_flavour = "dill"
 			# Avoid MOJO (re-)download if the indicator attribute is set
 			if not hasattr(estimator, "_mojo_path"):
 				estimator_mojo = estimator.download_mojo()
 				dumps.append(estimator_mojo)
 				estimator._mojo_path = estimator_mojo
-		pipeline_pkl = _dump(pipeline, "pipeline")
+		if dump_flavour == "dill":
+			pipeline_pkl = _dill_dump(pipeline, "pipeline")
+		elif dump_flavour == "joblib":
+			pipeline_pkl = _joblib_dump(pipeline, "pipeline")
+		else:
+			raise ValueError("Dump flavour {0} not in {1}".format(dump_flavour, ["dill", "joblib"]))
 		java_args.extend(["--pkl-pipeline-input", pipeline_pkl])
 		dumps.append(pipeline_pkl)
 		java_args.extend(["--pmml-output", pmml])
@@ -286,7 +308,7 @@ def sklearn2pmml(pipeline, pmml, with_repr = False, java_home = None, java_opts 
 			raise RuntimeError("The SkLearn2PMML application has failed. The Java executable should have printed more information about the failure into its standard output and/or standard error streams")
 	finally:
 		if debug:
-			print("Preserved joblib dump file(s): {0}".format(" ".join(dumps)))
+			print("Preserved dump file(s): {0}".format(" ".join(dumps)))
 		else:
 			for dump in dumps:
 				os.remove(dump)
