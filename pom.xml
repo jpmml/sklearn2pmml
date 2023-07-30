@@ -33,7 +33,7 @@
 	</issueManagement>
 
 	<properties>
-		<jpmml-sklearn.version>1.7.32</jpmml-sklearn.version>
+		<jpmml-sklearn.version>1.7.33</jpmml-sklearn.version>
 	</properties>
 
 	<dependencies>
@@ -42,6 +42,10 @@
 			<artifactId>pmml-sklearn</artifactId>
 			<version>${jpmml-sklearn.version}</version>
 			<exclusions>
+				<exclusion>
+					<groupId>com.google.guava</groupId>
+					<artifactId>guava</artifactId>
+				</exclusion>
 				<exclusion>
 					<groupId>org.jpmml</groupId>
 					<artifactId>pmml-python-testing</artifactId>
@@ -102,6 +106,18 @@
 			<groupId>com.beust</groupId>
 			<artifactId>jcommander</artifactId>
 			<version>1.72</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>32.1.1-jre</version>
+			<exclusions>
+				<exclusion>
+					<groupId>*</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 	</dependencies>
 
