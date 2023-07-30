@@ -92,14 +92,6 @@ class SelectorProxy(BaseEstimator):
 	def transform(self, X):
 		return self.selector.transform(X)
 
-def _get_steps(obj):
-	if isinstance(obj, Pipeline):
-		return obj.steps
-	elif isinstance(obj, BaseEstimator):
-		return [("estimator", obj)]
-	else:
-		raise TypeError("The object is not an instance of {0}".format(BaseEstimator.__name__))
-
 def _escape(obj, escape_func):
 	if isinstance(obj, DataFrameMapper):
 		obj.features = _escape_steps(obj.features, escape_func = escape_func)
@@ -124,13 +116,13 @@ def _escape(obj, escape_func):
 def _escape_steps(steps, escape_func):
 	return [(step[:1] + (escape_func(step[1], escape_func = escape_func), ) + step[2:]) for step in steps]
 
-def make_pmml_pipeline(obj, active_fields = None, target_fields = None, escape_func = _escape):
-	"""Translates a regular Scikit-Learn estimator or pipeline to a PMML pipeline.
+def make_pmml_pipeline(estimator, active_fields = None, target_fields = None, escape_func = _escape):
+	"""Wraps a Scikit-Learn estimator or pipeline object into a PMML pipeline object.
 
 	Parameters:
 	----------
-	obj: BaseEstimator
-		The object.
+	estimator: BaseEstimator
+		The estimator object.
 
 	active_fields: list of strings, optional
 		Feature names. If missing, "x1", "x2", .., "xn" are assumed.
@@ -139,8 +131,12 @@ def make_pmml_pipeline(obj, active_fields = None, target_fields = None, escape_f
 		Label name(s). If missing, "y" is assumed.
 
 	"""
-	steps = _escape_steps(_get_steps(obj), escape_func = escape_func)
-	pipeline = PMMLPipeline(steps)
+	if not isinstance(estimator, BaseEstimator):
+		raise TypeError("The estimator object is not an instance of {0}".format(BaseEstimator.__name__))
+	pipeline = PMMLPipeline([
+		("estimator", estimator)
+	])
+	pipeline = _escape(pipeline, escape_func = escape_func)
 	if active_fields is not None:
 		pipeline.active_fields = numpy.asarray(active_fields)
 	if target_fields is not None:
