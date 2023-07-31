@@ -122,7 +122,7 @@ def make_pmml_pipeline(estimator, active_fields = None, target_fields = None, es
 	Parameters:
 	----------
 	estimator: BaseEstimator
-		The estimator object.
+		The estimator or pipeline object.
 
 	active_fields: list of strings, optional
 		Feature names. If missing, "x1", "x2", .., "xn" are assumed.
@@ -210,19 +210,19 @@ def _joblib_dump(obj, prefix):
 		os.close(fd)
 	return path
 
-def sklearn2pmml(pipeline, pmml, with_repr = False, java_home = None, java_opts = None, user_classpath = [], dump_flavour = "joblib", debug = False):
-	"""Converts a fitted PMML pipeline object to PMML file.
+def sklearn2pmml(estimator, pmml_path, with_repr = False, java_home = None, java_opts = None, user_classpath = [], dump_flavour = "joblib", debug = False):
+	"""Converts a fitted estimator or pipeline object to PMML.
 
 	Parameters:
 	----------
-	pipeline: PMMLPipeline
-		The input PMML pipeline object.
+	estimator: BaseEstimator
+		The estimator or pipeline object.
 
-	pmml: string
-		The path to output PMML file.
+	pmml_path: string
+		The file path where the PMML document should be saved.
 
 	with_repr: boolean, optional
-		If true, insert the string representation of pipeline into the PMML document.
+		If true, insert a string containing a printable representation of the estimator object into the PMML document.
 
 	java_home: string, optional
 		The path to Java installation directory.
@@ -248,40 +248,45 @@ def sklearn2pmml(pipeline, pmml, with_repr = False, java_home = None, java_opts 
 		if java_version is None:
 			java_version = ("java", "N/A")
 		print("python: {0}".format(platform.python_version()))
-		print("sklearn: {0}".format(sklearn.__version__))
 		print("sklearn2pmml: {0}".format(__version__))
-		print("joblib: {0}".format(joblib.__version__))
+		print("sklearn: {0}".format(sklearn.__version__))
 		print("sklearn_pandas: {0}".format(sklearn_pandas.__version__))
 		print("pandas: {0}".format(pandas.__version__))
 		print("numpy: {0}".format(numpy.__version__))
+		print("dill: {0}".format(dill.__version__))
+		print("joblib: {0}".format(joblib.__version__))
 		print("{0}: {1}".format(java_version[0], java_version[1]))
-	if not isinstance(pipeline, PMMLPipeline):
-		raise TypeError("The pipeline object is not an instance of {0}. Use the 'sklearn2pmml.make_pmml_pipeline(obj)' utility function to translate a regular Scikit-Learn pipeline or estimator to a PMML pipeline".format(PMMLPipeline.__name__))
-	if with_repr:
-		pipeline.repr_ = repr(pipeline)
+	if not isinstance(estimator, BaseEstimator):
+		raise TypeError("The estimator object is not an instance of {0}".format(BaseEstimator.__name__))
+	# if isinstance(estimator, Pipeline):
+	if hasattr(estimator, "_final_estimator"):
+		final_estimator = estimator._final_estimator
+	else:
+		final_estimator = estimator
 	dumps = []
 	try:
 		java_args = ["-cp", os.pathsep.join(_classpath(user_classpath)), "com.sklearn2pmml.Main"]
-		estimator = pipeline._final_estimator
-		# if isinstance(estimator, H2OEstimator):
-		if hasattr(estimator, "download_mojo"):
+		if with_repr:
+			estimator.repr_ = repr(estimator)
+		# if isinstance(final_estimator, H2OEstimator):
+		if hasattr(final_estimator, "download_mojo"):
 			if dump_flavour != "dill":
 				warnings.warn("Changing dump flavour to dill")
 				dump_flavour = "dill"
 			# Avoid MOJO (re-)download if the indicator attribute is set
-			if not hasattr(estimator, "_mojo_path"):
-				estimator_mojo = estimator.download_mojo()
-				dumps.append(estimator_mojo)
-				estimator._mojo_path = estimator_mojo
+			if not hasattr(final_estimator, "_mojo_path"):
+				mojo_path = final_estimator.download_mojo()
+				dumps.append(mojo_path)
+				final_estimator._mojo_path = mojo_path
 		if dump_flavour == "dill":
-			pipeline_pkl = _dill_dump(pipeline, "pipeline")
+			pkl_path = _dill_dump(estimator, "estimator")
 		elif dump_flavour == "joblib":
-			pipeline_pkl = _joblib_dump(pipeline, "pipeline")
+			pkl_path = _joblib_dump(estimator, "estimator")
 		else:
 			raise ValueError("Dump flavour {0} not in {1}".format(dump_flavour, ["dill", "joblib"]))
-		java_args.extend(["--pkl-pipeline-input", pipeline_pkl])
-		dumps.append(pipeline_pkl)
-		java_args.extend(["--pmml-output", pmml])
+		java_args.extend(["--pkl-input", pkl_path])
+		dumps.append(pkl_path)
+		java_args.extend(["--pmml-output", pmml_path])
 		cmd = _make_java_command(java_home = java_home, java_opts = java_opts, java_args = java_args)
 		if debug:
 			print("Executing command:\n{0}".format(" ".join(cmd)))
