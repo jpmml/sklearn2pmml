@@ -27,13 +27,12 @@ import com.beust.jcommander.Parameter;
 import org.dmg.pmml.PMML;
 import org.jpmml.converter.Application;
 import org.jpmml.model.metro.MetroJAXBUtil;
-import org.jpmml.python.CastFunction;
-import org.jpmml.python.ClassDictUtil;
 import org.jpmml.python.PickleUtil;
 import org.jpmml.python.Storage;
 import org.jpmml.python.StorageUtil;
 import org.jpmml.sklearn.SkLearnEncoder;
 import sklearn2pmml.pipeline.PMMLPipeline;
+import sklearn2pmml.pipeline.PMMLPipelineUtil;
 
 public class Main extends Application {
 
@@ -78,17 +77,9 @@ public class Main extends Application {
 			object = PickleUtil.unpickle(storage);
 		}
 
-		CastFunction<PMMLPipeline> castFunction = new CastFunction<PMMLPipeline>(PMMLPipeline.class){
+		PMMLPipeline pipeline = PMMLPipelineUtil.toPMMLPipeline(object);
 
-			@Override
-			protected String formatMessage(Object object){
-				return "The unpickled object (" + ClassDictUtil.formatClass(object) + ") is not a PMMLPipeline";
-			}
-		};
-
-		PMMLPipeline pmmlPipeline = castFunction.apply(object);
-
-		PMML pmml = pmmlPipeline.encodePMML(encoder);
+		PMML pmml = pipeline.encodePMML(encoder);
 
 		if(!this.outputFile.exists()){
 			File absoluteOutputFile = this.outputFile.getAbsoluteFile();
