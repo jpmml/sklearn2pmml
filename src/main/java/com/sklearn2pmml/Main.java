@@ -30,9 +30,9 @@ import org.jpmml.model.metro.MetroJAXBUtil;
 import org.jpmml.python.PickleUtil;
 import org.jpmml.python.Storage;
 import org.jpmml.python.StorageUtil;
-import org.jpmml.sklearn.SkLearnEncoder;
-import sklearn2pmml.pipeline.PMMLPipeline;
-import sklearn2pmml.pipeline.PMMLPipelineUtil;
+import org.jpmml.sklearn.Encodable;
+import org.jpmml.sklearn.EncodableUtil;
+import org.jpmml.sklearn.SkLearnUtil;
 
 public class Main extends Application {
 
@@ -69,17 +69,15 @@ public class Main extends Application {
 	}
 
 	private void run() throws Exception {
-		SkLearnEncoder encoder = new SkLearnEncoder();
-
 		Object object;
 
 		try(Storage storage = StorageUtil.createStorage(this.inputFile)){
 			object = PickleUtil.unpickle(storage);
 		}
 
-		PMMLPipeline pipeline = PMMLPipelineUtil.toPMMLPipeline(object);
+		Encodable encodable = EncodableUtil.toEncodable(object);
 
-		PMML pmml = pipeline.encodePMML(encoder);
+		PMML pmml = encodable.encodePMML();
 
 		if(!this.outputFile.exists()){
 			File absoluteOutputFile = this.outputFile.getAbsoluteFile();
@@ -93,5 +91,9 @@ public class Main extends Application {
 		try(OutputStream os = new FileOutputStream(this.outputFile)){
 			MetroJAXBUtil.marshalPMML(pmml, os);
 		}
+	}
+
+	static {
+		SkLearnUtil.initOnce();
 	}
 }
