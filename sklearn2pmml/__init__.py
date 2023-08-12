@@ -210,6 +210,11 @@ def _joblib_dump(obj, prefix):
 		os.close(fd)
 	return path
 
+def _is_supported(estimator):
+	if hasattr(estimator, "download_mojo"):
+		return True
+	return isinstance(estimator, BaseEstimator)
+
 def sklearn2pmml(estimator, pmml_path, with_repr = False, java_home = None, java_opts = None, user_classpath = [], dump_flavour = "joblib", debug = False):
 	"""Converts a fitted estimator or pipeline object to PMML.
 
@@ -256,7 +261,7 @@ def sklearn2pmml(estimator, pmml_path, with_repr = False, java_home = None, java
 		print("dill: {0}".format(dill.__version__))
 		print("joblib: {0}".format(joblib.__version__))
 		print("{0}: {1}".format(java_version[0], java_version[1]))
-	if not isinstance(estimator, BaseEstimator):
+	if not _is_supported(estimator):
 		raise TypeError("The estimator object is not an instance of {0}".format(BaseEstimator.__name__))
 	# if isinstance(estimator, Pipeline):
 	if hasattr(estimator, "_final_estimator"):
@@ -274,7 +279,7 @@ def sklearn2pmml(estimator, pmml_path, with_repr = False, java_home = None, java
 				warnings.warn("Changing dump flavour to dill")
 				dump_flavour = "dill"
 			# Avoid MOJO (re-)download if the indicator attribute is set
-			if not hasattr(final_estimator, "_mojo_path"):
+			if not (hasattr(final_estimator, "_mojo_path") or hasattr(final_estimator, "_mojo_bytes")):
 				mojo_path = final_estimator.download_mojo()
 				dumps.append(mojo_path)
 				final_estimator._mojo_path = mojo_path
