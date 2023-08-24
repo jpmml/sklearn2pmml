@@ -1,5 +1,5 @@
-from pandas import CategoricalDtype
 from sklearn.base import BaseEstimator, ClassifierMixin, RegressorMixin
+from sklearn2pmml import _is_ordinal
 from statsmodels.base.model import Model
 from statsmodels.tools import add_constant
 
@@ -102,7 +102,7 @@ class StatsModelsOrdinalClassifier(StatsModelsEstimator):
 
 	def fit(self, X, y, **fit_params):
 		dtype = y.dtype
-		if (not isinstance(dtype, CategoricalDtype)) or (not dtype.ordered):
+		if not _is_ordinal(dtype):
 			raise TypeError()
 		self.classes_ = numpy.asarray(dtype.categories)
 		super(StatsModelsOrdinalClassifier, self).fit(X = X, y = y, **fit_params)

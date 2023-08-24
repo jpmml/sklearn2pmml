@@ -1,3 +1,4 @@
+from pandas import CategoricalDtype
 from sklearn.base import BaseEstimator
 from sklearn.exceptions import NotFittedError
 try:
@@ -41,6 +42,16 @@ def _is_categorical(dtype):
 def _is_pandas_categorical(dtype):
 	if hasattr(dtype, "name"):
 		return dtype.name == "category"
+	return False
+
+def _is_ordinal(dtype):
+	if _is_pandas_ordinal(dtype):
+		return True
+	return False
+
+def _is_pandas_ordinal(dtype):
+	if isinstance(dtype, CategoricalDtype):
+		return dtype.ordered
 	return False
 
 class EstimatorProxy(BaseEstimator):
