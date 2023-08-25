@@ -1,11 +1,12 @@
-from pandas import DataFrame
+from pandas import CategoricalDtype, DataFrame, Series
 from sklearn.base import clone
-from sklearn.datasets import load_iris
+from sklearn.datasets import load_diabetes, load_iris
 from sklearn.dummy import DummyClassifier
 from sklearn.linear_model import ElasticNet, LinearRegression, LogisticRegression, SGDClassifier, SGDRegressor
+from sklearn.preprocessing import KBinsDiscretizer
 from sklearn.svm import LinearSVC
 from sklearn.tree import DecisionTreeClassifier
-from sklearn2pmml.ensemble import _checkLM, _checkLR, _extract_step_params, _mask_params, EstimatorChain, Link, SelectFirstClassifier, SelectFirstRegressor
+from sklearn2pmml.ensemble import _checkLM, _checkLR, _extract_step_params, _mask_params, EstimatorChain, Link, OrdinalClassifier, SelectFirstClassifier, SelectFirstRegressor
 from unittest import TestCase
 
 import numpy
@@ -89,6 +90,21 @@ class EstimatorChainTest(TestCase):
 		self.assertEqual((150, 2), preds.shape)
 		with self.assertRaises(AttributeError):
 			estimator.predict_proba(X)
+
+class OrdinalClassifierTest(TestCase):
+
+	def test_fit_predict(self):
+		diabetes_X, diabetes_y = load_diabetes(return_X_y = True)
+		discretizer = KBinsDiscretizer(n_bins = 5, encode = "ordinal", strategy = "kmeans")
+		diabetes_y = discretizer.fit_transform(diabetes_y.reshape((-1, 1))).astype(int)
+		diabetes_y = numpy.vectorize(lambda x:"c{}".format(x + 1))(diabetes_y)
+		diabetes_y = Series(diabetes_y.ravel(), dtype = CategoricalDtype(["c1", "c2", "c3", "c4", "c5"], ordered = True))
+		classifier = OrdinalClassifier(LogisticRegression())
+		classifier.fit(diabetes_X, diabetes_y)
+		bins = classifier.predict(diabetes_X)
+		self.assertEqual((442, ), bins.shape)
+		bins_proba = classifier.predict_proba(diabetes_X)
+		self.assertEqual((442, 5), bins_proba.shape)
 
 class SelectFirstClassifierTest(TestCase):
 
