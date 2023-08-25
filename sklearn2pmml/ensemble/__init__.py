@@ -166,17 +166,17 @@ class OrdinalClassifier(BaseEstimator, ClassifierMixin):
 
 	def predict_proba(self, X, **predict_proba_params):
 		n_estimators = len(self.classes_) - 1
-		probas = []
+		proba = []
 		for i in range(n_estimators):
-			probas.append(self.estimators_[i].predict_proba(X, **predict_proba_params)[:, 1])
+			proba.append(self.estimators_[i].predict_proba(X, **predict_proba_params)[:, 1])
 		result = []
 		for i in range(n_estimators + 1):
 			if i == 0:
-				result.append(1 - probas[0])
+				result.append(1 - proba[0])
 			elif i == n_estimators:
-				result.append(probas[-1])
+				result.append(proba[-1])
 			else:
-				result.append(probas[i - 1] - probas[i])
+				result.append(proba[i - 1] - proba[i])
 		return numpy.asarray(result).T
 
 class _BaseEnsemble(_BaseComposition):

@@ -22,12 +22,12 @@ class StatsModelsClassifierTest(TestCase):
 		self.assertIsInstance(classifier.model_, Logit)
 		self.assertEqual([False, True], classifier.classes_.tolist())
 		classifier.remove_data()
-		species = classifier.predict(iris_X)
-		self.assertEqual((150, ), species.shape)
-		self.assertEqual(classifier.classes_.tolist(), numpy.unique(species).tolist())
-		species_proba = classifier.predict_proba(iris_X)
-		self.assertEqual((150, 2), species_proba.shape)
-		self.assertEqual(150, numpy.sum(species_proba))
+		pred = classifier.predict(iris_X)
+		self.assertEqual((150, ), pred.shape)
+		self.assertEqual(classifier.classes_.tolist(), numpy.unique(pred).tolist())
+		pred_proba = classifier.predict_proba(iris_X)
+		self.assertEqual((150, 2), pred_proba.shape)
+		self.assertEqual(150, numpy.sum(pred_proba))
 
 	def test_binary_classification_shape(self):
 		iris_X, iris_y = load_iris(return_X_y = True)
@@ -54,12 +54,12 @@ class StatsModelsClassifierTest(TestCase):
 		self.assertIsInstance(classifier.model_, MNLogit)
 		self.assertEqual([0, 1, 2], classifier.classes_.tolist())
 		classifier.remove_data()
-		species = classifier.predict(iris_X)
-		self.assertEqual((150, ), species.shape)
-		self.assertEqual(classifier.classes_.tolist(), numpy.unique(species).tolist())
-		species_proba = classifier.predict_proba(iris_X)
-		self.assertEqual((150, 3), species_proba.shape)
-		self.assertEqual(150, numpy.sum(species_proba))
+		pred = classifier.predict(iris_X)
+		self.assertEqual((150, ), pred.shape)
+		self.assertEqual(classifier.classes_.tolist(), numpy.unique(pred).tolist())
+		pred_proba = classifier.predict_proba(iris_X)
+		self.assertEqual((150, 3), pred_proba.shape)
+		self.assertEqual(150, numpy.sum(pred_proba))
 
 	def test_multiclass_classification_shape(self):
 		iris_X, iris_y = load_iris(return_X_y = True)
@@ -90,10 +90,10 @@ class StatsModelsOrdinalClassifierTest(TestCase):
 		self.assertEquals(0, classifier.intercept_)
 		self.assertEqual((4, ), classifier.threshold_.shape)
 		classifier.remove_data()
-		bins = classifier.predict(diabetes_X)
-		self.assertEqual((442, ), bins.shape)
-		bins_proba = classifier.predict_proba(diabetes_X)
-		self.assertEqual((442, 5), bins_proba.shape)
+		pred = classifier.predict(diabetes_X)
+		self.assertEqual((442, ), pred.shape)
+		pred_proba = classifier.predict_proba(diabetes_X)
+		self.assertEqual((442, 5), pred_proba.shape)
 
 class StatsModelsRegressorTest(TestCase):
 
