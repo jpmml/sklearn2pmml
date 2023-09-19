@@ -22,6 +22,7 @@ setup(
 	],
 	packages = [
 		"sklearn2pmml",
+		"sklearn2pmml.cross_reference",
 		"sklearn2pmml.decoration",
 		"sklearn2pmml.ensemble",
 		"sklearn2pmml.expression",
