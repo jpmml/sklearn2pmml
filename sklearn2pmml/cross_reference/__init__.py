@@ -1,6 +1,19 @@
 from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.pipeline import FeatureUnion
 
 import numpy
+
+def make_memorizer_union(memory, names):
+	return FeatureUnion([
+		("memorizer", Memorizer(memory, names)),
+		("passthrough", "passthrough"),
+	])
+
+def make_recaller_union(memory, names):
+	return FeatureUnion([
+		("recaller", Recaller(memory, names)),
+		("passthrough", "passthrough")
+	])
 
 class _BaseMemoryManager(BaseEstimator, TransformerMixin):
 
