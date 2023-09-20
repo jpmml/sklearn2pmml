@@ -181,7 +181,7 @@ class OrdinalClassifier(BaseEstimator, ClassifierMixin):
 
 class _BaseEnsemble(_BaseComposition):
 
-	def __init__(self, steps, recaller):
+	def __init__(self, steps, controller):
 		for step in steps:
 			if type(step) is not tuple:
 				raise TypeError("Step is not a tuple")
@@ -191,7 +191,10 @@ class _BaseEnsemble(_BaseComposition):
 			if not isinstance(predicate, (str, Predicate)):
 				raise TypeError()
 		self.steps = steps
-		self.recaller = recaller
+		if controller:
+			if not hasattr(controller, "transform"):
+				raise TypeError()
+		self.controller = controller
 
 	@property
 	def _steps(self):
@@ -209,8 +212,8 @@ class _BaseEnsemble(_BaseComposition):
 		return self
 
 	def _to_evaluation_dataset(self, X):
-		if self.recaller is not None:
-			return self.recaller.transform(X)
+		if self.controller is not None:
+			return self.controller.transform(X)
 		return X
 
 def _to_sparse(X, step_mask, step_result):
@@ -262,8 +265,8 @@ class Link(BaseEstimator):
 
 class EstimatorChain(_BaseEnsemble):
 
-	def __init__(self, steps, recaller = None, multioutput = True):
-		super(EstimatorChain, self).__init__(steps, recaller)
+	def __init__(self, steps, controller = None, multioutput = True):
+		super(EstimatorChain, self).__init__(steps, controller)
 		self.multioutput = multioutput
 
 	def fit(self, X, y, **fit_params):
@@ -324,8 +327,8 @@ class EstimatorChain(_BaseEnsemble):
 
 class SelectFirstEstimator(_BaseEnsemble):
 
-	def __init__(self, steps, recaller):
-		super(SelectFirstEstimator, self).__init__(steps, recaller)
+	def __init__(self, steps, controller):
+		super(SelectFirstEstimator, self).__init__(steps, controller)
 
 	def fit(self, X, y, **fit_params):
 		X_eval = self._to_evaluation_dataset(X)
@@ -369,13 +372,13 @@ class SelectFirstEstimator(_BaseEnsemble):
 
 class SelectFirstRegressor(SelectFirstEstimator, RegressorMixin):
 
-	def __init__(self, steps, recaller = None):
-		super(SelectFirstRegressor, self).__init__(steps, recaller)
+	def __init__(self, steps, controller = None):
+		super(SelectFirstRegressor, self).__init__(steps, controller)
 
 class SelectFirstClassifier(SelectFirstEstimator, ClassifierMixin):
 
-	def __init__(self, steps, recaller = None):
-		super(SelectFirstClassifier, self).__init__(steps, recaller)
+	def __init__(self, steps, controller = None):
+		super(SelectFirstClassifier, self).__init__(steps, controller)
 
 	def predict_proba(self, X):
 		return self._predict(X, "predict_proba")
