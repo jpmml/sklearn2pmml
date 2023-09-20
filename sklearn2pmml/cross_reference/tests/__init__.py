@@ -6,7 +6,7 @@ import numpy
 
 class MemorizerTest(TestCase):
 
-	def test_fit_transform(self):
+	def test_transform(self):
 		memory = dict()
 		self.assertEqual(0, len(memory))
 		memorizer = Memorizer(memory, ["int"])
@@ -31,7 +31,7 @@ class MemorizerTest(TestCase):
 
 class RecallerTest(TestCase):
 
-	def test_fit_transform(self):
+	def test_transform(self):
 		memory = {
 			"int": [-1, 1]
 		}

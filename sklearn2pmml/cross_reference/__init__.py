@@ -1,3 +1,4 @@
+from pandas import DataFrame
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.pipeline import FeatureUnion
 from sklearn2pmml.preprocessing import IdentityTransformer
@@ -36,7 +37,10 @@ class Memorizer(_BaseMemoryManager):
 
 	def transform(self, X):
 		for idx, name in enumerate(self.names):
-			x = X[:, idx]
+			if isinstance(X, DataFrame):
+				x = X.iloc[:, idx]
+			else:
+				x = X[:, idx]
 			self.memory[name] = x.copy()
 		return numpy.empty(shape = (X.shape[0], 0), dtype = int)
 
