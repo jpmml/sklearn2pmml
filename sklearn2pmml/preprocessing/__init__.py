@@ -245,6 +245,18 @@ class ExpressionTransformer(BaseEstimator, TransformerMixin):
 			Xt = cast(Xt, self.dtype)
 		return _col2d(Xt)
 
+class IdentityTransformer(BaseEstimator, TransformerMixin):
+	"""Passes data through as-is."""
+
+	def __init__(self):
+		pass
+
+	def fit(self, X, y = None):
+		return self
+
+	def transform(self, X):
+		return X
+
 class DateTimeFormatter(BaseEstimator, TransformerMixin):
 	"""Formats dates, times and datetimes according to a pattern. Analogous to C's strftime() function.
 
