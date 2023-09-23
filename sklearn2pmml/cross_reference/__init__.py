@@ -16,11 +16,16 @@ class Memory(object):
 	def __setitem__(self, key, value):
 		self.data[key] = value
 
-	def clear(self):
-		self.data.clear()
-
 	def __len__(self):
 		return len(self.data)
+
+	def __copy__(self):
+		return self
+
+	def __deepcopy__(self, memo):
+		result = self
+		memo[id(self)] = result
+		return result
 
 	def __getstate__(self):
 		state = self.__dict__.copy()
@@ -29,6 +34,9 @@ class Memory(object):
 
 	def __setstate__(self, state):
 		self.__dict__.update(state)
+
+	def clear(self):
+		self.data.clear()
 
 def make_memorizer_union(memory, names, transform_only = True):
 	return FeatureUnion([

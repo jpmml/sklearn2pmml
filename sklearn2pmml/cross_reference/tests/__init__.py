@@ -1,8 +1,10 @@
 from pandas import DataFrame
+from sklearn.base import clone
 from sklearn.pipeline import make_pipeline
 from sklearn2pmml.cross_reference import make_memorizer_union, make_recaller_union, Memory, Memorizer, Recaller
 from unittest import TestCase
 
+import copy
 import numpy
 import pickle
 
@@ -18,6 +20,13 @@ class MemoryTest(TestCase):
 			memory["float"]
 		memory.clear()
 		self.assertEqual(0, len(memory))
+
+	def test_copy(self):
+		memory = Memory()
+		memory_copy = copy.copy(memory)
+		self.assertIs(memory, memory_copy)
+		memory_deepcopy = copy.deepcopy(memory)
+		self.assertIs(memory, memory_deepcopy)
 
 	def test_pickle(self):
 		memory = Memory()
@@ -60,6 +69,13 @@ class MemorizerTest(TestCase):
 		self.assertEqual([1.0, 2.0, 3.0], memory["float"].astype(float).tolist())
 		self.assertEqual(["one", "two", "three"], memory["str"].tolist())
 
+	def test_clone(self):
+		memory = Memory()
+		memorizer = Memorizer(memory, ["flag"])
+		memorizer_clone = clone(memorizer)
+		self.assertIsNot(memorizer, memorizer_clone)
+		self.assertIs(memorizer.memory, memorizer_clone.memory)
+
 class RecallerTest(TestCase):
 
 	def test_transform(self):
@@ -89,6 +105,13 @@ class RecallerTest(TestCase):
 		self.assertEqual([1, 2, 3], Xt[:, 0].tolist())
 		self.assertEqual([1.0, 2.0, 3.0], Xt[:, 1].tolist())
 		self.assertEqual(["one", "two", "three"], Xt[:, 2].tolist())
+
+	def test_clone(self):
+		memory = Memory()
+		recaller = Recaller(memory, ["flag"])
+		recaller_clone = clone(recaller)
+		self.assertIsNot(recaller, recaller_clone)
+		self.assertIs(recaller.memory, recaller_clone.memory)
 
 class FunctionTest(TestCase):
 
