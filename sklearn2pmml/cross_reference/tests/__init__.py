@@ -40,6 +40,12 @@ class MemorizerTest(TestCase):
 		self.assertEqual(1, len(memory))
 		self.assertEqual([-1, 1], memory["int"].tolist())
 
+		memory = dict()
+		self.assertEquals(0, len(memory))
+		memorizer = Memorizer(memory, ["int"], transform_only = False)
+		memorizer.fit(X)
+		self.assertEquals(1, len(memory))
+
 		memory = DataFrame()
 		self.assertEqual((0, 0), memory.shape)
 		memorizer = Memorizer(memory, ["int", "float", "str"])
