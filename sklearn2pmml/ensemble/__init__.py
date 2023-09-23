@@ -179,6 +179,19 @@ class OrdinalClassifier(BaseEstimator, ClassifierMixin):
 				result.append(proba[i - 1] - proba[i])
 		return numpy.asarray(result).T
 
+def _to_sparse(X, step_mask, step_result):
+	# Make array
+	if len(step_result.shape) == 1:
+		result = numpy.empty((X.shape[0], ), dtype = object)
+	else:
+		result = numpy.empty((X.shape[0], step_result.shape[1]), dtype = object)
+	# Fill array
+	if len(step_result.shape) == 1:
+		result[step_mask.ravel()] = step_result
+	else:
+		result[step_mask.ravel(), :] = step_result
+	return result
+
 class _BaseEnsemble(_BaseComposition):
 
 	def __init__(self, steps, controller):
@@ -215,19 +228,6 @@ class _BaseEnsemble(_BaseComposition):
 		if self.controller is not None:
 			return self.controller.transform(X)
 		return X
-
-def _to_sparse(X, step_mask, step_result):
-	# Make array
-	if len(step_result.shape) == 1:
-		result = numpy.empty((X.shape[0], ), dtype = object)
-	else:
-		result = numpy.empty((X.shape[0], step_result.shape[1]), dtype = object)
-	# Fill array
-	if len(step_result.shape) == 1:
-		result[step_mask.ravel()] = step_result
-	else:
-		result[step_mask.ravel(), :] = step_result
-	return result
 
 class Link(BaseEstimator):
 

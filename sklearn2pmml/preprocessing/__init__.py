@@ -10,7 +10,7 @@ from scipy.interpolate import BSpline
 from scipy.sparse import lil_matrix
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.pipeline import Pipeline
-from sklearn2pmml.util import cast, dt_transform, ensure_1d, ensure_def, eval_rows, to_expr_func, Expression
+from sklearn2pmml.util import cast, dt_transform, ensure_1d, ensure_def, eval_rows, eval_expr_rows, to_expr_func, Expression, Predicate
 
 import numpy
 import pandas
@@ -606,3 +606,65 @@ class StringNormalizer(BaseEstimator, TransformerMixin):
 		if self.trim_blanks:
 			Xt = numpy.char.strip(Xt)
 		return Xt
+
+def _to_sparse(X, step_mask, step_result):
+	# Make array
+	result = numpy.empty((X.shape[0], step_result.shape[1]), dtype = object)
+	# Fill array
+	result[step_mask.ravel(), :] = step_result
+	return result
+
+class SelectFirstTransformer(BaseEstimator, TransformerMixin):
+
+	def __init__(self, steps, controller = None):
+		for step in steps:
+			if type(step) is not tuple:
+				raise TypeError("Step is not a tuple")
+			if len(step) != 3:
+				raise TypeError("Step is not a three-element (name, transformer, predicate) tuple")
+			name, transformer, predicate = step
+			if not isinstance(predicate, (str, Predicate)):
+				raise TypeError()
+		self.steps = steps
+		if controller:
+			if not hasattr(controller, "transform"):
+				raise TypeError()
+		self.controller = controller
+
+	def _to_evaluation_dataset(self, X):
+		if self.controller is not None:
+			return self.controller.transform(X)
+		return X
+
+	def fit(self, X, y = None):
+		X_eval = self._to_evaluation_dataset(X)
+		mask = numpy.zeros(X.shape[0], dtype = bool)
+		for name, transformer, predicate in self.steps:
+			step_mask = eval_expr_rows(X_eval, predicate, dtype = bool)
+			step_mask[mask] = False
+			if numpy.sum(step_mask) < 1:
+				raise ValueError(predicate)
+			step_X = X[step_mask]
+			step_y = y[step_mask] if y is not None else None
+			transformer.fit(step_X, step_y)
+			mask = numpy.logical_or(mask, step_mask)
+		return self
+
+	def transform(self, X):
+		result = None
+		X_eval = self._to_evaluation_dataset(X)
+		mask = numpy.zeros(X.shape[0], dtype = bool)
+		for name, transformer, predicate in self.steps:
+			step_mask = eval_expr_rows(X_eval, predicate, dtype = bool)
+			step_mask[mask] = False
+			if numpy.sum(step_mask) < 1:
+				continue
+			step_X = X[step_mask]
+			step_result = transformer.transform(step_X)
+			step_result = _to_sparse(X, step_mask, step_result)
+			if result is None:
+				result = step_result
+			else:
+				result[step_mask] = step_result[step_mask]
+			mask = numpy.logical_or(mask, step_mask)
+		return result
