@@ -98,25 +98,23 @@ sklearn2pmml(pipeline, "LogisticRegressionIris.pmml", with_repr = True)
 
 Integrations:
 
+* [Training Scikit-Learn GridSearchCV StatsModels pipelines](https://openscoring.io/blog/2023/10/15/sklearn_statsmodels_gridsearchcv_pipeline/)
 * [Converting Scikit-Learn H2O.ai pipelines to PMML](https://openscoring.io/blog/2023/07/17/converting_sklearn_h2o_pipeline_pmml/)
 * [Converting customized Scikit-Learn estimators to PMML](https://openscoring.io/blog/2023/05/03/converting_sklearn_subclass_pmml/)
 * [Training Scikit-Learn StatsModels pipelines](https://openscoring.io/blog/2023/03/28/sklearn_statsmodels_pipeline/)
 * [Upgrading Scikit-Learn XGBoost pipelines](https://openscoring.io/blog/2023/02/06/upgrading_sklearn_xgboost_pipeline_pmml/)
 * [Training Python-based XGBoost accelerated failure time models](https://openscoring.io/blog/2023/01/28/python_xgboost_aft_pmml/)
+* [Converting Scikit-Learn PyCaret 3 pipelines to PMML](https://openscoring.io/blog/2023/01/12/converting_sklearn_pycaret3_pipeline_pmml/)
 * [Training Scikit-Learn H2O.ai pipelines](https://openscoring.io/blog/2022/11/11/sklearn_h2o_pipeline/)
 * [One-hot encoding categorical features in Scikit-Learn XGBoost pipelines](https://openscoring.io/blog/2022/04/12/onehot_encoding_sklearn_xgboost_pipeline/)
 * [Training Scikit-Learn TF(-IDF) plus XGBoost pipelines](https://openscoring.io/blog/2021/02/27/sklearn_tf_tfidf_xgboost_pipeline/)
 * [Converting Scikit-Learn TF(-IDF) pipelines to PMML](https://openscoring.io/blog/2021/01/17/converting_sklearn_tf_tfidf_pipeline_pmml/)
+* [Converting Scikit-Learn Imbalanced-Learn pipelines to PMML](https://openscoring.io/blog/2020/10/24/converting_sklearn_imblearn_pipeline_pmml/)
 * [Converting logistic regression models to PMML](https://openscoring.io/blog/2020/01/19/converting_logistic_regression_pmml/#scikit-learn)
 * [Stacking Scikit-Learn, LightGBM and XGBoost models](https://openscoring.io/blog/2020/01/02/stacking_sklearn_lightgbm_xgboost/)
-* [Converting Scikit-Learn LightGBM pipelines to PMML](https://openscoring.io/blog/2019/04/07/converting_sklearn_lightgbm_pipeline_pmml/)
-
-AutoML and other kinds of workflow automations:
-
-* [Converting Scikit-Learn PyCaret 3 pipelines to PMML](https://openscoring.io/blog/2023/01/12/converting_sklearn_pycaret3_pipeline_pmml/)
-* [Converting Scikit-Learn Imbalanced-Learn pipelines to PMML](https://openscoring.io/blog/2020/10/24/converting_sklearn_imblearn_pipeline_pmml/)
-* [Converting Scikit-Learn hyperparameter-tuned pipelines to PMML](https://openscoring.io/blog/2019/12/25/converting_sklearn_gridsearchcv_pipeline_pmml/)
+* [Converting Scikit-Learn GridSearchCV pipelines to PMML](https://openscoring.io/blog/2019/12/25/converting_sklearn_gridsearchcv_pipeline_pmml/)
 * [Converting Scikit-Learn TPOT pipelines to PMML](https://openscoring.io/blog/2019/06/10/converting_sklearn_tpot_pipeline_pmml/)
+* [Converting Scikit-Learn LightGBM pipelines to PMML](https://openscoring.io/blog/2019/04/07/converting_sklearn_lightgbm_pipeline_pmml/)
 
 Extensions:
 
