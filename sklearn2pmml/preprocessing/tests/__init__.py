@@ -417,7 +417,7 @@ class MultiLookupTransformerTest(TestCase):
 		transformer = MultiLookupTransformer(mapping, None)
 		X = DataFrame([["one", None], ["one", True], [None, True], ["two", True], ["three", True]])
 		self.assertEqual([[None], ["ein"], [None], ["zwei"], ["drei"]], transformer.transform(X).tolist())
-		X = numpy.matrix([["one", True], ["one", None], ["one", False], ["two", True]], dtype = "O")
+		X = numpy.array([["one", True], ["one", None], ["one", False], ["two", True]], dtype = "O")
 		self.assertEqual([["ein"], [None], [None], ["zwei"]], transformer.transform(X).tolist())
 		transformer = MultiLookupTransformer(mapping, "(other)")
 		self.assertEqual([["ein"], [None], ["(other)"], ["zwei"]], transformer.transform(X).tolist())
