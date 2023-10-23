@@ -335,12 +335,14 @@ class LookupTransformerTest(TestCase):
 		with self.assertRaises(TypeError):
 			LookupTransformer(mapping, int(0))
 		transformer = LookupTransformer(mapping, float("NaN"))
-		X = numpy.array([[0.0], [90.0]])
-		self.assertEqual([[math.cos(0.0)], [math.cos(90.0)]], transformer.transform(X).tolist())
-		X = numpy.array([180.0])
-		self.assertTrue(math.isnan(transformer.transform(X)))
 		X = Series([0.0, 45.0, 90.0])
 		self.assertEqual([[math.cos(0.0)], [math.cos(45.0)], [math.cos(90.0)]], transformer.transform(X).tolist())
+		X = numpy.array([[0.0], [90.0]])
+		self.assertEqual([[math.cos(0.0)], [math.cos(90.0)]], transformer.transform(X).tolist())
+		X = numpy.array([float("NaN"), 180.0])
+		self.assertTrue(nan_eq([[float("NaN")], [float("NaN")]], transformer.transform(X)))
+		transformer = LookupTransformer(mapping, -999.0)
+		self.assertTrue(nan_eq([[float("NaN")], [-999.0]], transformer.transform(X)))
 
 	def test_transform_string(self):
 		mapping = {
@@ -353,10 +355,12 @@ class LookupTransformerTest(TestCase):
 			LookupTransformer(mapping, None)
 		mapping.pop(None)
 		transformer = LookupTransformer(mapping, None)
-		X = numpy.array([["zero"], ["one"]])
-		self.assertEqual([[None], ["ein"]], transformer.transform(X).tolist())
 		X = Series(["one", "two", "three"])
 		self.assertEqual([["ein"], ["zwei"], ["drei"]], transformer.transform(X).tolist())
+		X = numpy.array([[None], ["zero"]])
+		self.assertEqual([[None], [None]], transformer.transform(X).tolist())
+		transformer = LookupTransformer(mapping, "(other)")
+		self.assertEqual([[None], ["(other)"]], transformer.transform(X).tolist())
 
 class FilterLookupTransformerTest(TestCase):
 
@@ -413,8 +417,10 @@ class MultiLookupTransformerTest(TestCase):
 		transformer = MultiLookupTransformer(mapping, None)
 		X = DataFrame([["one", None], ["one", True], [None, True], ["two", True], ["three", True]])
 		self.assertEqual([[None], ["ein"], [None], ["zwei"], ["drei"]], transformer.transform(X).tolist())
-		X = numpy.matrix([["one", True], ["one", None], ["two", True]], dtype = "O")
-		self.assertEqual([["ein"], [None], ["zwei"]], transformer.transform(X).tolist())
+		X = numpy.matrix([["one", True], ["one", None], ["one", False], ["two", True]], dtype = "O")
+		self.assertEqual([["ein"], [None], [None], ["zwei"]], transformer.transform(X).tolist())
+		transformer = MultiLookupTransformer(mapping, "(other)")
+		self.assertEqual([["ein"], [None], ["(other)"], ["zwei"]], transformer.transform(X).tolist())
 
 class PMMLLabelBinarizerTest(TestCase):
 

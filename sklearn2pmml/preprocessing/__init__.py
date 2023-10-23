@@ -324,14 +324,14 @@ class LookupTransformer(BaseEstimator, TransformerMixin):
 		k_type = None
 		v_type = None
 		for k, v in mapping.items():
-			if k is None:
-				raise ValueError("Key is None")
+			if pandas.isnull(k):
+				raise ValueError("Key is a missing value")
 			if k_type is None:
 				k_type = type(k)
 			else:
 				if type(k) != k_type:
 					raise TypeError("Key is not a {0}".format(k_type.__name__))
-			if v is None:
+			if pandas.isnull(v):
 				continue
 			if v_type is None:
 				v_type = type(v)
@@ -357,8 +357,13 @@ class LookupTransformer(BaseEstimator, TransformerMixin):
 	def transform(self, X):
 		X = ensure_1d(X)
 		transform_dict = self._transform_dict()
-		func = lambda k: transform_dict[k]
-		Xt = eval_rows(X, func)
+
+		def _eval_row(x):
+			if pandas.isnull(x):
+				return x
+			return transform_dict[x]
+
+		Xt = eval_rows(X, _eval_row)
 		return _col2d(Xt)
 
 class FilterLookupTransformer(LookupTransformer):
@@ -375,8 +380,8 @@ class FilterLookupTransformer(LookupTransformer):
 	def __init__(self, mapping):
 		super(FilterLookupTransformer, self).__init__(mapping, default_value = None)
 		for k, v in mapping.items():
-			if v is None:
-				raise ValueError("Value is None")
+			if pandas.isnull(v):
+				raise ValueError("Value is a missing value")
 			if type(k) != type(v):
 				raise TypeError("Key and Value type mismatch")
 
@@ -416,10 +421,16 @@ class MultiLookupTransformer(LookupTransformer):
 
 	def transform(self, X):
 		transform_dict = self._transform_dict()
-		# See https://stackoverflow.com/a/3460747
-		# See https://stackoverflow.com/a/3338368
-		func = lambda k: transform_dict[tuple(k) if isinstance(k, Hashable) else tuple(numpy.squeeze(numpy.asarray(k)))]
-		Xt = eval_rows(X, func)
+
+		def _eval_row(x):
+			if (pandas.isnull(x)).any():
+				return None
+			# See https://stackoverflow.com/a/3460747
+			# See https://stackoverflow.com/a/3338368
+			x = x if isinstance(x, Hashable) else tuple(numpy.squeeze(numpy.asarray(x)))
+			return transform_dict[tuple(x)]
+
+		Xt = eval_rows(X, _eval_row)
 		return _col2d(Xt)
 
 def _make_index(values):
