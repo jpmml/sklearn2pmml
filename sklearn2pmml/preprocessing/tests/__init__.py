@@ -121,18 +121,21 @@ class CutTransformerTest(TestCase):
 	def test_transform_float(self):
 		bins = [float("-inf"), -1.0, 0.0, 1.0, float("+inf")]
 		transformer = CutTransformer(bins, labels = False, right = True)
-		X = numpy.array([-2.0, -1.0, -0.5, 0.0, 0.5, 1.0, 2.0])
-		self.assertEqual([[0], [0], [1], [1], [2], [2], [3]], transformer.transform(X).tolist())
+		X = numpy.array([-2.0, -1.0, -0.5, 0.0, float("NaN"), 0.5, 1.0, 2.0])
+		self.assertTrue(nan_eq([[0], [0], [1], [1], [float("NaN")], [2], [2], [3]], transformer.transform(X).tolist()))
 		transformer = CutTransformer(bins, labels = False, right = False)
-		self.assertEqual([[0], [1], [1], [2], [2], [3], [3]], transformer.transform(X).tolist())
+		self.assertTrue(nan_eq([[0], [1], [1], [2], [float("NaN")], [2], [3], [3]], transformer.transform(X).tolist()))
 		bins = [-3.0, -1.0, 1.0, 3.0]
 		transformer = CutTransformer(bins, labels = False, right = True, include_lowest = True)
-		X = numpy.array([-3.0, -2.0, 2.0, 3.0])
-		self.assertEqual([[0], [0], [2], [2]], transformer.transform(X).tolist())
+		X = numpy.array([-3.0, -2.0, float("NaN"), 2.0, 3.0])
+		self.assertTrue(nan_eq([[0], [0], [float("NaN")], [2], [2]], transformer.transform(X).tolist()))
 		X = numpy.array([-5.0])
 		self.assertTrue(numpy.isnan(transformer.transform(X)).tolist()[0])
 		X = numpy.array([5.0])
 		self.assertTrue(numpy.isnan(transformer.transform(X)).tolist()[0])
+		bins = [float("-inf"), float("+inf")]
+		transformer = CutTransformer(bins, labels = ["any"])
+		self.assertEqual([["any"]], transformer.transform(X).tolist())
 
 class DataFrameConstructorTest(TestCase):
 
