@@ -85,14 +85,17 @@ class Memorizer(_BaseMemoryManager):
 
 class Recaller(_BaseMemoryManager):
 
-	def __init__(self, memory, names):
+	def __init__(self, memory, names, clear_after = False):
 		super(Recaller, self).__init__(memory, names)
+		self.clear_after = clear_after
 
 	def recall(self, X):
 		result = []
 		for idx, name in enumerate(self.names):
 			x = self.memory[name]
 			result.append(x.copy())
+			if self.clear_after:
+				del self.memory[name]
 		return numpy.asarray(result).T
 
 	def fit(self, X, y = None):

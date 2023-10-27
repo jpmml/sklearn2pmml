@@ -92,19 +92,23 @@ class RecallerTest(TestCase):
 
 		memory = DataFrame([[1, 1.0, "one"], [2, 2.0, "two"], [3, 3.0, "three"]], columns = ["int", "float", "str"])
 		self.assertEqual((3, 3), memory.shape)
-		recaller = Recaller(memory, ["int"])
+		recaller = Recaller(memory, ["int"], clear_after = False)
 		pipeline = make_pipeline(recaller)
 		X = numpy.empty((3, 5), dtype = str)
 		Xt = pipeline.fit_transform(X)
+		self.assertEqual((3, 3), memory.shape)
 		self.assertEqual((3, 1), Xt.shape)
 		self.assertEqual([1, 2, 3], Xt[:, 0].tolist())
-		recaller = Recaller(memory, ["int", "float", "str"])
+		recaller = Recaller(memory, ["int", "float", "str"], clear_after = True)
 		pipeline = make_pipeline(recaller)
 		Xt = pipeline.fit_transform(X)
+		self.assertEqual((3, 0), memory.shape)
 		self.assertEqual((3, 3), Xt.shape)
 		self.assertEqual([1, 2, 3], Xt[:, 0].tolist())
 		self.assertEqual([1.0, 2.0, 3.0], Xt[:, 1].tolist())
 		self.assertEqual(["one", "two", "three"], Xt[:, 2].tolist())
+		with self.assertRaises(KeyError):
+			recaller.transform(X)
 
 	def test_clone(self):
 		memory = Memory()
