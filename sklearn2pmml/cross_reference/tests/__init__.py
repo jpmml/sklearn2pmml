@@ -18,7 +18,7 @@ class MemoryTest(TestCase):
 		self.assertEqual([1, 2, 3], memory["int"])
 		with self.assertRaises(KeyError):
 			memory["float"]
-		memory.clear()
+		del memory["int"]
 		self.assertEqual(0, len(memory))
 
 	def test_copy(self):
