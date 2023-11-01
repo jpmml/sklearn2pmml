@@ -651,10 +651,11 @@ class SelectFirstTransformer(BaseEstimator, TransformerMixin):
 		X_eval = self._to_evaluation_dataset(X)
 		mask = numpy.zeros(X.shape[0], dtype = bool)
 		for name, transformer, predicate in self.steps:
-			step_mask = eval_expr_rows(X_eval, predicate, dtype = bool)
-			step_mask[mask] = False
-			if numpy.sum(step_mask) < 1:
+			step_mask = numpy.logical_not(mask)
+			step_mask_eval = eval_expr_rows(X_eval[step_mask], predicate, dtype = bool)
+			if numpy.sum(step_mask_eval) < 1:
 				raise ValueError(predicate)
+			step_mask[step_mask] = step_mask_eval
 			step_X = X[step_mask]
 			step_y = y[step_mask] if y is not None else None
 			transformer.fit(step_X, step_y)
@@ -666,10 +667,11 @@ class SelectFirstTransformer(BaseEstimator, TransformerMixin):
 		X_eval = self._to_evaluation_dataset(X)
 		mask = numpy.zeros(X.shape[0], dtype = bool)
 		for name, transformer, predicate in self.steps:
-			step_mask = eval_expr_rows(X_eval, predicate, dtype = bool)
-			step_mask[mask] = False
-			if numpy.sum(step_mask) < 1:
+			step_mask = numpy.logical_not(mask)
+			step_mask_eval = eval_expr_rows(X_eval[step_mask], predicate, dtype = bool)
+			if numpy.sum(step_mask_eval) < 1:
 				continue
+			step_mask[step_mask] = step_mask_eval
 			step_X = X[step_mask]
 			step_result = transformer.transform(step_X)
 			step_result = _to_sparse(X, step_mask, step_result)

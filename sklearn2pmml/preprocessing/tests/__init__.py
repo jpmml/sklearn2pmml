@@ -5,7 +5,7 @@ from sklearn.base import clone
 from sklearn.pipeline import FeatureUnion, Pipeline
 from sklearn.impute import SimpleImputer
 from sklearn2pmml.decoration import Alias, DateDomain, DateTimeDomain
-from sklearn2pmml.preprocessing import Aggregator, CastTransformer, ConcatTransformer, CutTransformer, DataFrameConstructor, DateTimeFormatter, DaysSinceYearTransformer, ExpressionTransformer, FilterLookupTransformer, IdentityTransformer, LookupTransformer, MatchesTransformer, MultiLookupTransformer, NumberFormatter, PMMLLabelBinarizer, PMMLLabelEncoder, PowerFunctionTransformer, ReplaceTransformer, SecondsSinceMidnightTransformer, SecondsSinceYearTransformer, StringNormalizer, SubstringTransformer, WordCountTransformer
+from sklearn2pmml.preprocessing import Aggregator, CastTransformer, ConcatTransformer, CutTransformer, DataFrameConstructor, DateTimeFormatter, DaysSinceYearTransformer, ExpressionTransformer, FilterLookupTransformer, IdentityTransformer, LookupTransformer, MatchesTransformer, MultiLookupTransformer, NumberFormatter, PMMLLabelBinarizer, PMMLLabelEncoder, PowerFunctionTransformer, ReplaceTransformer, SecondsSinceMidnightTransformer, SecondsSinceYearTransformer, SelectFirstTransformer, StringNormalizer, SubstringTransformer, WordCountTransformer
 from sklearn2pmml.preprocessing.h2o import H2OFrameConstructor, H2OFrameCreator
 from sklearn2pmml.preprocessing.lightgbm import make_lightgbm_column_transformer, make_lightgbm_dataframe_mapper
 from sklearn2pmml.preprocessing.xgboost import make_xgboost_column_transformer, make_xgboost_dataframe_mapper
@@ -566,6 +566,17 @@ class WordCountTransformerTest(TestCase):
 		X = numpy.asarray(["", "Hello World", "Happy New Year", "!?"])
 		transformer = WordCountTransformer()
 		self.assertEqual([[0], [2], [3], [0]], transformer.transform(X).tolist())
+
+class SelectFirstTransformerTest(TestCase):
+
+	def test_fit_transform(self):
+		X = DataFrame([["A", 1.0], ["B", 0], ["A", 3.0], ["C", -1.5]], columns = ["subset", "value"])
+		transformer = SelectFirstTransformer([
+			("A", ExpressionTransformer("X['value'] + 1.0"), "X['subset'] == 'A'"),
+			("B", ExpressionTransformer("X['value'] - 1.0"), "X['subset'] not in ['A', 'C']")
+		])
+		Xt = transformer.fit_transform(X)
+		self.assertEqual([[2.0], [-1.0], [4.0], [None]], Xt.tolist())
 
 class H2OFrameCreatorTest(TestCase):
 
