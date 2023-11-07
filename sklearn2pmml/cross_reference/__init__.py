@@ -7,8 +7,8 @@ import numpy
 
 class Memory(object):
 
-	def __init__(self):
-		self.data = dict()
+	def __init__(self, data = dict()):
+		self.data = data
 
 	def __getitem__(self, key):
 		return self.data[key]
@@ -20,6 +20,8 @@ class Memory(object):
 		del self.data[key]
 
 	def __len__(self):
+		if isinstance(self.data, DataFrame):
+			return self.data.shape[1]
 		return len(self.data)
 
 	def __copy__(self):
@@ -32,14 +34,17 @@ class Memory(object):
 
 	def __getstate__(self):
 		state = self.__dict__.copy()
-		state["data"] = dict()
+		state["data"] = self.data.__class__()
 		return state
 
 	def __setstate__(self, state):
 		self.__dict__.update(state)
 
 	def clear(self):
-		self.data.clear()
+		if isinstance(self.data, DataFrame):
+			self.data.drop(columns = self.data.columns, inplace = True)
+		else:
+			self.data.clear()
 
 def make_memorizer_union(memory, names, transform_only = True):
 	return FeatureUnion([

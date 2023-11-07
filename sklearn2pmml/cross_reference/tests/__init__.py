@@ -10,16 +10,35 @@ import pickle
 
 class MemoryTest(TestCase):
 
-	def test_item_assignment(self):
-		memory = Memory()
+	def _workflow(self, data):
+		memory = Memory(data)
+		self.assertIs(data, memory.data)
 		self.assertEqual(0, len(memory))
 		memory["int"] = [1, 2, 3]
 		self.assertEqual(1, len(memory))
-		self.assertEqual([1, 2, 3], memory["int"])
+		self.assertEqual([1, 2, 3], numpy.asarray(memory["int"]).tolist())
+		memory_clone = pickle.loads(pickle.dumps(memory))
+		self.assertIsNot(memory, memory_clone)
+		self.assertIsNot(memory.data, memory_clone.data)
+		self.assertEqual(0, len(memory_clone))
 		with self.assertRaises(KeyError):
 			memory["float"]
-		del memory["int"]
+		memory["float"] = [1.0, 2.0, 3.0]
+		self.assertEqual(2, len(memory))
+		self.assertEqual([1.0, 2.0, 3.0], numpy.asarray(memory["float"]).tolist())
+		del memory["float"]
+		self.assertEqual(1, len(memory))
+		memory.clear()
 		self.assertEqual(0, len(memory))
+		self.assertIs(data, memory.data)
+
+	def test_dict_workflow(self):
+		data = dict()
+		self._workflow(data)
+
+	def test_dataframe_workflow(self):
+		data = DataFrame()
+		self._workflow(data)
 
 	def test_copy(self):
 		memory = Memory()
@@ -27,13 +46,6 @@ class MemoryTest(TestCase):
 		self.assertIs(memory, memory_copy)
 		memory_deepcopy = copy.deepcopy(memory)
 		self.assertIs(memory, memory_deepcopy)
-
-	def test_pickle(self):
-		memory = Memory()
-		memory["int"] = [1, 2, 3]
-		self.assertEqual(1, len(memory))
-		memory_clone = pickle.loads(pickle.dumps(memory))
-		self.assertEqual(0, len(memory_clone))
 
 class MemorizerTest(TestCase):
 
