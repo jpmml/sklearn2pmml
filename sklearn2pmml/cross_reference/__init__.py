@@ -24,6 +24,9 @@ class Memory(object):
 			return self.data.shape[1]
 		return len(self.data)
 
+	def __contains__(self, key):
+		return key in self.data
+
 	def __copy__(self):
 		return self
 

@@ -16,15 +16,18 @@ class MemoryTest(TestCase):
 		self.assertEqual(0, len(memory))
 		memory["int"] = [1, 2, 3]
 		self.assertEqual(1, len(memory))
+		self.assertTrue("int" in memory)
 		self.assertEqual([1, 2, 3], numpy.asarray(memory["int"]).tolist())
 		memory_clone = pickle.loads(pickle.dumps(memory))
 		self.assertIsNot(memory, memory_clone)
 		self.assertIsNot(memory.data, memory_clone.data)
 		self.assertEqual(0, len(memory_clone))
+		self.assertFalse("float" in memory)
 		with self.assertRaises(KeyError):
 			memory["float"]
 		memory["float"] = [1.0, 2.0, 3.0]
 		self.assertEqual(2, len(memory))
+		self.assertTrue("float" in memory)
 		self.assertEqual([1.0, 2.0, 3.0], numpy.asarray(memory["float"]).tolist())
 		del memory["float"]
 		self.assertEqual(1, len(memory))
