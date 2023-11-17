@@ -2,6 +2,7 @@ from pandas import DataFrame
 from sklearn.base import clone
 from sklearn.pipeline import make_pipeline
 from sklearn2pmml.cross_reference import make_memorizer_union, make_recaller_union, Memory, Memorizer, Recaller
+from sklearn2pmml.preprocessing import IdentityTransformer
 from unittest import TestCase
 
 import copy
@@ -137,9 +138,14 @@ class FunctionTest(TestCase):
 	def test_make_memorizer_union(self):
 		memory = dict()
 		self.assertEqual(0, len(memory))
-		memorizer = make_memorizer_union(memory, ["int"])
+		memorizer_union = make_memorizer_union(memory, ["int"], position = "first")
+		self.assertIsInstance(memorizer_union.transformer_list[0][1], Memorizer)
+		self.assertIsInstance(memorizer_union.transformer_list[1][1], IdentityTransformer)
+		memorizer_union = make_memorizer_union(memory, ["int"], position = "last")
+		self.assertIsInstance(memorizer_union.transformer_list[0][1], IdentityTransformer)
+		self.assertIsInstance(memorizer_union.transformer_list[1][1], Memorizer)
 		X = numpy.asarray([[-1], [1]])
-		Xt = memorizer.fit_transform(X)
+		Xt = memorizer_union.fit_transform(X)
 		self.assertEqual((2, 1), Xt.shape)
 		self.assertEqual(1, len(memory))
 		self.assertEqual([-1, 1], memory["int"].tolist())
@@ -148,9 +154,9 @@ class FunctionTest(TestCase):
 		memory = {
 			"int": [-1, 1]
 		}
-		recaller = make_recaller_union(memory, ["int"])
+		recaller_union = make_recaller_union(memory, ["int"])
 		X = numpy.full((2, 1), 0, dtype = int)
-		Xt = recaller.fit_transform(X)
+		Xt = recaller_union.fit_transform(X)
 		self.assertEqual((2, 2), Xt.shape)
 		self.assertEqual([-1, 1], Xt[:, 0].tolist())
 		self.assertEqual([0, 0], Xt[:, 1].tolist())

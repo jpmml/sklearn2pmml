@@ -49,17 +49,29 @@ class Memory(object):
 		else:
 			self.data.clear()
 
-def make_memorizer_union(memory, names, transform_only = True):
-	return FeatureUnion([
+def _set_position(transformers, position):
+	if position == "first":
+		return transformers
+	elif position == "last":
+		return transformers[1:] + transformers[0:1]
+	else:
+		raise ValueError()
+
+def make_memorizer_union(memory, names, transform_only = True, position = "first"):
+	transformers = [
 		("memorizer", Memorizer(memory, names, transform_only = transform_only)),
 		("identity", IdentityTransformer()),
-	])
+	]
+	transformers = _set_position(transformers, position = position)
+	return FeatureUnion(transformers)
 
-def make_recaller_union(memory, names):
-	return FeatureUnion([
+def make_recaller_union(memory, names, position = "first"):
+	transformers = [
 		("recaller", Recaller(memory, names)),
 		("identity", IdentityTransformer())
-	])
+	]
+	transformers = _set_position(transformers, position = position)
+	return FeatureUnion(transformers)
 
 class _BaseMemoryManager(BaseEstimator, TransformerMixin):
 
