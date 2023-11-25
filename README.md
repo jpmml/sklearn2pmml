@@ -118,6 +118,7 @@ Integrations:
 
 Extensions:
 
+* [Extending Scikit-Learn with feature cross-references](https://openscoring.io/blog/2023/11/25/sklearn_feature_cross_references/)
 * [Extending Scikit-Learn with UDF expression transformer](https://openscoring.io/blog/2023/03/09/sklearn_udf_expression_transformer/)
 * [Extending Scikit-Learn with CHAID models](https://openscoring.io/blog/2022/07/14/sklearn_chaid_pmml/)
 * [Extending Scikit-Learn with prediction post-processing](https://openscoring.io/blog/2022/05/06/sklearn_prediction_postprocessing/)
