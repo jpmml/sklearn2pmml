@@ -7,6 +7,15 @@ import pandas
 import sys
 import types
 
+try:
+	# Pandas 2.X
+	iso8601_format = "ISO8601"
+
+	pandas.to_datetime("2023-12-03", format = iso8601_format)
+except ValueError:
+	# Pandas 1.X
+	iso8601_format = "%Y-%m-%dT%H:%M:%S.%f"
+
 def cast(X, dtype):
 	if isinstance(dtype, str) and dtype.startswith("datetime64"):
 		func = lambda x: to_pydatetime(x, dtype)
@@ -57,7 +66,7 @@ def dt_transform(X, func):
 	return Xt
 
 def to_pydatetime(X, dtype):
-	Xt = pandas.to_datetime(X, yearfirst = True, origin = "unix")
+	Xt = pandas.to_datetime(X, yearfirst = True, format = iso8601_format, origin = "unix")
 	if hasattr(Xt, "dt"):
 		Xt = Xt.dt
 	if dtype == "datetime64[D]":
