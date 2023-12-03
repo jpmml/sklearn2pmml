@@ -226,8 +226,7 @@ class ContinuousDomain(Domain):
 
 	def _valid_value_mask(self, X, where):
 		if hasattr(self, "data_min_") and hasattr(self, "data_max_"):
-			mask = (numpy.greater_equal(X, self.data_min_, where = where) & numpy.less_equal(X, self.data_max_, where = where))
-			return numpy.logical_and(mask, where)
+			return numpy.where((X >= self.data_min_) & (X <= self.data_max_), where, False)
 		return super(ContinuousDomain, self)._valid_value_mask(X, where)
 
 	def fit(self, X, y = None):
@@ -257,16 +256,13 @@ class ContinuousDomain(Domain):
 		return self
 
 	def _outlier_mask(self, X, where):
-		mask = (numpy.less(X, self.low_value, where = where) | numpy.greater(X, self.high_value, where = where))
-		return numpy.logical_and(mask, where)
+		return numpy.where((X < self.low_value) | (X > self.high_value), where, False)
 
 	def _negative_outlier_mask(self, X, where):
-		mask = numpy.less(X, self.low_value, where = where)
-		return numpy.logical_and(mask, where)
+		return numpy.where(X < self.low_value, where, False)
 
 	def _positive_outlier_mask(self, X, where):
-		mask = numpy.greater(X, self.high_value, where = where)
-		return numpy.logical_and(mask, where)
+		return numpy.where(X > self.high_value, where, False)
 
 	def _transform_valid_values(self, X, where):
 		if self.outlier_treatment == "as_missing_values":
