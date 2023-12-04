@@ -2,14 +2,16 @@ from datetime import datetime
 from pandas import DataFrame, Series
 from sklearn_pandas import DataFrameMapper
 from sklearn.base import clone
-from sklearn.pipeline import FeatureUnion, Pipeline
+from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.impute import SimpleImputer
+from sklearn.pipeline import make_pipeline
+from sklearn.pipeline import FeatureUnion, Pipeline
 from sklearn2pmml.decoration import Alias, DateDomain, DateTimeDomain
 from sklearn2pmml.preprocessing import Aggregator, CastTransformer, ConcatTransformer, CutTransformer, DataFrameConstructor, DateTimeFormatter, DaysSinceYearTransformer, ExpressionTransformer, FilterLookupTransformer, IdentityTransformer, LookupTransformer, MatchesTransformer, MultiLookupTransformer, NumberFormatter, PMMLLabelBinarizer, PMMLLabelEncoder, PowerFunctionTransformer, ReplaceTransformer, SecondsSinceMidnightTransformer, SecondsSinceYearTransformer, SelectFirstTransformer, StringNormalizer, SubstringTransformer, WordCountTransformer
 from sklearn2pmml.preprocessing.h2o import H2OFrameConstructor, H2OFrameCreator
 from sklearn2pmml.preprocessing.lightgbm import make_lightgbm_column_transformer, make_lightgbm_dataframe_mapper
 from sklearn2pmml.preprocessing.xgboost import make_xgboost_column_transformer, make_xgboost_dataframe_mapper
-from sklearn2pmml.util import to_expr, Expression
+from sklearn2pmml.util import to_expr, Expression, Reshaper
 from unittest import TestCase
 
 import inspect
@@ -539,6 +541,10 @@ class ReplaceTransformerTest(TestCase):
 		X = numpy.asarray(["A", "B", "BA", "BB", "BAB", "ABBA", "BBBB"])
 		transformer = ReplaceTransformer("B+", "c")
 		self.assertEqual([["A"], ["c"], ["cA"], ["c"], ["cAc"], ["AcA"], ["c"]], transformer.transform(X).tolist())
+		vectorizer = CountVectorizer()
+		pipeline = make_pipeline(transformer, Reshaper((-1, )), vectorizer)
+		Xt = pipeline.fit_transform(X)
+		self.assertEqual((7, 3), Xt.shape)
 
 class StringNormalizerTest(TestCase):
 
