@@ -10,7 +10,7 @@ from scipy.interpolate import BSpline
 from scipy.sparse import lil_matrix
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.pipeline import Pipeline
-from sklearn2pmml.util import cast, dt_transform, ensure_1d, ensure_def, eval_rows, eval_rows, to_expr_func, Expression, Predicate
+from sklearn2pmml.util import cast, dt_transform, ensure_1d, ensure_def, eval_rows, to_expr_func, Expression, Predicate
 
 import numpy
 import pandas
@@ -627,7 +627,7 @@ def _to_sparse(X, step_mask, step_result):
 
 class SelectFirstTransformer(BaseEstimator, TransformerMixin):
 
-	def __init__(self, steps, controller = None):
+	def __init__(self, steps, controller = None, eval_rows = True):
 		for step in steps:
 			if type(step) is not tuple:
 				raise TypeError("Step is not a tuple")
@@ -641,19 +641,26 @@ class SelectFirstTransformer(BaseEstimator, TransformerMixin):
 			if not hasattr(controller, "transform"):
 				raise TypeError()
 		self.controller = controller
+		self.eval_rows = eval_rows
 
 	def _to_evaluation_dataset(self, X):
 		if self.controller is not None:
 			return self.controller.transform(X)
 		return X
 
+	def _eval_step_mask(self, X, predicate):
+		step_func = to_expr_func(predicate)
+		if self.eval_rows:
+			return eval_rows(X, step_func, dtype = bool)
+		else:
+			return step_func(X)
+
 	def fit(self, X, y = None):
 		X_eval = self._to_evaluation_dataset(X)
 		mask = numpy.zeros(X.shape[0], dtype = bool)
 		for name, transformer, predicate in self.steps:
-			step_mask_func = to_expr_func(predicate)
 			step_mask = numpy.logical_not(mask)
-			step_mask_eval = eval_rows(X_eval[step_mask], step_mask_func, dtype = bool)
+			step_mask_eval = self._eval_step_mask(X_eval[step_mask], predicate)
 			if numpy.sum(step_mask_eval) < 1:
 				raise ValueError(predicate)
 			step_mask[step_mask] = step_mask_eval
@@ -668,9 +675,8 @@ class SelectFirstTransformer(BaseEstimator, TransformerMixin):
 		X_eval = self._to_evaluation_dataset(X)
 		mask = numpy.zeros(X.shape[0], dtype = bool)
 		for name, transformer, predicate in self.steps:
-			step_mask_func = to_expr_func(predicate)
 			step_mask = numpy.logical_not(mask)
-			step_mask_eval = eval_rows(X_eval[step_mask], step_mask_func, dtype = bool)
+			step_mask_eval = self._eval_step_mask(X_eval[step_mask], predicate)
 			if numpy.sum(step_mask_eval) < 1:
 				continue
 			step_mask[step_mask] = step_mask_eval

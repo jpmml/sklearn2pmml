@@ -580,7 +580,14 @@ class SelectFirstTransformerTest(TestCase):
 		transformer = SelectFirstTransformer([
 			("A", ExpressionTransformer("X['value'] + 1.0"), "X['subset'] == 'A'"),
 			("B", ExpressionTransformer("X['value'] - 1.0"), "X['subset'] not in ['A', 'C']")
-		])
+		], eval_rows = True)
+		Xt = transformer.fit_transform(X)
+		self.assertEqual([[2.0], [-1.0], [4.0], [None]], Xt.tolist())
+		X = X.values
+		transformer = SelectFirstTransformer([
+			("A", ExpressionTransformer("X[1] + 1.0"), "X[:, 0] == 'A'"),
+			("B", ExpressionTransformer("X[1] - 1.0"), "numpy.logical_and(X[:, 0] != 'A', X[:, 0] != 'C')")
+		], eval_rows = False)
 		Xt = transformer.fit_transform(X)
 		self.assertEqual([[2.0], [-1.0], [4.0], [None]], Xt.tolist())
 
