@@ -7,7 +7,7 @@ except ImportError:
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.utils.metaestimators import _BaseComposition
 from sklearn2pmml import _is_ordinal
-from sklearn2pmml.util import eval_expr_rows, fqn, Predicate
+from sklearn2pmml.util import eval_rows, fqn, to_expr_func, Predicate
 
 import copy
 import numpy
@@ -277,7 +277,8 @@ class EstimatorChain(_BaseEnsemble):
 		X_eval = self._to_evaluation_dataset(X)
 		i = 0
 		for name, estimator, predicate in self.steps:
-			step_mask = eval_expr_rows(X_eval, predicate, dtype = bool)
+			step_mask_func = to_expr_func(predicate)
+			step_mask = eval_rows(X_eval, step_mask_func, dtype = bool)
 			if numpy.sum(step_mask) < 1:
 				raise ValueError(predicate)
 			step_X = X[step_mask]
@@ -298,7 +299,8 @@ class EstimatorChain(_BaseEnsemble):
 		result = None
 		X_eval = self._to_evaluation_dataset(X)
 		for name, estimator, predicate in self.steps:
-			step_mask = eval_expr_rows(X_eval, predicate, dtype = bool)
+			step_mask_func = to_expr_func(predicate)
+			step_mask = eval_rows(X_eval, step_mask_func, dtype = bool)
 			if numpy.sum(step_mask) < 1:
 				continue
 			step_X = X[step_mask]
@@ -334,7 +336,8 @@ class SelectFirstEstimator(_BaseEnsemble):
 		X_eval = self._to_evaluation_dataset(X)
 		mask = numpy.zeros(X.shape[0], dtype = bool)
 		for name, estimator, predicate in self.steps:
-			step_mask = eval_expr_rows(X_eval, predicate, dtype = bool)
+			step_mask_func = to_expr_func(predicate)
+			step_mask = eval_rows(X_eval, step_mask_func, dtype = bool)
 			step_mask[mask] = False
 			if numpy.sum(step_mask) < 1:
 				raise ValueError(predicate)
@@ -350,7 +353,8 @@ class SelectFirstEstimator(_BaseEnsemble):
 		X_eval = self._to_evaluation_dataset(X)
 		mask = numpy.zeros(X.shape[0], dtype = bool)
 		for name, estimator, predicate in self.steps:
-			step_mask = eval_expr_rows(X_eval, predicate, dtype = bool)
+			step_mask_func = to_expr_func(predicate)
+			step_mask = eval_rows(X_eval, step_mask_func, dtype = bool)
 			step_mask[mask] = False
 			if numpy.sum(step_mask) < 1:
 				continue

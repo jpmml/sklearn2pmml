@@ -158,11 +158,11 @@ def to_expr_func(expr, modules = ["math", "numpy", "pandas"]):
 	if isinstance(expr, str):
 		if "\n" not in expr:
 
-			def _eval_row(x):
+			def evaluate(x):
 				env["X"] = x
 				return eval(expr, env)
 
-			return _eval_row
+			return evaluate
 		else:
 			func = ensure_def(expr, env)
 			return lambda x: func(x)
@@ -182,10 +182,6 @@ def eval_rows(X, func, dtype = object):
 	for i in range(0, nrow):
 		Xt[i] = func(X[i])
 	return Xt
-
-def eval_expr_rows(X, expr, dtype = object):
-	func = to_expr_func(expr)
-	return eval_rows(X, func, dtype = dtype)
 
 def fqn(obj):
 	clazz = obj if inspect.isclass(obj) else obj.__class__
