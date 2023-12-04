@@ -116,7 +116,7 @@ class SelectFirstClassifierTest(TestCase):
 			("negative", DummyClassifier(strategy = "most_frequent"), "X[0] < 0"),
 			("positive", DummyClassifier(strategy = "most_frequent"), "X[0] > 0"),
 			("zero", DummyClassifier(strategy = "constant", constant = 0), str(True))
-		]))
+		], eval_rows = True))
 		params = classifier.get_params(deep = True)
 		self.assertEqual("most_frequent", params["negative__strategy"])
 		self.assertEqual("most_frequent", params["positive__strategy"])
@@ -128,6 +128,15 @@ class SelectFirstClassifierTest(TestCase):
 		self.assertEqual([-1, 0, -1, 1, -1], pred.tolist())
 		pred_proba = classifier.predict_proba(X)
 		self.assertEqual((5, 2), pred_proba.shape)
+		X = X.values
+		classifier = SelectFirstClassifier([
+			("negative", DummyClassifier(strategy = "most_frequent"), "X[:, 0] < 0"),
+			("positive", DummyClassifier(strategy = "most_frequent"), "X[:, 0] > 0"),
+			("zero", DummyClassifier(strategy = "constant", constant = 0), "X[:, 0] == 0")
+		], eval_rows = False)
+		classifier.fit(X, y)
+		pred = classifier.predict(X)
+		self.assertEqual([-1, 0, -1, 1, -1], pred.tolist())
 
 class SelectFirstRegressorTest(TestCase):
 	pass

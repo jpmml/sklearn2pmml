@@ -329,15 +329,22 @@ class EstimatorChain(_BaseEnsemble):
 
 class SelectFirstEstimator(_BaseEnsemble):
 
-	def __init__(self, steps, controller):
+	def __init__(self, steps, controller, eval_rows):
 		super(SelectFirstEstimator, self).__init__(steps, controller)
+		self.eval_rows = eval_rows
+
+	def _eval_step_mask(self, X, predicate):
+		step_func = to_expr_func(predicate)
+		if self.eval_rows:
+			return eval_rows(X, step_func, dtype = bool)
+		else:
+			return step_func(X)
 
 	def fit(self, X, y, **fit_params):
 		X_eval = self._to_evaluation_dataset(X)
 		mask = numpy.zeros(X.shape[0], dtype = bool)
 		for name, estimator, predicate in self.steps:
-			step_mask_func = to_expr_func(predicate)
-			step_mask = eval_rows(X_eval, step_mask_func, dtype = bool)
+			step_mask = self._eval_step_mask(X_eval, predicate)
 			step_mask[mask] = False
 			if numpy.sum(step_mask) < 1:
 				raise ValueError(predicate)
@@ -353,8 +360,7 @@ class SelectFirstEstimator(_BaseEnsemble):
 		X_eval = self._to_evaluation_dataset(X)
 		mask = numpy.zeros(X.shape[0], dtype = bool)
 		for name, estimator, predicate in self.steps:
-			step_mask_func = to_expr_func(predicate)
-			step_mask = eval_rows(X_eval, step_mask_func, dtype = bool)
+			step_mask = self._eval_step_mask(X_eval, predicate)
 			step_mask[mask] = False
 			if numpy.sum(step_mask) < 1:
 				continue
@@ -376,13 +382,13 @@ class SelectFirstEstimator(_BaseEnsemble):
 
 class SelectFirstRegressor(SelectFirstEstimator, RegressorMixin):
 
-	def __init__(self, steps, controller = None):
-		super(SelectFirstRegressor, self).__init__(steps, controller)
+	def __init__(self, steps, controller = None, eval_rows = True):
+		super(SelectFirstRegressor, self).__init__(steps, controller, eval_rows)
 
 class SelectFirstClassifier(SelectFirstEstimator, ClassifierMixin):
 
-	def __init__(self, steps, controller = None):
-		super(SelectFirstClassifier, self).__init__(steps, controller)
+	def __init__(self, steps, controller = None, eval_rows = True):
+		super(SelectFirstClassifier, self).__init__(steps, controller, eval_rows)
 
 	def predict_proba(self, X):
 		return self._predict(X, "predict_proba")
