@@ -657,7 +657,7 @@ class SelectFirstTransformer(BaseEstimator, TransformerMixin):
 
 	def fit(self, X, y = None):
 		X_eval = self._to_evaluation_dataset(X)
-		mask = numpy.zeros(X.shape[0], dtype = bool)
+		mask = numpy.full(X.shape[0], fill_value = False)
 		for name, transformer, predicate in self.steps:
 			step_mask = numpy.logical_not(mask)
 			step_mask_eval = self._eval_step_mask(X_eval[step_mask], predicate)
@@ -673,7 +673,7 @@ class SelectFirstTransformer(BaseEstimator, TransformerMixin):
 	def transform(self, X):
 		result = None
 		X_eval = self._to_evaluation_dataset(X)
-		mask = numpy.zeros(X.shape[0], dtype = bool)
+		mask = numpy.full(X.shape[0], fill_value = False)
 		for name, transformer, predicate in self.steps:
 			step_mask = numpy.logical_not(mask)
 			step_mask_eval = self._eval_step_mask(X_eval[step_mask], predicate)

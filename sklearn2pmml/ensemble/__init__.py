@@ -342,7 +342,7 @@ class SelectFirstEstimator(_BaseEnsemble):
 
 	def fit(self, X, y, **fit_params):
 		X_eval = self._to_evaluation_dataset(X)
-		mask = numpy.zeros(X.shape[0], dtype = bool)
+		mask = numpy.full(X.shape[0], fill_value = False)
 		for name, estimator, predicate in self.steps:
 			step_mask = self._eval_step_mask(X_eval, predicate)
 			step_mask[mask] = False
@@ -358,7 +358,7 @@ class SelectFirstEstimator(_BaseEnsemble):
 	def _predict(self, X, predict_method):
 		result = None
 		X_eval = self._to_evaluation_dataset(X)
-		mask = numpy.zeros(X.shape[0], dtype = bool)
+		mask = numpy.full(X.shape[0], fill_value = False)
 		for name, estimator, predicate in self.steps:
 			step_mask = self._eval_step_mask(X_eval, predicate)
 			step_mask[mask] = False
