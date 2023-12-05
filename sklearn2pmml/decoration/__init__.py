@@ -115,8 +115,7 @@ class Domain(BaseEstimator, TransformerMixin):
 			return pandas.isnull(X)
 
 	def _valid_value_mask(self, X, where):
-		mask = numpy.full(X.shape, True, dtype = bool)
-		return numpy.logical_and(mask, where)
+		return where
 
 	def _transform_missing_values(self, X, where):
 		if self.missing_value_treatment == "return_invalid":
