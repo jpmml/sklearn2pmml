@@ -11,6 +11,7 @@ from sklego.preprocessing import IdentityTransformer
 from unittest import TestCase
 
 import numpy
+import pandas
 
 class AliasTest(TestCase):
 
@@ -112,6 +113,20 @@ class CategoricalDomainTest(TestCase):
 		X = numpy.array([-1, 4, 2])
 		Xt = domain.transform(X)
 		self.assertEqual([0, 0, 2], Xt.tolist())
+
+	def test_fit_int64(self):
+		domain = clone(CategoricalDomain())
+		X = Series([-1, None, 1, 2, -1]).astype("Int64")
+		self.assertEqual([False, True, False, False, False], domain._missing_value_mask(X).tolist())
+		Xt = domain.fit_transform(X)
+		self.assertEqual([-1, 1, 2], domain.data_.tolist())
+		self.assertEqual([-1, pandas.NA, 1, 2, -1], Xt.tolist())
+		domain = clone(CategoricalDomain())
+		X = X.to_numpy()
+		self.assertEqual([False, True, False, False, False], domain._missing_value_mask(X).tolist())
+		Xt = domain.fit_transform(X)
+		self.assertEqual([-1, 1, 2], domain.data_.tolist())
+		self.assertEqual([-1, pandas.NA, 1, 2, -1], Xt.tolist())
 
 	def test_fit_int_categorical(self):
 		domain = clone(CategoricalDomain(dtype = CategoricalDtype()))

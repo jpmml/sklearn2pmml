@@ -161,7 +161,8 @@ class DiscreteDomain(Domain):
 			if hasattr(X, "isin"):
 				mask = X.isin(self.data_)
 			else:
-				mask = numpy.isin(X, self.data_)
+				mask = numpy.full(X.shape, fill_value = False)
+				mask[where] = numpy.isin(X[where], self.data_)
 			return numpy.logical_and(mask, where)
 		return super(DiscreteDomain, self)._valid_value_mask(X, where)
 
