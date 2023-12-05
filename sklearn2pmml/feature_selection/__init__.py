@@ -19,7 +19,7 @@ class SelectUnique(BaseEstimator, SelectorMixin):
 
 	def fit(self, X, y = None):
 		rows, cols = X.shape
-		mask = numpy.full((cols), True, dtype = bool)
+		mask = numpy.full((cols), fill_value = True)
 		if isinstance(X, DataFrame):
 			X = X.values
 		for left in range(cols):

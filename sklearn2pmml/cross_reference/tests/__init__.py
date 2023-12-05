@@ -155,7 +155,7 @@ class FunctionTest(TestCase):
 			"int": [-1, 1]
 		}
 		recaller_union = make_recaller_union(memory, ["int"])
-		X = numpy.full((2, 1), 0, dtype = int)
+		X = numpy.full((2, 1), fill_value = 0)
 		Xt = recaller_union.fit_transform(X)
 		self.assertEqual((2, 2), Xt.shape)
 		self.assertEqual([-1, 1], Xt[:, 0].tolist())

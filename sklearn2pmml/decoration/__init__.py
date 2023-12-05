@@ -105,7 +105,7 @@ class Domain(BaseEstimator, TransformerMixin):
 					return pandas.isnull(X)
 				return X == missing_value
 			if type(self.missing_values) is list:
-				mask = numpy.full(X.shape, False, dtype = bool)
+				mask = numpy.full(X.shape, fill_value = False)
 				for missing_value in self.missing_values:
 					mask = numpy.logical_or(mask, is_missing(X, missing_value))
 				return mask

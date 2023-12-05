@@ -163,17 +163,17 @@ class FunctionTest(TestCase):
 			"second" : numpy.asarray([[False, "A"], [False, "B"], [True, "C"], [False, "D"], [True, "E"]], dtype = object),
 			"any" : "any"
 		}
-		mask = numpy.full((5, ), True)
+		mask = numpy.full((5, ), fill_value = True)
 		masked_params = _mask_params(params, mask)
 		self.assertTrue(params["first"].tolist(), masked_params["first"].tolist())
 		self.assertTrue(params["second"].tolist(), masked_params["second"].tolist())
 		self.assertTrue(params["any"], masked_params["any"])
-		mask = numpy.asarray([False, True, False, False, True], dtype = bool)
+		mask = numpy.asarray([False, True, False, False, True])
 		masked_params = _mask_params(params, mask)
 		self.assertEqual([[1], [0]], masked_params["first"].tolist())
 		self.assertEqual([[False, "B"], [True, "E"]], masked_params["second"].tolist())
 		self.assertEqual(params["any"], masked_params["any"])
-		mask = numpy.full((5, ), False)
+		mask = numpy.full((5, ), fill_value = False)
 		masked_params = _mask_params(params, mask)
 		self.assertEqual([], masked_params["first"].tolist())
 		self.assertEqual([], masked_params["second"].tolist())
