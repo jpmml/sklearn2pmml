@@ -1,7 +1,7 @@
 from pandas import DataFrame
 from sklearn.base import clone, BaseEstimator, TransformerMixin
 from sklearn2pmml import _is_pandas_categorical
-from sklearn2pmml.util import cast, common_dtype, ensure_1d, eval_rows
+from sklearn2pmml.util import cast, common_dtype, ensure_1d
 
 import copy
 import numpy
@@ -162,10 +162,7 @@ class DiscreteDomain(Domain):
 			if hasattr(X, "isin"):
 				mask = X.isin(self.data_)
 			else:
-				def is_valid(x):
-					return x in self.data_
-				mask = eval_rows(X, is_valid, dtype = bool)
-			mask = (numpy.asarray(mask, dtype = bool)).reshape(X.shape)
+				mask = numpy.isin(X, self.data_)
 			return numpy.logical_and(mask, where)
 		return super(DiscreteDomain, self)._valid_value_mask(X, where)
 
