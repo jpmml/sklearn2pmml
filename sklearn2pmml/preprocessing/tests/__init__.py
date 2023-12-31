@@ -91,20 +91,36 @@ class CastTransformerTest(TestCase):
 	def test_transform(self):
 		X = numpy.asarray([False, "1", float(1.0), 0], dtype = object)
 		transformer = CastTransformer(dtype = str)
-		self.assertEqual(["False", "1", "1.0", "0"], transformer.transform(X).tolist())
+		self.assertEqual(["False", "1", "1.0", "0"], transformer.fit_transform(X).tolist())
 		transformer = CastTransformer(dtype = int)
-		self.assertEqual([0, 1, 1, 0], transformer.transform(X).tolist())
+		self.assertEqual([0, 1, 1, 0], transformer.fit_transform(X).tolist())
 		transformer = CastTransformer(dtype = float)
-		self.assertEqual([0.0, 1.0, 1.0, 0.0], transformer.transform(X).tolist())
+		self.assertEqual([0.0, 1.0, 1.0, 0.0], transformer.fit_transform(X).tolist())
 		transformer = CastTransformer(dtype = numpy.float64)
-		self.assertEqual([0.0, 1.0, 1.0, 0.0], transformer.transform(X).tolist())
+		self.assertEqual([0.0, 1.0, 1.0, 0.0], transformer.fit_transform(X).tolist())
 		transformer = CastTransformer(dtype = bool)
-		self.assertEqual([False, True, True, False], transformer.transform(X).tolist())
+		self.assertEqual([False, True, True, False], transformer.fit_transform(X).tolist())
 		X = numpy.asarray(["1960-01-01T00:00:00", "1960-01-03T03:30:03"])
 		transformer = CastTransformer(dtype = "datetime64[D]")
-		self.assertEqual([datetime(1960, 1, 1), datetime(1960, 1, 3)], transformer.transform(X).tolist())
+		self.assertEqual([datetime(1960, 1, 1), datetime(1960, 1, 3)], transformer.fit_transform(X).tolist())
 		transformer = CastTransformer(dtype = "datetime64[s]")
-		self.assertEqual([datetime(1960, 1, 1, 0, 0, 0), datetime(1960, 1, 3, 3, 30, 3)], transformer.transform(X).tolist())
+		self.assertEqual([datetime(1960, 1, 1, 0, 0, 0), datetime(1960, 1, 3, 3, 30, 3)], transformer.fit_transform(X).tolist())
+
+	def test_transform_categorical(self):
+		X = Series(["a", "c", "b", "a", "a", "b"], name = "x")
+		transformer = CastTransformer(dtype = "category")
+		self.assertTrue(hasattr(transformer, "dtype"))
+		self.assertFalse(hasattr(transformer, "dtype_"))
+		Xt = transformer.fit_transform(X)
+		self.assertTrue(hasattr(transformer, "dtype"))
+		self.assertTrue(hasattr(transformer, "dtype_"))
+		# Categories are ordered by their order of appearance
+		self.assertEqual(["a", "c", "b"], transformer.dtype_.categories.tolist())
+		X = X.values
+		transformer = CastTransformer(dtype = "category")
+		Xt = transformer.fit_transform(X)
+		# Categories are ordered lexicographically
+		self.assertEqual(["a", "b", "c"], transformer.dtype_.categories.tolist())
 
 class CutTransformerTest(TestCase):
 

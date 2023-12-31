@@ -5,7 +5,7 @@ except ImportError:
 	from collections import Hashable
 from datetime import datetime
 from io import StringIO
-from pandas import DataFrame, Series
+from pandas import CategoricalDtype, DataFrame, Series
 from scipy.interpolate import BSpline
 from scipy.sparse import lil_matrix
 from sklearn.base import BaseEstimator, TransformerMixin
@@ -92,10 +92,18 @@ class CastTransformer(BaseEstimator, TransformerMixin):
 		self.dtype = dtype
 
 	def fit(self, X, y = None):
+		if self.dtype == "category":
+			if hasattr(X, "unique"):
+				categories = X.unique()
+			else:
+				categories = numpy.unique(X)
+			self.dtype_ = CategoricalDtype(categories, ordered = False)
+		else:
+			self.dtype_ = self.dtype
 		return self
 
 	def transform(self, X):
-		return cast(X, self.dtype)
+		return cast(X, self.dtype_)
 
 class CutTransformer(BaseEstimator, TransformerMixin):
 	"""Bin continuous data to categorical."""
