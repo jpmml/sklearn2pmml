@@ -174,7 +174,10 @@ class DiscreteDomain(Domain):
 			X = cast(X, self.dtype)
 		self.dtype_ = X.dtype
 		mask = self._missing_value_mask(X)
-		values, counts = numpy.unique(X[~mask], return_counts = True)
+		if self.with_statistics:
+			values, counts = numpy.unique(X[~mask], return_counts = True)
+		else:
+			values = numpy.unique(X[~mask])
 		if self.with_data:
 			if _is_pandas_categorical(self.dtype_):
 				data = self.dtype_.categories
