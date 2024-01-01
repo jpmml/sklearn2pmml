@@ -235,16 +235,20 @@ class ContinuousDomain(Domain):
 		if self.dtype is not None:
 			X = cast(X, self.dtype)
 		self.dtype_ = common_dtype(X)
-		mask = self._missing_value_mask(X)
-		X = numpy.ma.masked_array(X, mask = mask)
-		min = numpy.asarray(numpy.nanmin(X, axis = 0))
-		max = numpy.asarray(numpy.nanmax(X, axis = 0))
+		if hasattr(X, "values"):
+			X = X.values
+		missing_mask = self._missing_value_mask(X)
+		non_missing_mask = ~missing_mask
+		min = numpy.asarray(numpy.nanmin(X, axis = 0, initial = numpy.Inf, where = non_missing_mask))
+		max = numpy.asarray(numpy.nanmax(X, axis = 0, initial = -numpy.Inf, where = non_missing_mask))
 		if self.with_data:
 			self.data_min_ = min
 			self.data_max_ = max
 		if self.with_statistics:
-			self.counts_ = _count(mask)
-			X = numpy.ma.asarray(X, dtype = numpy.float64).filled(float("NaN"))
+			self.counts_ = _count(missing_mask)
+			if missing_mask.any():
+				X = X.copy()
+				X[missing_mask] = float("NaN")
 			self.numeric_info_ = {
 				"minimum" : min,
 				"maximum" : max,
