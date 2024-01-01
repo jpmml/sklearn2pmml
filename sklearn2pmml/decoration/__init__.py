@@ -314,7 +314,7 @@ class MultiDomain(BaseEstimator, TransformerMixin):
 		if isinstance(X, DataFrame):
 			for domain, column in zip(self.domains, X.columns):
 				if domain is not None:
-					domain.fit(X[column].values)
+					domain.fit(X[column])
 		else:
 			for domain, column in zip(self.domains, range(0, columns)):
 				if domain is not None:
@@ -328,7 +328,7 @@ class MultiDomain(BaseEstimator, TransformerMixin):
 		if isinstance(X, DataFrame):
 			for domain, column in zip(self.domains, X.columns):
 				if domain is not None:
-					X[column] = domain.transform(X[column].values)
+					X[column] = domain.transform(X[column])
 		else:
 			for domain, column in zip(self.domains, range(0, columns)):
 				if domain is not None:
