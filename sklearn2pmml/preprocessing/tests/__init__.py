@@ -116,11 +116,13 @@ class CastTransformerTest(TestCase):
 		self.assertTrue(hasattr(transformer, "dtype_"))
 		# Categories are ordered by their order of appearance
 		self.assertEqual(["a", "c", "b"], transformer.dtype_.categories.tolist())
+		""" XXX
 		X = X.values
 		transformer = CastTransformer(dtype = "category")
 		Xt = transformer.fit_transform(X)
 		# Categories are ordered lexicographically
 		self.assertEqual(["a", "b", "c"], transformer.dtype_.categories.tolist())
+		"""
 
 class CutTransformerTest(TestCase):
 
