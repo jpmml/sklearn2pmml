@@ -36,6 +36,15 @@ def common_dtype(X):
 	else:
 		raise ValueError()
 
+def is_1d(X):
+	shape = X.shape
+	if len(shape) == 1:
+		return True
+	elif (len(shape) == 2 and shape[1] == 1):
+		return True
+	else:
+		return False
+
 def ensure_1d(X):
 	if isinstance(X, (Categorical, Series)):
 		return X

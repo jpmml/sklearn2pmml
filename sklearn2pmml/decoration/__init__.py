@@ -1,7 +1,7 @@
 from pandas import DataFrame
 from sklearn.base import clone, BaseEstimator, TransformerMixin
 from sklearn2pmml import _is_pandas_categorical
-from sklearn2pmml.util import cast, common_dtype, ensure_1d
+from sklearn2pmml.util import cast, common_dtype, is_1d
 
 import copy
 import numpy
@@ -167,30 +167,40 @@ class DiscreteDomain(Domain):
 		return super(DiscreteDomain, self)._valid_value_mask(X, where)
 
 	def fit(self, X, y = None):
-		X = ensure_1d(X)
 		if self._empty_fit():
 			return self
 		if self.dtype is not None:
 			X = cast(X, self.dtype)
-		self.dtype_ = X.dtype
-		mask = self._missing_value_mask(X)
-		if self.with_statistics:
-			values, counts = numpy.unique(X[~mask], return_counts = True)
-		else:
-			values = numpy.unique(X[~mask])
+		self.dtype_ = common_dtype(X)
+		if hasattr(X, "values"):
+			X = X.values
+		missing_mask = self._missing_value_mask(X)
+		non_missing_mask = ~missing_mask
 		if self.with_data:
 			if _is_pandas_categorical(self.dtype_):
 				data = self.dtype_.categories
 			else:
-				data = values
-			if (self.missing_value_replacement is not None) and numpy.any(mask) > 0:
+				data = numpy.unique(X[non_missing_mask])
+			if (self.missing_value_replacement is not None) and numpy.any(missing_mask) > 0:
 				if _is_pandas_categorical(self.dtype_):
 					raise ValueError()
 				data = numpy.unique(numpy.append(data, self.missing_value_replacement))
 			self.data_ = data
 		if self.with_statistics:
-			self.counts_ = _count(mask)
-			self.discr_stats_ = (values, counts)
+			if is_1d(X):
+				values, counts = numpy.unique(X[non_missing_mask], return_counts = True)
+				self.counts_ = _count(missing_mask)
+				self.discr_stats_ = (values, counts)
+			else:
+				self.counts_ = []
+				self.discr_stats_ = []
+				for col in range(X.shape[1]):
+					col_X = X[:, col]
+					col_missing_mask = missing_mask[:, col]
+					col_non_missing_mask = non_missing_mask[:, col]
+					values, counts = numpy.unique(col_X[col_non_missing_mask], return_counts = True)
+					self.counts_.append(_count(col_missing_mask))
+					self.discr_stats_.append((values, counts))
 		return self
 
 class CategoricalDomain(DiscreteDomain):
