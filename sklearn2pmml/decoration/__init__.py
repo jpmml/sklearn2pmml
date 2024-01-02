@@ -55,15 +55,13 @@ class MultiAlias(TransformerWrapper):
 	def get_feature_names_out(self, input_features = None):
 		return numpy.asarray(self.names)
 
-def _count(mask):
-	if hasattr(mask, "values"):
-		mask = mask.values
-	missing_freq = sum(mask)
-	non_missing_freq = sum(~mask)
+def _count(missing_mask, nonmissing_mask):
+	missing_freq = sum(missing_mask)
+	nonmissing_freq = sum(nonmissing_mask)
 	return {
-		"totalFreq" : (missing_freq + non_missing_freq),
+		"totalFreq" : (missing_freq + nonmissing_freq),
 		"missingFreq" : missing_freq,
-		"invalidFreq" : (non_missing_freq - non_missing_freq) # A scalar zero, or an array of zeroes
+		"invalidFreq" : (nonmissing_freq - nonmissing_freq) # A scalar zero, or an array of zeroes
 	}
 
 class Domain(BaseEstimator, TransformerMixin):
@@ -142,13 +140,16 @@ class Domain(BaseEstimator, TransformerMixin):
 	def transform(self, X):
 		if self.dtype is not None:
 			X = cast(X, self.dtype)
-		missing_value_mask = self._missing_value_mask(X)
-		nonmissing_value_mask = ~missing_value_mask
-		valid_value_mask = self._valid_value_mask(X, nonmissing_value_mask)
-		invalid_value_mask = ~numpy.logical_or(missing_value_mask, valid_value_mask)
-		self._transform_missing_values(X, missing_value_mask)
-		self._transform_valid_values(X, valid_value_mask)
-		self._transform_invalid_values(X, invalid_value_mask)
+		X_mask = X
+		if hasattr(X_mask, "values"):
+			X_mask = X_mask.values
+		missing_mask = self._missing_value_mask(X_mask)
+		nonmissing_mask = ~missing_mask
+		valid_mask = self._valid_value_mask(X_mask, nonmissing_mask)
+		invalid_mask = ~numpy.logical_or(missing_mask, valid_mask)
+		self._transform_missing_values(X, missing_mask)
+		self._transform_valid_values(X, valid_mask)
+		self._transform_invalid_values(X, invalid_mask)
 		return X
 
 class DiscreteDomain(Domain):
@@ -158,12 +159,28 @@ class DiscreteDomain(Domain):
 
 	def _valid_value_mask(self, X, where):
 		if hasattr(self, "data_"):
-			if hasattr(X, "isin"):
-				mask = X.isin(self.data_)
-			else:
+			data = self.data_
+
+			def _isin_mask(x, values):
+				if hasattr(x, "isin"):
+					return x.isin(values)
+				else:
+					return numpy.isin(x, values)
+
+			if is_1d(X):
+				where = where.ravel()
 				mask = numpy.full(X.shape, fill_value = False)
-				mask[where] = numpy.isin(X[where], self.data_)
-			return numpy.logical_and(mask, where)
+				mask[where] = _isin_mask(X[where], data)
+				return mask
+			else:
+				if isinstance(data, list):
+					if X.shape[1] != len(data):
+						raise ValueError()
+				mask = numpy.full(X.shape, fill_value = False)
+				for col in range(X.shape[1]):
+					col_where = where[:, col]
+					mask[col_where, col] = _isin_mask(X[col_where, col], data[col] if isinstance(data, list) else data)
+				return mask
 		return super(DiscreteDomain, self)._valid_value_mask(X, where)
 
 	def fit(self, X, y = None):
@@ -175,31 +192,49 @@ class DiscreteDomain(Domain):
 		if hasattr(X, "values"):
 			X = X.values
 		missing_mask = self._missing_value_mask(X)
-		non_missing_mask = ~missing_mask
-		if self.with_data:
-			if _is_pandas_categorical(self.dtype_):
-				data = self.dtype_.categories
+		nonmissing_mask = ~missing_mask
+		if is_1d(X):
+			if self.with_statistics:
+				values, counts = numpy.unique(X[nonmissing_mask], return_counts = True)
 			else:
-				data = numpy.unique(X[non_missing_mask])
-			if (self.missing_value_replacement is not None) and numpy.any(missing_mask) > 0:
+				values = numpy.unique(X[nonmissing_mask])
+			if self.with_data:
 				if _is_pandas_categorical(self.dtype_):
-					raise ValueError()
-				data = numpy.unique(numpy.append(data, self.missing_value_replacement))
-			self.data_ = data
-		if self.with_statistics:
-			if is_1d(X):
-				values, counts = numpy.unique(X[non_missing_mask], return_counts = True)
-				self.counts_ = _count(missing_mask)
+					data = self.dtype_.categories
+				else:
+					data = values
+				if (self.missing_value_replacement is not None) and numpy.any(missing_mask) > 0:
+					if _is_pandas_categorical(self.dtype_):
+						raise ValueError()
+					data = numpy.unique(numpy.append(data, self.missing_value_replacement))
+				self.data_ = data
+			if self.with_statistics:
+				self.counts_ = _count(missing_mask, nonmissing_mask)
 				self.discr_stats_ = (values, counts)
-			else:
+		else:
+			if self.with_data:
+				self.data_ = []
+			if self.with_statistics:
 				self.counts_ = []
 				self.discr_stats_ = []
-				for col in range(X.shape[1]):
-					col_X = X[:, col]
-					col_missing_mask = missing_mask[:, col]
-					col_non_missing_mask = non_missing_mask[:, col]
-					values, counts = numpy.unique(col_X[col_non_missing_mask], return_counts = True)
-					self.counts_.append(_count(col_missing_mask))
+			for col in range(X.shape[1]):
+				col_X = X[:, col]
+				col_missing_mask = missing_mask[:, col]
+				col_nonmissing_mask = nonmissing_mask[:, col]
+				if self.with_statistics:
+					values, counts = numpy.unique(col_X[col_nonmissing_mask], return_counts = True)
+				else:
+					values = numpy.unique(col_X[col_nonmissing_mask])
+				if self.with_data:
+					if _is_pandas_categorical(self.dtype_):
+						raise ValueError()
+					else:
+						data = values
+					if (self.missing_value_replacement is not None) and numpy.any(col_missing_mask) > 0:
+						data = numpy.unique(numpy.append(data, self.missing_value_replacement))
+					self.data_.append(data)
+				if self.with_statistics:
+					self.counts_.append(_count(col_missing_mask, ~col_missing_mask))
 					self.discr_stats_.append((values, counts))
 		return self
 
@@ -248,14 +283,14 @@ class ContinuousDomain(Domain):
 		if hasattr(X, "values"):
 			X = X.values
 		missing_mask = self._missing_value_mask(X)
-		non_missing_mask = ~missing_mask
-		min = numpy.asarray(numpy.nanmin(X, axis = 0, initial = numpy.Inf, where = non_missing_mask))
-		max = numpy.asarray(numpy.nanmax(X, axis = 0, initial = -numpy.Inf, where = non_missing_mask))
+		nonmissing_mask = ~missing_mask
+		min = numpy.asarray(numpy.nanmin(X, axis = 0, initial = numpy.Inf, where = nonmissing_mask))
+		max = numpy.asarray(numpy.nanmax(X, axis = 0, initial = -numpy.Inf, where = nonmissing_mask))
 		if self.with_data:
 			self.data_min_ = min
 			self.data_max_ = max
 		if self.with_statistics:
-			self.counts_ = _count(missing_mask)
+			self.counts_ = _count(missing_mask, nonmissing_mask)
 			if missing_mask.any():
 				X = X.copy()
 				X[missing_mask] = float("NaN")
