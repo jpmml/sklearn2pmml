@@ -299,6 +299,25 @@ class ContinuousDomainTest(TestCase):
 		Xt = domain.transform(X)
 		self.assertEqual([0.0, 0.0, 0.0], Xt.tolist())
 
+	def test_fit_float_invalid(self):
+		domain = clone(ContinuousDomain(data_min = [-1, -2], data_max = [1, 2], invalid_value_treatment = "as_missing"))
+		X = DataFrame([[-2.0, -2.0], [-1.0, float("NaN")], [0.0, 0.0], [1.0, 1.0], [2.0, float("NaN")], [3.0, 3.0]])
+		self.assertEqual([-1, -2], domain.data_min)
+		self.assertEqual([1, 2], domain.data_max)
+		Xt = domain.fit_transform(X)
+		self.assertIsInstance(Xt, DataFrame)
+		self.assertEqual([-1, -2], domain.data_min_.tolist())
+		self.assertEqual([1, 2], domain.data_max_.tolist())
+		missing_mask, valid_mask, invalid_mask = domain._compute_masks(X)
+		self.assertEqual((6, 2), missing_mask.shape)
+		self.assertEqual((6, 2), valid_mask.shape)
+		self.assertEqual((6, 2), invalid_mask.shape)
+		total_mask = (missing_mask | valid_mask | invalid_mask)
+		self.assertEqual([6, 6], sum(total_mask).tolist())
+		self.assertEqual([6, 6], domain.counts_["totalFreq"].tolist())
+		self.assertEqual([0, 2], domain.counts_["missingFreq"].tolist())
+		self.assertEqual([3, 1], domain.counts_["invalidFreq"].tolist())
+
 	def test_fit_float_outlier(self):
 		domain = clone(ContinuousDomain(missing_values = float("NaN"), missing_value_replacement = 1.0, outlier_treatment = "as_missing_values", low_value = 0.0, high_value = 3.0))
 		self.assertEqual(0.0, domain.low_value)

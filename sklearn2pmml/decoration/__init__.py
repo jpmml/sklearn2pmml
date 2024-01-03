@@ -58,7 +58,7 @@ class MultiAlias(TransformerWrapper):
 def _count(missing_mask, valid_mask, invalid_mask):
 	missing_freq = sum(missing_mask)
 	valid_freq = sum(valid_mask)
-	invalid_freq = sum(invalid_mask) if invalid_mask else (valid_freq - valid_freq) # A scalar zero, or an array of zeroes
+	invalid_freq = sum(invalid_mask) if (invalid_mask is not None) else (valid_freq - valid_freq) # A scalar zero, or an array of zeroes
 	return {
 		"totalFreq" : (missing_freq + valid_freq + invalid_freq),
 		"missingFreq" : missing_freq,
@@ -256,7 +256,7 @@ def _interquartile_range(X, axis):
 
 class ContinuousDomain(Domain):
 
-	def __init__(self, missing_values = None, missing_value_treatment = "as_is", missing_value_replacement = None, invalid_value_treatment = "return_invalid", invalid_value_replacement = None, outlier_treatment = "as_is", low_value = None, high_value = None, with_data = True, with_statistics = True, dtype = None, display_name = None):
+	def __init__(self, missing_values = None, missing_value_treatment = "as_is", missing_value_replacement = None, invalid_value_treatment = "return_invalid", invalid_value_replacement = None, outlier_treatment = "as_is", low_value = None, high_value = None, with_data = True, with_statistics = True, dtype = None, display_name = None, data_min = None, data_max = None):
 		super(ContinuousDomain, self).__init__(missing_values = missing_values, missing_value_treatment = missing_value_treatment, missing_value_replacement = missing_value_replacement, invalid_value_treatment = invalid_value_treatment, invalid_value_replacement = invalid_value_replacement, with_data = with_data, with_statistics = with_statistics, dtype = dtype, display_name = display_name)
 		outlier_treatments = ["as_is", "as_missing_values", "as_extreme_values"]
 		if outlier_treatment not in outlier_treatments:
@@ -270,6 +270,14 @@ class ContinuousDomain(Domain):
 				raise ValueError("Outlier treatment {0} requires low_value and high_value attributes".format(outlier_treatment))
 		self.low_value = low_value
 		self.high_value = high_value
+		if data_min or data_max:
+			if not with_data:
+				raise ValueError("Valid value intervals require with_data attribute")
+		if data_min and data_max:
+			if numpy.any(numpy.greater(data_min, data_max)):
+				raise ValueError("Valid value intervals are invalid")
+		self.data_min = data_min
+		self.data_max = data_max
 
 	def _valid_value_mask(self, X, where):
 		if hasattr(self, "data_min_") and hasattr(self, "data_max_"):
@@ -285,16 +293,19 @@ class ContinuousDomain(Domain):
 		X = to_numpy(X)
 		missing_mask = self._missing_value_mask(X)
 		nonmissing_mask = ~missing_mask
-		min = numpy.asarray(numpy.nanmin(X, axis = 0, initial = numpy.Inf, where = nonmissing_mask))
-		max = numpy.asarray(numpy.nanmax(X, axis = 0, initial = -numpy.Inf, where = nonmissing_mask))
+		if self.with_statistics or self.data_min is None:
+			min = numpy.asarray(numpy.nanmin(X, axis = 0, initial = numpy.Inf, where = nonmissing_mask))
+		if self.with_statistics or self.data_max is None:
+			max = numpy.asarray(numpy.nanmax(X, axis = 0, initial = -numpy.Inf, where = nonmissing_mask))
 		if self.with_data:
-			self.data_min_ = min
-			self.data_max_ = max
+			self.data_min_ = numpy.asarray(self.data_min) if (self.data_min is not None) else min
+			self.data_max_ = numpy.asarray(self.data_max) if (self.data_max is not None) else max
 		if self.with_statistics:
-			self.counts_ = _count(missing_mask, nonmissing_mask, None)
-			if missing_mask.any():
+			missing_mask, valid_mask, invalid_mask = self._compute_masks(X)
+			self.counts_ = _count(missing_mask, valid_mask, invalid_mask)
+			if missing_mask.any() or invalid_mask.any():
 				X = X.copy()
-				X[missing_mask] = float("NaN")
+				X[missing_mask | invalid_mask] = float("NaN")
 			self.numeric_info_ = {
 				"minimum" : min,
 				"maximum" : max,
