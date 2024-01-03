@@ -184,11 +184,11 @@ class DiscreteDomain(Domain):
 		return super(DiscreteDomain, self)._valid_value_mask(X, where)
 
 	def fit(self, X, y = None):
-		if self._empty_fit():
-			return self
 		if self.dtype is not None:
 			X = cast(X, self.dtype)
 		self.dtype_ = common_dtype(X)
+		if self._empty_fit():
+			return self
 		if hasattr(X, "values"):
 			X = X.values
 		missing_mask = self._missing_value_mask(X)
@@ -275,11 +275,11 @@ class ContinuousDomain(Domain):
 		return super(ContinuousDomain, self)._valid_value_mask(X, where)
 
 	def fit(self, X, y = None):
-		if self._empty_fit():
-			return self
 		if self.dtype is not None:
 			X = cast(X, self.dtype)
 		self.dtype_ = common_dtype(X)
+		if self._empty_fit():
+			return self
 		if hasattr(X, "values"):
 			X = X.values
 		missing_mask = self._missing_value_mask(X)
