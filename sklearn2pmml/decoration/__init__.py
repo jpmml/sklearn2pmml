@@ -55,13 +55,14 @@ class MultiAlias(TransformerWrapper):
 	def get_feature_names_out(self, input_features = None):
 		return numpy.asarray(self.names)
 
-def _count(missing_mask, nonmissing_mask):
+def _count(missing_mask, valid_mask, invalid_mask):
 	missing_freq = sum(missing_mask)
-	nonmissing_freq = sum(nonmissing_mask)
+	valid_freq = sum(valid_mask)
+	invalid_freq = sum(invalid_mask) if invalid_mask else (valid_freq - valid_freq) # A scalar zero, or an array of zeroes
 	return {
-		"totalFreq" : (missing_freq + nonmissing_freq),
+		"totalFreq" : (missing_freq + valid_freq + invalid_freq),
 		"missingFreq" : missing_freq,
-		"invalidFreq" : (nonmissing_freq - nonmissing_freq) # A scalar zero, or an array of zeroes
+		"invalidFreq" : invalid_freq
 	}
 
 class Domain(BaseEstimator, TransformerMixin):
@@ -137,14 +138,18 @@ class Domain(BaseEstimator, TransformerMixin):
 			if self.invalid_value_replacement is not None:
 				X[where] = self.invalid_value_replacement
 
+	def _compute_masks(self, X):
+		X = to_numpy(X)
+		missing_mask = self._missing_value_mask(X)
+		nonmissing_mask = ~missing_mask
+		valid_mask = self._valid_value_mask(X, nonmissing_mask)
+		invalid_mask = ~numpy.logical_or(missing_mask, valid_mask)
+		return (missing_mask, valid_mask, invalid_mask)
+
 	def transform(self, X):
 		if self.dtype is not None:
 			X = cast(X, self.dtype)
-		X_mask = to_numpy(X)
-		missing_mask = self._missing_value_mask(X_mask)
-		nonmissing_mask = ~missing_mask
-		valid_mask = self._valid_value_mask(X_mask, nonmissing_mask)
-		invalid_mask = ~numpy.logical_or(missing_mask, valid_mask)
+		missing_mask, valid_mask, invalid_mask = self._compute_masks(X)
 		self._transform_missing_values(X, missing_mask)
 		self._transform_valid_values(X, valid_mask)
 		self._transform_invalid_values(X, invalid_mask)
@@ -206,7 +211,7 @@ class DiscreteDomain(Domain):
 					data = numpy.unique(numpy.append(data, self.missing_value_replacement))
 				self.data_ = data
 			if self.with_statistics:
-				self.counts_ = _count(missing_mask, nonmissing_mask)
+				self.counts_ = _count(missing_mask, nonmissing_mask, None)
 				self.discr_stats_ = (values, counts)
 		else:
 			if self.with_data:
@@ -231,7 +236,7 @@ class DiscreteDomain(Domain):
 						data = numpy.unique(numpy.append(data, self.missing_value_replacement))
 					self.data_.append(data)
 				if self.with_statistics:
-					self.counts_.append(_count(col_missing_mask, ~col_missing_mask))
+					self.counts_.append(_count(col_missing_mask, ~col_missing_mask, None))
 					self.discr_stats_.append((values, counts))
 		return self
 
@@ -286,7 +291,7 @@ class ContinuousDomain(Domain):
 			self.data_min_ = min
 			self.data_max_ = max
 		if self.with_statistics:
-			self.counts_ = _count(missing_mask, nonmissing_mask)
+			self.counts_ = _count(missing_mask, nonmissing_mask, None)
 			if missing_mask.any():
 				X = X.copy()
 				X[missing_mask] = float("NaN")
