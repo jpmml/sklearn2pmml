@@ -1,7 +1,7 @@
 from pandas import DataFrame
 from sklearn.base import clone, BaseEstimator, TransformerMixin
 from sklearn2pmml import _is_pandas_categorical
-from sklearn2pmml.util import cast, common_dtype, is_1d
+from sklearn2pmml.util import cast, common_dtype, is_1d, to_numpy
 
 import copy
 import numpy
@@ -140,9 +140,7 @@ class Domain(BaseEstimator, TransformerMixin):
 	def transform(self, X):
 		if self.dtype is not None:
 			X = cast(X, self.dtype)
-		X_mask = X
-		if hasattr(X_mask, "values"):
-			X_mask = X_mask.values
+		X_mask = to_numpy(X)
 		missing_mask = self._missing_value_mask(X_mask)
 		nonmissing_mask = ~missing_mask
 		valid_mask = self._valid_value_mask(X_mask, nonmissing_mask)
@@ -189,8 +187,7 @@ class DiscreteDomain(Domain):
 		self.dtype_ = common_dtype(X)
 		if self._empty_fit():
 			return self
-		if hasattr(X, "values"):
-			X = X.values
+		X = to_numpy(X)
 		missing_mask = self._missing_value_mask(X)
 		nonmissing_mask = ~missing_mask
 		if is_1d(X):
@@ -280,8 +277,7 @@ class ContinuousDomain(Domain):
 		self.dtype_ = common_dtype(X)
 		if self._empty_fit():
 			return self
-		if hasattr(X, "values"):
-			X = X.values
+		X = to_numpy(X)
 		missing_mask = self._missing_value_mask(X)
 		nonmissing_mask = ~missing_mask
 		min = numpy.asarray(numpy.nanmin(X, axis = 0, initial = numpy.Inf, where = nonmissing_mask))

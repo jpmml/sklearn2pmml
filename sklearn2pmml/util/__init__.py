@@ -36,6 +36,11 @@ def common_dtype(X):
 	else:
 		raise ValueError()
 
+def to_numpy(X):
+	if hasattr(X, "to_numpy"):
+		return X.to_numpy()
+	return X
+
 def is_1d(X):
 	shape = X.shape
 	if len(shape) == 1:

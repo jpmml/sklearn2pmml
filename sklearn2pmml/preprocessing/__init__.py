@@ -10,7 +10,7 @@ from scipy.interpolate import BSpline
 from scipy.sparse import lil_matrix
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.pipeline import Pipeline
-from sklearn2pmml.util import cast, dt_transform, ensure_1d, ensure_def, eval_rows, to_expr_func, Expression, Predicate
+from sklearn2pmml.util import cast, dt_transform, ensure_1d, ensure_def, eval_rows, to_expr_func, to_numpy, Expression, Predicate
 
 import numpy
 import pandas
@@ -28,7 +28,7 @@ def _regex_engine(pattern):
 
 def _col2d(X):
 	if isinstance(X, Series):
-		X = X.values
+		X = X.to_numpy()
 	return X.reshape(-1, 1)
 
 def _int(X):
@@ -36,7 +36,7 @@ def _int(X):
 		return int(X)
 	else:
 		if isinstance(X, Series):
-			X = X.values
+			X = X.to_numpy()
 		return X.astype(int)
 
 class Aggregator(BaseEstimator, TransformerMixin):
@@ -609,8 +609,7 @@ class StringNormalizer(BaseEstimator, TransformerMixin):
 		return self
 
 	def transform(self, X):
-		if hasattr(X, "values"):
-			X = X.values
+		X = to_numpy(X)
 		Xt = X.astype("U")
 		# Transform
 		if self.function is None:

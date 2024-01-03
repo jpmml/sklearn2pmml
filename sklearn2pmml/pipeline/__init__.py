@@ -1,6 +1,7 @@
 from pandas import DataFrame, Series
 from sklearn.base import BaseEstimator, ClassifierMixin, RegressorMixin
 from sklearn.pipeline import Pipeline
+from sklearn2pmml.util import to_numpy
 
 import numpy
 import warnings
@@ -32,16 +33,10 @@ def _get_column_names(X):
 		return None
 
 def _get_values(X):
-	if isinstance(X, DataFrame):
-		return X.values
-	elif isinstance(X, Series):
-		return X.values
-	# elif isinstance(X, H2OFrame)
-	elif hasattr(X, "as_data_frame"):
+	# if isinstance(X, H2OFrame)
+	if hasattr(X, "as_data_frame"):
 		X = X.as_data_frame()
-		return X.values
-	else:
-		return X
+	return to_numpy(X)
 
 class PMMLPipeline(Pipeline):
 

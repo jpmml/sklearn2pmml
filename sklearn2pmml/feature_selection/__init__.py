@@ -5,6 +5,7 @@ try:
 except ImportError:
 	from sklearn.feature_selection.base import SelectorMixin
 from sklearn.utils.validation import check_is_fitted
+from sklearn2pmml.util import to_numpy
 
 import numpy
 
@@ -18,10 +19,9 @@ class SelectUnique(BaseEstimator, SelectorMixin):
 		return self.support_mask_
 
 	def fit(self, X, y = None):
+		X = to_numpy(X)
 		rows, cols = X.shape
 		mask = numpy.full((cols), fill_value = True)
-		if isinstance(X, DataFrame):
-			X = X.values
 		for left in range(cols):
 			if mask[left] is False:
 				continue
