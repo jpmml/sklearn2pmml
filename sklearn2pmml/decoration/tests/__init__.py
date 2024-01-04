@@ -342,6 +342,17 @@ class ContinuousDomainTest(TestCase):
 		self.assertEqual([0.0, 2.0, -1.0], X[0].tolist())
 		self.assertEqual([-1.0, 3.0, 0.0], X[1].tolist())
 
+	def test_fit_int(self):
+		domain = clone(ContinuousDomain(missing_values = -1))
+		X = Series([-2, -1, 0, -1, 3])
+		self.assertEqual(int, X.dtype)
+		Xt = domain.fit_transform(X)
+		self.assertIsInstance(Xt, Series)
+		self.assertEqual(int, Xt.dtype)
+		self.assertEqual(-2, domain.data_min_)
+		self.assertEqual(3, domain.data_max_)
+		self.assertEqual({"totalFreq" : 5, "missingFreq" : 2, "invalidFreq" : 0}, domain.counts_)
+
 	def test_mapper(self):
 		domain = ContinuousDomain()
 		df = DataFrame([{"X1" : 2.0, "X2" : 2, "y" : 2.0}, {"X1" : 1.0, "X2" : 0.5}, {"X1" : 2}, {"X2" : 2}, {"X1" : 2.0, "y" : 1}, {"X1" : 3.0, "X2" : 3.5}])
