@@ -56,6 +56,14 @@ class MultiAlias(TransformerWrapper):
 	def get_feature_names_out(self, input_features = None):
 		return numpy.asarray(self.names)
 
+def _check_cols(X, values):
+	if is_1d(X):
+		if hasattr(values, "__len__") and len(values) > 1:
+			raise ValueError()
+	else:
+		if X.shape[1] != len(values):
+			raise ValueError()
+
 def _count(missing_mask, valid_mask, invalid_mask):
 	missing_freq = sum(missing_mask)
 	valid_freq = sum(valid_mask)
@@ -291,29 +299,33 @@ class ContinuousDomain(Domain):
 		self.dtype_ = common_dtype(X)
 		if self._empty_fit():
 			return self
-		if issubclass(self.dtype_.type, numbers.Integral):
-			info = numpy.iinfo(self.dtype_)
-		else:
-			info = numpy.finfo(self.dtype_)
 		X = to_numpy(X)
-		missing_mask = self._missing_value_mask(X)
-		nonmissing_mask = ~missing_mask
-		if self.with_statistics or self.data_min is None:
-			min = numpy.asarray(numpy.nanmin(X, axis = 0, initial = info.max, where = nonmissing_mask))
-		if self.with_statistics or self.data_max is None:
-			max = numpy.asarray(numpy.nanmax(X, axis = 0, initial = info.min, where = nonmissing_mask))
 		if self.with_data:
-			self.data_min_ = numpy.asarray(self.data_min) if (self.data_min is not None) else min
-			self.data_max_ = numpy.asarray(self.data_max) if (self.data_max is not None) else max
+			if issubclass(self.dtype_.type, numbers.Integral):
+				info = numpy.iinfo(self.dtype_)
+			else:
+				info = numpy.finfo(self.dtype_)
+			missing_mask = self._missing_value_mask(X)
+			nonmissing_mask = ~missing_mask
+			if self.data_min is None:
+				self.data_min_ = numpy.asarray(numpy.nanmin(X, axis = 0, initial = info.max, where = nonmissing_mask))
+			else:
+				_check_cols(X, self.data_min)
+				self.data_min_ = numpy.asarray(self.data_min)
+			if self.data_max is None:
+				self.data_max_ = numpy.asarray(numpy.nanmax(X, axis = 0, initial = info.min, where = nonmissing_mask))
+			else:
+				_check_cols(X, self.data_max)
+				self.data_max_ = numpy.asarray(self.data_max)
 		if self.with_statistics:
 			missing_mask, valid_mask, invalid_mask = self._compute_masks(X)
 			self.counts_ = _count(missing_mask, valid_mask, invalid_mask)
-			if missing_mask.any() or invalid_mask.any():
+			if numpy.any(missing_mask) or numpy.any(invalid_mask):
 				X = (X.copy()).astype(float)
 				X[missing_mask | invalid_mask] = float("NaN")
 			self.numeric_info_ = {
-				"minimum" : min,
-				"maximum" : max,
+				"minimum" : numpy.asarray(numpy.nanmin(X, axis = 0)),
+				"maximum" : numpy.asarray(numpy.nanmax(X, axis = 0)),
 				"mean" : numpy.asarray(numpy.nanmean(X, axis = 0)),
 				"standardDeviation" : numpy.asarray(numpy.nanstd(X, axis = 0)),
 				"median" : numpy.asarray(numpy.nanmedian(X, axis = 0)),
