@@ -162,8 +162,8 @@ class DiscreteDomain(Domain):
 		super(DiscreteDomain, self).__init__(missing_values = missing_values, missing_value_treatment = missing_value_treatment, missing_value_replacement = missing_value_replacement, invalid_value_treatment = invalid_value_treatment, invalid_value_replacement = invalid_value_replacement, with_data = with_data, with_statistics = with_statistics, dtype = dtype, display_name = display_name)
 
 	def _valid_value_mask(self, X, where):
-		if hasattr(self, "data_"):
-			data = self.data_
+		if hasattr(self, "data_values_"):
+			data_values = self.data_values_
 
 			def _isin_mask(x, values):
 				if hasattr(x, "isin"):
@@ -174,16 +174,16 @@ class DiscreteDomain(Domain):
 			if is_1d(X):
 				where = where.ravel()
 				mask = numpy.full(X.shape, fill_value = False)
-				mask[where] = _isin_mask(X[where], data)
+				mask[where] = _isin_mask(X[where], data_values)
 				return mask
 			else:
-				if isinstance(data, list):
-					if X.shape[1] != len(data):
+				if isinstance(data_values, list):
+					if X.shape[1] != len(data_values):
 						raise ValueError()
 				mask = numpy.full(X.shape, fill_value = False)
 				for col in range(X.shape[1]):
 					col_where = where[:, col]
-					mask[col_where, col] = _isin_mask(X[col_where, col], data[col] if isinstance(data, list) else data)
+					mask[col_where, col] = _isin_mask(X[col_where, col], data_values[col] if isinstance(data_values, list) else data_values)
 				return mask
 		return super(DiscreteDomain, self)._valid_value_mask(X, where)
 
@@ -203,20 +203,20 @@ class DiscreteDomain(Domain):
 				values = numpy.unique(X[nonmissing_mask])
 			if self.with_data:
 				if _is_pandas_categorical(self.dtype_):
-					data = self.dtype_.categories
+					data_values = self.dtype_.categories
 				else:
-					data = values
+					data_values = values
 				if (self.missing_value_replacement is not None) and numpy.any(missing_mask) > 0:
 					if _is_pandas_categorical(self.dtype_):
 						raise ValueError()
-					data = numpy.unique(numpy.append(data, self.missing_value_replacement))
-				self.data_ = data
+					data_values = numpy.unique(numpy.append(data_values, self.missing_value_replacement))
+				self.data_values_ = data_values
 			if self.with_statistics:
 				self.counts_ = _count(missing_mask, nonmissing_mask, None)
 				self.discr_stats_ = (values, counts)
 		else:
 			if self.with_data:
-				self.data_ = []
+				self.data_values_ = []
 			if self.with_statistics:
 				self.counts_ = []
 				self.discr_stats_ = []
@@ -232,10 +232,10 @@ class DiscreteDomain(Domain):
 					if _is_pandas_categorical(self.dtype_):
 						raise ValueError()
 					else:
-						data = values
+						data_values = values
 					if (self.missing_value_replacement is not None) and numpy.any(col_missing_mask) > 0:
-						data = numpy.unique(numpy.append(data, self.missing_value_replacement))
-					self.data_.append(data)
+						data_values = numpy.unique(numpy.append(data_values, self.missing_value_replacement))
+					self.data_values_.append(data_values)
 				if self.with_statistics:
 					self.counts_.append(_count(col_missing_mask, ~col_missing_mask, None))
 					self.discr_stats_.append((values, counts))
