@@ -98,6 +98,9 @@ class Memorizer(_BaseMemoryManager):
 			self.memory[name] = x.copy()
 		return numpy.empty(shape = (X.shape[0], 0), dtype = int)
 
+	def get_feature_names_out(self, input_features = None):
+		return numpy.asarray([])
+
 	def fit(self, X, y = None):
 		if not self.transform_only:
 			self.memorize(X)
@@ -120,6 +123,9 @@ class Recaller(_BaseMemoryManager):
 			if self.clear_after:
 				del self.memory[name]
 		return numpy.asarray(result).T
+
+	def get_feature_names_out(self, input_features = None):
+		return numpy.asarray(self.names)
 
 	def fit(self, X, y = None):
 		return self
