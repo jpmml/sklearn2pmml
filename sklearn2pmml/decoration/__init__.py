@@ -1,6 +1,11 @@
 from pandas import DataFrame
 from pandas.api.types import is_object_dtype
 from sklearn.base import clone, BaseEstimator, TransformerMixin
+try:
+	# SkLearn 1.2.0+
+	from sklearn.base import OneToOneFeatureMixin
+except:
+	from sklearn.base import _OneToOneFeatureMixin as OneToOneFeatureMixin
 from sklearn2pmml import _is_pandas_categorical
 from sklearn2pmml.util import cast, common_dtype, is_1d, to_numpy
 
@@ -75,7 +80,7 @@ def _count(missing_mask, valid_mask, invalid_mask):
 		"invalidFreq" : invalid_freq
 	}
 
-class Domain(BaseEstimator, TransformerMixin):
+class Domain(BaseEstimator, TransformerMixin, OneToOneFeatureMixin):
 
 	def __init__(self, missing_values = None, missing_value_treatment = "as_is", missing_value_replacement = None, invalid_value_treatment = "return_invalid", invalid_value_replacement = None, with_data = True, with_statistics = True, dtype = None, display_name = None):
 		self.missing_values = missing_values
