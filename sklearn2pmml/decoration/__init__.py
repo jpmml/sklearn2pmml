@@ -1,4 +1,5 @@
 from pandas import DataFrame
+from pandas.api.types import is_object_dtype
 from sklearn.base import clone, BaseEstimator, TransformerMixin
 from sklearn2pmml import _is_pandas_categorical
 from sklearn2pmml.util import cast, common_dtype, is_1d, to_numpy
@@ -112,6 +113,7 @@ class Domain(BaseEstimator, TransformerMixin):
 				if isinstance(missing_value, float) and numpy.isnan(missing_value):
 					return pandas.isnull(X)
 				return X == missing_value
+
 			if type(self.missing_values) is list:
 				mask = numpy.full(X.shape, fill_value = False)
 				for missing_value in self.missing_values:
@@ -129,8 +131,14 @@ class Domain(BaseEstimator, TransformerMixin):
 		if self.missing_value_treatment == "return_invalid":
 			if numpy.any(where) > 0:
 				raise ValueError("Data contains {0} missing values".format(numpy.count_nonzero(where)))
-		if self.missing_value_replacement is not None:
-			X[where] = self.missing_value_replacement
+		elif self.missing_value_treatment in ["as_is", "as_mean", "as_mode", "as_median", "as_value"]:
+			if self.missing_value_replacement is not None:
+				X[where] = self.missing_value_replacement
+			# Special case for object data type columns: replacing non-None values with None values
+			elif is_object_dtype(self.dtype_) and (self.missing_value_replacement is None):
+				X[where] = self.missing_value_replacement
+		else:
+			raise ValueError()
 
 	def _transform_valid_values(self, X, where):
 		pass
@@ -146,6 +154,8 @@ class Domain(BaseEstimator, TransformerMixin):
 		elif self.invalid_value_treatment == "as_value":
 			if self.invalid_value_replacement is not None:
 				X[where] = self.invalid_value_replacement
+		else:
+			raise ValueError()
 
 	def _compute_masks(self, X):
 		X = to_numpy(X)
