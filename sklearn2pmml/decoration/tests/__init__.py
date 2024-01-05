@@ -124,6 +124,15 @@ class CategoricalDomainTest(TestCase):
 		self.assertEqual([0, 0, 2], Xt[:, 0].tolist())
 		self.assertEqual([1, 2, 0], Xt[:, 1].tolist())
 
+	def test_fit_int_categorical(self):
+		domain = clone(CategoricalDomain(dtype = CategoricalDtype()))
+		self.assertIsNone(domain.dtype.categories)
+		self.assertFalse(hasattr(domain, "dtype_"))
+		X = Series([-1, 0, 1, 0, -1])
+		Xt = domain.fit_transform(X)
+		self.assertIsNone(domain.dtype.categories)
+		self.assertEqual([-1, 0, 1], domain.dtype_.categories.tolist())
+
 	def test_fit_int64(self):
 		domain = clone(CategoricalDomain())
 		X = Series([-1, None, 1, 2, -1]).astype("Int64")
@@ -137,15 +146,6 @@ class CategoricalDomainTest(TestCase):
 		Xt = domain.fit_transform(X)
 		self.assertEqual([-1, 1, 2], domain.data_values_.tolist())
 		self.assertEqual([-1, pandas.NA, 1, 2, -1], Xt.tolist())
-
-	def test_fit_int_categorical(self):
-		domain = clone(CategoricalDomain(dtype = CategoricalDtype()))
-		self.assertIsNone(domain.dtype.categories)
-		self.assertFalse(hasattr(domain, "dtype_"))
-		X = Series([-1, 0, 1, 0, -1])
-		Xt = domain.fit_transform(X)
-		self.assertIsNone(domain.dtype.categories)
-		self.assertEqual([-1, 0, 1], domain.dtype_.categories.tolist())
 
 	def test_fit_string(self):
 		domain = clone(CategoricalDomain(with_data = False, with_statistics = False))
@@ -198,6 +198,28 @@ class CategoricalDomainTest(TestCase):
 		self.assertEqual((3, 2), Xt.shape)
 		self.assertEqual(["0", "0", "1"], Xt[:, 0].tolist())
 		self.assertEqual(["one", "two", "0"], Xt[:, 1].tolist())
+
+	def test_fit_string_valid(self):
+		domain = clone(CategoricalDomain(data_values = [["1", "2", "3"], ["zero", "one", "two"]], invalid_value_treatment = "as_value", invalid_value_replacement = "X"))
+		self.assertEqual("as_is", domain.missing_value_treatment)
+		self.assertIsNone(domain.missing_value_replacement)
+		self.assertEqual("as_value", domain.invalid_value_treatment)
+		self.assertEqual("X", domain.invalid_value_replacement)
+		self.assertTrue(hasattr(domain, "data_values"))
+		self.assertFalse(hasattr(domain, "data_values_"))
+		X = DataFrame([["-1", None], ["0", "zero"], ["3", None], ["1", "two"], ["2", "one"], ["0", "three"]])
+		Xt = domain.fit_transform(X)
+		self.assertIsInstance(Xt, DataFrame)
+		self.assertTrue(hasattr(domain, "data_values"))
+		self.assertTrue(hasattr(domain, "data_values_"))
+		self.assertEqual(["X", "X", "3", "1", "2", "X"], Xt.iloc[:, 0].tolist())
+		self.assertEqual([None, "zero", None, "two", "one", "X"], Xt[1].tolist())
+		self.assertEqual(2, len(domain.counts_))
+		self.assertEqual({"totalFreq" : 6, "missingFreq" : 0, "invalidFreq" : 3}, domain.counts_[0])
+		self.assertEqual({"totalFreq" : 6, "missingFreq" : 2, "invalidFreq" : 1}, domain.counts_[1])
+		self.assertEqual(2, len(domain.discr_stats_))
+		self.assertEqual({"1" : 1, "2" : 1, "3" : 1}, _value_count(domain.discr_stats_[0]))
+		self.assertEqual({"zero" : 1, "one" : 1, "two" : 1}, _value_count(domain.discr_stats_[1]))
 
 	def test_fit_string_categorical(self):
 		domain = clone(CategoricalDomain())

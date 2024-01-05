@@ -166,8 +166,12 @@ class Domain(BaseEstimator, TransformerMixin):
 
 class DiscreteDomain(Domain):
 
-	def __init__(self, missing_values = None, missing_value_treatment = "as_is", missing_value_replacement = None, invalid_value_treatment = "return_invalid", invalid_value_replacement = None, with_data = True, with_statistics = True, dtype = None, display_name = None):
+	def __init__(self, missing_values = None, missing_value_treatment = "as_is", missing_value_replacement = None, invalid_value_treatment = "return_invalid", invalid_value_replacement = None, with_data = True, with_statistics = True, dtype = None, display_name = None, data_values = None):
 		super(DiscreteDomain, self).__init__(missing_values = missing_values, missing_value_treatment = missing_value_treatment, missing_value_replacement = missing_value_replacement, invalid_value_treatment = invalid_value_treatment, invalid_value_replacement = invalid_value_replacement, with_data = with_data, with_statistics = with_statistics, dtype = dtype, display_name = display_name)
+		if data_values:
+			if not with_data:
+				raise ValueError("Valid values require with_data attribute")
+		self.data_values = data_values
 
 	def _valid_value_mask(self, X, where):
 		if hasattr(self, "data_values_"):
@@ -190,7 +194,8 @@ class DiscreteDomain(Domain):
 				mask = numpy.full(X.shape, fill_value = False)
 				for col in range(X.shape[1]):
 					col_where = where[:, col]
-					mask[col_where, col] = _isin_mask(X[col_where, col], data_values[col] if hasattr(data_values, "__len__") else data_values)
+					col_data_values = data_values[col] if hasattr(data_values, "__len__") else data_values
+					mask[col_where, col] = _isin_mask(X[col_where, col], col_data_values)
 				return mask
 		return super(DiscreteDomain, self)._valid_value_mask(X, where)
 
@@ -202,29 +207,39 @@ class DiscreteDomain(Domain):
 			return self
 		X = to_numpy(X)
 		if self.with_data:
-			missing_mask = self._missing_value_mask(X)
-			nonmissing_mask = ~missing_mask
+			if self.data_values is None:
+				missing_mask = self._missing_value_mask(X)
+				nonmissing_mask = ~missing_mask
+			else:
+				_check_cols(X, self.data_values)
 			if is_1d(X):
-				if _is_pandas_categorical(self.dtype_):
-					data_values = self.dtype_.categories
-				else:
-					data_values = numpy.unique(X[nonmissing_mask])
-				if (self.missing_value_replacement is not None) and numpy.any(missing_mask) > 0:
+				if self.data_values is None:
 					if _is_pandas_categorical(self.dtype_):
-						raise ValueError()
-					data_values = numpy.unique(numpy.append(data_values, self.missing_value_replacement))
+						data_values = self.dtype_.categories
+					else:
+						data_values = numpy.unique(X[nonmissing_mask])
+					if (self.missing_value_replacement is not None) and numpy.any(missing_mask) > 0:
+						if _is_pandas_categorical(self.dtype_):
+							raise ValueError()
+						data_values = numpy.unique(numpy.append(data_values, self.missing_value_replacement))
+				else:
+					data_values = numpy.asarray(self.data_values)
 				self.data_values_ = data_values
 			else:
-				if _is_pandas_categorical(self.dtype_):
-					raise ValueError()
+				if self.data_values is None:
+					if _is_pandas_categorical(self.dtype_):
+						raise ValueError()
 				self.data_values_ = []
 				for col in range(X.shape[1]):
-					col_X = X[:, col]
-					col_missing_mask = missing_mask[:, col]
-					col_nonmissing_mask = nonmissing_mask[:, col]
-					data_values = numpy.unique(col_X[col_nonmissing_mask])
-					if (self.missing_value_replacement is not None) and numpy.any(col_missing_mask) > 0:
-						data_values = numpy.unique(numpy.append(data_values, self.missing_value_replacement))
+					if self.data_values is None:
+						col_X = X[:, col]
+						col_missing_mask = missing_mask[:, col]
+						col_nonmissing_mask = nonmissing_mask[:, col]
+						data_values = numpy.unique(col_X[col_nonmissing_mask])
+						if (self.missing_value_replacement is not None) and numpy.any(col_missing_mask) > 0:
+							data_values = numpy.unique(numpy.append(data_values, self.missing_value_replacement))
+					else:
+						data_values = numpy.asarray(self.data_values[col])
 					self.data_values_.append(data_values)
 		if self.with_statistics:
 			missing_mask, valid_mask, invalid_mask = self._compute_masks(X)
@@ -247,13 +262,13 @@ class DiscreteDomain(Domain):
 
 class CategoricalDomain(DiscreteDomain):
 
-	def __init__(self, missing_values = None, missing_value_treatment = "as_is", missing_value_replacement = None, invalid_value_treatment = "return_invalid", invalid_value_replacement = None, with_data = True, with_statistics = True, dtype = None, display_name = None):
-		super(CategoricalDomain, self).__init__(missing_values = missing_values, missing_value_treatment = missing_value_treatment, missing_value_replacement = missing_value_replacement, invalid_value_treatment = invalid_value_treatment, invalid_value_replacement = invalid_value_replacement, with_data = with_data, with_statistics = with_statistics, dtype = dtype, display_name = display_name)
+	def __init__(self, missing_values = None, missing_value_treatment = "as_is", missing_value_replacement = None, invalid_value_treatment = "return_invalid", invalid_value_replacement = None, with_data = True, with_statistics = True, dtype = None, display_name = None, data_values = None):
+		super(CategoricalDomain, self).__init__(missing_values = missing_values, missing_value_treatment = missing_value_treatment, missing_value_replacement = missing_value_replacement, invalid_value_treatment = invalid_value_treatment, invalid_value_replacement = invalid_value_replacement, with_data = with_data, with_statistics = with_statistics, dtype = dtype, display_name = display_name, data_values = data_values)
 
 class OrdinalDomain(DiscreteDomain):
 
-	def __init__(self, missing_values = None, missing_value_treatment = "as_is", missing_value_replacement = None, invalid_value_treatment = "return_invalid", invalid_value_replacement = None, with_data = True, with_statistics = True, dtype = None, display_name = None):
-		super(OrdinalDomain, self).__init__(missing_values = missing_values, missing_value_treatment = missing_value_treatment, missing_value_replacement = missing_value_replacement, invalid_value_treatment = invalid_value_treatment, invalid_value_replacement = invalid_value_replacement, with_data = with_data, with_statistics = with_statistics, dtype = dtype, display_name = display_name)
+	def __init__(self, missing_values = None, missing_value_treatment = "as_is", missing_value_replacement = None, invalid_value_treatment = "return_invalid", invalid_value_replacement = None, with_data = True, with_statistics = True, dtype = None, display_name = None, data_values = None):
+		super(OrdinalDomain, self).__init__(missing_values = missing_values, missing_value_treatment = missing_value_treatment, missing_value_replacement = missing_value_replacement, invalid_value_treatment = invalid_value_treatment, invalid_value_replacement = invalid_value_replacement, with_data = with_data, with_statistics = with_statistics, dtype = dtype, display_name = display_name, data_values = data_values)
 
 def _interquartile_range(X, axis):
 	quartiles = numpy.nanpercentile(X, [25, 75], axis = axis)
