@@ -218,10 +218,6 @@ class DiscreteDomain(Domain):
 						data_values = self.dtype_.categories
 					else:
 						data_values = numpy.unique(X[nonmissing_mask])
-					if (self.missing_value_replacement is not None) and numpy.any(missing_mask) > 0:
-						if _is_pandas_categorical(self.dtype_):
-							raise ValueError()
-						data_values = numpy.unique(numpy.append(data_values, self.missing_value_replacement))
 				else:
 					data_values = numpy.asarray(self.data_values)
 				self.data_values_ = data_values
@@ -236,8 +232,6 @@ class DiscreteDomain(Domain):
 						col_missing_mask = missing_mask[:, col]
 						col_nonmissing_mask = nonmissing_mask[:, col]
 						data_values = numpy.unique(col_X[col_nonmissing_mask])
-						if (self.missing_value_replacement is not None) and numpy.any(col_missing_mask) > 0:
-							data_values = numpy.unique(numpy.append(data_values, self.missing_value_replacement))
 					else:
 						data_values = numpy.asarray(self.data_values[col])
 					self.data_values_.append(data_values)
