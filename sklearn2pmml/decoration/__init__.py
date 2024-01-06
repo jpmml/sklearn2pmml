@@ -252,20 +252,16 @@ class DiscreteDomain(Domain):
 					self.data_values_.append(data_values)
 		if self.with_statistics:
 			missing_mask, valid_mask, invalid_mask = self._compute_masks(X)
+			self.counts_ = _count(missing_mask, valid_mask, invalid_mask)
 			if is_1d(X):
 				values, counts = numpy.unique(X[valid_mask], return_counts = True)
-				self.counts_ = _count(missing_mask, valid_mask, invalid_mask)
 				self.discr_stats_ = (values, counts)
 			else:
-				self.counts_ = []
 				self.discr_stats_ = []
 				for col in range(X.shape[1]):
 					col_X = X[:, col]
-					col_missing_mask = missing_mask[:, col]
 					col_valid_mask = valid_mask[:, col]
-					col_invalid_mask = invalid_mask[:, col]
 					values, counts = numpy.unique(col_X[col_valid_mask], return_counts = True)
-					self.counts_.append(_count(col_missing_mask, col_valid_mask, col_invalid_mask))
 					self.discr_stats_.append((values, counts))
 		return self
 
