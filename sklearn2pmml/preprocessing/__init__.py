@@ -9,6 +9,11 @@ from pandas import CategoricalDtype, DataFrame, Series
 from scipy.interpolate import BSpline
 from scipy.sparse import lil_matrix
 from sklearn.base import BaseEstimator, TransformerMixin
+try:
+	# SkLearn 1.2.0+
+	from sklearn.base import OneToOneFeatureMixin
+except:
+	from sklearn.base import _OneToOneFeatureMixin as OneToOneFeatureMixin
 from sklearn.pipeline import Pipeline
 from sklearn2pmml.util import cast, dt_transform, ensure_1d, ensure_def, eval_rows, to_expr_func, to_numpy, Expression, Predicate
 
@@ -81,7 +86,7 @@ class BSplineTransformer(BaseEstimator, TransformerMixin):
 		X = ensure_1d(X)
 		return self.bspline(X)
 
-class CastTransformer(BaseEstimator, TransformerMixin):
+class CastTransformer(BaseEstimator, TransformerMixin, OneToOneFeatureMixin):
 	"""Change data type."""
 
 	def __init__(self, dtype):
@@ -253,7 +258,7 @@ class ExpressionTransformer(BaseEstimator, TransformerMixin):
 			Xt = cast(Xt, self.dtype)
 		return _col2d(Xt)
 
-class IdentityTransformer(BaseEstimator, TransformerMixin):
+class IdentityTransformer(BaseEstimator, TransformerMixin, OneToOneFeatureMixin):
 	"""Passes data through as-is."""
 
 	def __init__(self):
