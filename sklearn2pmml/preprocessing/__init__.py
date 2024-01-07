@@ -98,10 +98,7 @@ class CastTransformer(BaseEstimator, TransformerMixin, OneToOneFeatureMixin):
 
 	def fit(self, X, y = None):
 		if self.dtype == "category":
-			if hasattr(X, "unique"):
-				categories = X.unique()
-			else:
-				categories = numpy.unique(X)
+			categories = numpy.unique(X)
 			self.dtype_ = CategoricalDtype(categories, ordered = False)
 		else:
 			self.dtype_ = self.dtype

@@ -114,15 +114,12 @@ class CastTransformerTest(TestCase):
 		Xt = transformer.fit_transform(X)
 		self.assertTrue(hasattr(transformer, "dtype"))
 		self.assertTrue(hasattr(transformer, "dtype_"))
-		# Categories are ordered by their order of appearance
-		self.assertEqual(["a", "c", "b"], transformer.dtype_.categories.tolist())
-		""" XXX
+		self.assertEqual(["a", "b", "c"], transformer.dtype_.categories.tolist())
 		X = X.values
 		transformer = CastTransformer(dtype = "category")
-		Xt = transformer.fit_transform(X)
-		# Categories are ordered lexicographically
+		# Can fit, but cannot transform Numpy arrays
+		transformer.fit(X)
 		self.assertEqual(["a", "b", "c"], transformer.dtype_.categories.tolist())
-		"""
 
 class CutTransformerTest(TestCase):
 
