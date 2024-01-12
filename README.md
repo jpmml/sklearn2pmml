@@ -7,6 +7,10 @@ Python package for converting [Scikit-Learn](https://scikit-learn.org/) pipeline
 
 This package is a thin Python wrapper around the [JPMML-SkLearn](https://github.com/jpmml/jpmml-sklearn#features) library.
 
+# News and Updates #
+
+See the [NEWS.md](https://github.com/jpmml/sklearn2pmml/blob/master/NEWS.md#01010) file.
+
 # Prerequisites #
 
 * Java 1.8 or newer. The Java executable must be available on system path.

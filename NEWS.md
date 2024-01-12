@@ -63,11 +63,13 @@ mapper.fit_transform(iris_X, iris_y)
 ```
 
 * Improved support for the "category" data type in the `CastTransformer.fit(X, y)` method.
+
 If the `CastTransformer.dtype` parameter value is "category" (ie. string literal), then the fit method will auto-detect valid category levels, and will set the `CastTransformer.dtype_` attribute to a `pandas.CategoricalDtype` object instead.
 The subsequent transform method invocations are now guaranteed to exhibit stable transformation behaviour.
 Previously, each method call was computing its own set of valid category values.
 
 * Added the `Decorator` class to the `sklearn.base.OneToOneFeatureMixin` class hierarchy.
+
 This makes decorators compatible with Scikit-Learn's `set_output` API.
 
 Choosing a data container for transformation results:
@@ -85,9 +87,11 @@ transformer.set_output(transform = "pandas")
 ```
 
 * Added `CastTransformer` and `IdentityTransformer` classes to the `sklearn.base.OneToOneFeatureMixin` class hierarchy.
+
 This makes these two transformers compatible with Scikit-Learn's `set_output` API.
 
 * Added `Memorizer.get_feature_names_out()` and `Recaller.get_feature_names_out()` methods.
+
 This makes memory managers compatible with Scikit-Learn's `set_output` API.
 
 
@@ -98,9 +102,11 @@ This makes memory managers compatible with Scikit-Learn's `set_output` API.
 * Optimized `ContinuousDomain.fit(X, y)` and `DiscreteDomain.fit(X, y)` methods.
 
 * Stopped auto-adding the `DiscreteDomain.missing_value_replacement` parameter value into the valid value space of discrete domains.
+
 The missing value replacement value should occur in the training set naturally. If not, it would be more appropriate to manually define the valid value space using the newly introduced `DiscreteDomain.data_values` parameter.
 
 * Improved handling of missing values in the `CastTransformer.fit(X, y)` method.
+
 Previously, it was possible that the `float("NaN")` value could be included into the list of valid category levels when casting sparse string columns to the categorical data type.
 
 * Added `sklearn2pmml.util.to_numpy(X)` utility function.
