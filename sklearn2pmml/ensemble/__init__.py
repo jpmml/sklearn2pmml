@@ -114,6 +114,10 @@ class GBDTLRClassifier(GBDTEstimator, ClassifierMixin):
 		super(GBDTLRClassifier, self).__init__(_checkGBDTClassifier(gbdt))
 		self.lr = _checkLR(lr)
 
+	@property
+	def classes_(self):
+		return self.lr_.classes_
+
 	def fit(self, X, y, **fit_params):
 		self.gbdt_ = clone(self.gbdt)
 		self.gbdt_.fit(X, y, **_extract_step_params("gbdt", fit_params))
