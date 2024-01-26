@@ -134,6 +134,7 @@ Extensions:
 
 Miscellaneous:
 
+* [Upgrading Scikit-Learn decision tree models](https://openscoring.io/blog/2023/12/29/upgrading_sklearn_decision_tree/)
 * [Measuring the memory consumption of Scikit-Learn models](https://openscoring.io/blog/2022/11/09/measuring_memory_sklearn/)
 * [Benchmarking Scikit-Learn against JPMML-Evaluator](https://openscoring.io/blog/2021/08/04/benchmarking_sklearn_jpmml_evaluator/)
 * [Analyzing Scikit-Learn feature importances via PMML](https://openscoring.io/blog/2021/07/11/analyzing_sklearn_feature_importances_pmml/)
