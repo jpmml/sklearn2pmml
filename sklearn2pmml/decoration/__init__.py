@@ -453,6 +453,8 @@ class MultiDomain(BaseEstimator, TransformerMixin):
 		rows, columns = X.shape
 		if len(self.domains) != columns:
 			raise ValueError("The number of columns {0} is not equal to the number of domain objects {1}".format(columns, len(self.domains)))
+		# XXX
+		X = X.copy()
 		if isinstance(X, DataFrame):
 			for domain, column in zip(self.domains, X.columns):
 				if domain is not None:
