@@ -70,6 +70,10 @@ def _check_cols(X, values):
 		if X.shape[1] != len(values):
 			raise ValueError()
 
+def _set_values(X, where, values):
+	X[where] = values
+	return X
+
 def _count(missing_mask, valid_mask, invalid_mask):
 	missing_freq = sum(missing_mask)
 	valid_freq = sum(valid_mask)
@@ -138,15 +142,16 @@ class Domain(BaseEstimator, TransformerMixin, OneToOneFeatureMixin):
 				raise ValueError("Data contains {0} missing values".format(numpy.count_nonzero(where)))
 		elif self.missing_value_treatment in ["as_is", "as_mean", "as_mode", "as_median", "as_value"]:
 			if self.missing_value_replacement is not None:
-				X[where] = self.missing_value_replacement
+				X = _set_values(X, where, self.missing_value_replacement)
 			# Special case for object data type columns: replacing non-None values with None values
 			elif is_object_dtype(self.dtype_) and (self.missing_value_replacement is None):
-				X[where] = self.missing_value_replacement
+				X = _set_values(X, where, self.missing_value_replacement)
 		else:
 			raise ValueError()
+		return X
 
 	def _transform_valid_values(self, X, where):
-		pass
+		return X
 
 	def _transform_invalid_values(self, X, where):
 		if self.invalid_value_treatment == "return_invalid":
@@ -155,12 +160,13 @@ class Domain(BaseEstimator, TransformerMixin, OneToOneFeatureMixin):
 		elif self.invalid_value_treatment == "as_is":
 			pass
 		elif self.invalid_value_treatment == "as_missing":
-			self._transform_missing_values(X, where)
+			X = self._transform_missing_values(X, where)
 		elif self.invalid_value_treatment == "as_value":
 			if self.invalid_value_replacement is not None:
-				X[where] = self.invalid_value_replacement
+				X = _set_values(X, where, self.invalid_value_replacement)
 		else:
 			raise ValueError()
+		return X
 
 	def _compute_masks(self, X):
 		X = to_numpy(X)
@@ -174,9 +180,9 @@ class Domain(BaseEstimator, TransformerMixin, OneToOneFeatureMixin):
 		if self.dtype is not None:
 			X = cast(X, self.dtype)
 		missing_mask, valid_mask, invalid_mask = self._compute_masks(X)
-		self._transform_missing_values(X, missing_mask)
-		self._transform_valid_values(X, valid_mask)
-		self._transform_invalid_values(X, invalid_mask)
+		X = self._transform_missing_values(X, missing_mask)
+		X = self._transform_valid_values(X, valid_mask)
+		X = self._transform_invalid_values(X, invalid_mask)
 		return X
 
 class DiscreteDomain(Domain):
@@ -360,19 +366,20 @@ class ContinuousDomain(Domain):
 
 	def _transform_valid_values(self, X, where):
 		if self.outlier_treatment == "as_missing_values":
-			mask = self._outlier_mask(X, where)
+			outlier_mask = self._outlier_mask(X, where)
 			if self.missing_values is not None:
 				if type(self.missing_values) is list:
 					raise ValueError()
-				X[mask] = self.missing_values
+				X = _set_values(X, outlier_mask, self.missing_values)
 			else:
-				X[mask] = None
-			self._transform_missing_values(X, mask)
+				X = _set_values(X, outlier_mask, None)
+			X = self._transform_missing_values(X, outlier_mask)
 		elif self.outlier_treatment == "as_extreme_values":
-			mask = self._negative_outlier_mask(X, where)
-			X[mask] = self.low_value
-			mask = self._positive_outlier_mask(X, where)
-			X[mask] = self.high_value
+			outlier_mask = self._negative_outlier_mask(X, where)
+			X = _set_values(X, outlier_mask, self.low_value)
+			outlier_mask = self._positive_outlier_mask(X, where)
+			X = _set_values(X, outlier_mask, self.high_value)
+		return X
 
 class TemporalDomain(Domain):
 
