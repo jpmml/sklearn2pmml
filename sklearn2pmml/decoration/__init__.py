@@ -178,10 +178,17 @@ class Domain(BaseEstimator, TransformerMixin, OneToOneFeatureMixin):
 		invalid_mask = ~numpy.logical_or(missing_mask, valid_mask)
 		return (missing_mask, valid_mask, invalid_mask)
 
+	def _should_make_copy(self, X, missing_mask, valid_mask, invalid_mask):
+		if numpy.any(missing_mask) or numpy.any(invalid_mask):
+			return True
+		return False
+
 	def transform(self, X):
 		if self.dtype is not None:
 			X = cast(X, self.dtype)
 		missing_mask, valid_mask, invalid_mask = self._compute_masks(X)
+		if self._should_make_copy(X, missing_mask, valid_mask, invalid_mask):
+			X = X.copy()
 		X = self._transform_missing_values(X, missing_mask)
 		X = self._transform_valid_values(X, valid_mask)
 		X = self._transform_invalid_values(X, invalid_mask)
@@ -384,6 +391,22 @@ class ContinuousDomain(Domain):
 			outlier_mask = self._positive_outlier_mask(X, where)
 			X = _set_values(X, outlier_mask, self.high_value)
 		return X
+
+	def _should_make_copy(self, X, missing_mask, valid_mask, invalid_mask):
+		if super(ContinuousDomain, self)._should_make_copy(X, missing_mask, valid_mask, invalid_mask):
+			return True
+		if self.outlier_treatment == "as_missing_values":
+			outlier_mask = self._outlier_mask(X, valid_mask)
+			if numpy.any(outlier_mask):
+				return True
+		elif self.outlier_treatment == "as_extreme_values":
+			outlier_mask = self._negative_outlier_mask(X, valid_mask)
+			if numpy.any(outlier_mask):
+				return True
+			outlier_mask = self._positive_outlier_mask(X, valid_mask)
+			if numpy.any(outlier_mask):
+				return True
+		return False
 
 class TemporalDomain(Domain):
 

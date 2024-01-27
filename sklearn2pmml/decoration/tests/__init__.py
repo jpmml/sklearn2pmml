@@ -353,8 +353,8 @@ class ContinuousDomainTest(TestCase):
 		self.assertEqual([[True, False], [False, False], [False, False]], domain._negative_outlier_mask(X, ~mask).tolist())
 		self.assertEqual([[False, False], [False, True], [False, False]], domain._positive_outlier_mask(X, ~mask).tolist())
 		Xt = domain.fit_transform(X)
-		self.assertEqual([0.0, 2.0, -1.0], X[0].tolist())
-		self.assertEqual([-1.0, 3.0, 0.0], X[1].tolist())
+		self.assertEqual([0.0, 2.0, -1.0], Xt[0].tolist())
+		self.assertEqual([-1.0, 3.0, 0.0], Xt[1].tolist())
 
 	def test_fit_int(self):
 		domain = clone(ContinuousDomain(missing_values = -1))
