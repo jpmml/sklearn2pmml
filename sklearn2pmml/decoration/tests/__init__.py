@@ -76,7 +76,7 @@ class CategoricalDomainTest(TestCase):
 	def test_fit_int(self):
 		domain = clone(CategoricalDomain(with_data = False, with_statistics = False))
 		self.assertTrue(domain._empty_fit())
-		domain = clone(CategoricalDomain(missing_value_treatment = "as_value", missing_value_replacement = 1, invalid_value_treatment = "as_value", invalid_value_replacement = 0))
+		domain = clone(CategoricalDomain(with_statistics = True, missing_value_treatment = "as_value", missing_value_replacement = 1, invalid_value_treatment = "as_value", invalid_value_replacement = 0))
 		self.assertIsNone(domain.missing_values)
 		self.assertEqual("as_value", domain.missing_value_treatment)
 		self.assertEqual(1, domain.missing_value_replacement)
@@ -98,7 +98,7 @@ class CategoricalDomainTest(TestCase):
 		self.assertEqual([1, 1], Xt.tolist())
 
 	def test_fit_int_missing(self):
-		domain = clone(CategoricalDomain(missing_values = -1, missing_value_replacement = 0, invalid_value_treatment = "as_missing"))
+		domain = clone(CategoricalDomain(with_statistics = True, missing_values = -1, missing_value_replacement = 0, invalid_value_treatment = "as_missing"))
 		self.assertEqual(-1, domain.missing_values)
 		self.assertEqual(0, domain.missing_value_replacement)
 		self.assertEqual("as_missing", domain.invalid_value_treatment)
@@ -170,7 +170,7 @@ class CategoricalDomainTest(TestCase):
 			domain.transform(X)
 
 	def test_fit_string_missing(self):
-		domain = clone(CategoricalDomain(missing_values = ["NA", "N/A"], missing_value_replacement = "0", invalid_value_treatment = "as_value", invalid_value_replacement = "1"))
+		domain = clone(CategoricalDomain(with_statistics = True, missing_values = ["NA", "N/A"], missing_value_replacement = "0", invalid_value_treatment = "as_value", invalid_value_replacement = "1"))
 		self.assertEqual(["NA", "N/A"], domain.missing_values)
 		self.assertEqual("0", domain.missing_value_replacement)
 		self.assertEqual("as_value", domain.invalid_value_treatment)
@@ -196,7 +196,7 @@ class CategoricalDomainTest(TestCase):
 		self.assertEqual(["one", "two", "0"], Xt[:, 1].tolist())
 
 	def test_fit_string_valid(self):
-		domain = clone(CategoricalDomain(data_values = [["1", "2", "3"], ["zero", "one", "two"]], invalid_value_treatment = "as_missing"))
+		domain = clone(CategoricalDomain(with_statistics = True, data_values = [["1", "2", "3"], ["zero", "one", "two"]], invalid_value_treatment = "as_missing"))
 		self.assertEqual("as_is", domain.missing_value_treatment)
 		self.assertIsNone(domain.missing_value_replacement)
 		self.assertEqual("as_missing", domain.invalid_value_treatment)
@@ -237,7 +237,7 @@ class CategoricalDomainTest(TestCase):
 		self.assertEqual(["c", "b", "a"], domain.data_values_.tolist())
 
 	def test_mapper(self):
-		domain = CategoricalDomain()
+		domain = CategoricalDomain(with_statistics = True)
 		df = DataFrame([{"X" : "2", "y" : 2}, {"X" : "1"}, {"X" : "3"}])
 		mapper = DataFrameMapper([
 			("X", [domain, LabelBinarizer()]),
@@ -273,7 +273,7 @@ class ContinuousDomainTest(TestCase):
 	def test_fit_float(self):
 		domain = clone(ContinuousDomain(with_data = False, with_statistics = False))
 		self.assertTrue(domain._empty_fit())
-		domain = clone(ContinuousDomain(missing_values = float("NaN"), missing_value_treatment = "as_value", missing_value_replacement = -1.0, invalid_value_treatment = "as_value", invalid_value_replacement = 0.0))
+		domain = clone(ContinuousDomain(with_statistics = True, missing_values = float("NaN"), missing_value_treatment = "as_value", missing_value_replacement = -1.0, invalid_value_treatment = "as_value", invalid_value_replacement = 0.0))
 		self.assertTrue(numpy.isnan(domain.missing_values))
 		self.assertEqual("as_value", domain.missing_value_treatment)
 		self.assertEqual(-1.0, domain.missing_value_replacement)
@@ -297,7 +297,7 @@ class ContinuousDomainTest(TestCase):
 		self.assertEqual([-1.0, 0.0], Xt.tolist())
 
 	def test_fit_float_missing(self):
-		domain = clone(ContinuousDomain(missing_values = [-999.0, -1.0], missing_value_treatment = "as_value", missing_value_replacement = 0.0, invalid_value_treatment = "as_missing"))
+		domain = clone(ContinuousDomain(with_statistics = True, missing_values = [-999.0, -1.0], missing_value_treatment = "as_value", missing_value_replacement = 0.0, invalid_value_treatment = "as_missing"))
 		self.assertEqual([-999.0, -1.0], domain.missing_values)
 		self.assertEqual("as_value", domain.missing_value_treatment)
 		self.assertEqual(0.0, domain.missing_value_replacement)
@@ -316,7 +316,7 @@ class ContinuousDomainTest(TestCase):
 		self.assertEqual([0.0, 0.0, 0.0], Xt.tolist())
 
 	def test_fit_float_invalid(self):
-		domain = clone(ContinuousDomain(data_min = [-1, -2], data_max = [1, 2], invalid_value_treatment = "as_missing"))
+		domain = clone(ContinuousDomain(with_statistics = True, data_min = [-1, -2], data_max = [1, 2], invalid_value_treatment = "as_missing"))
 		X = DataFrame([[-2.0, -2.0], [-1.0, float("NaN")], [0.0, 0.0], [1.0, 1.0], [2.0, float("NaN")], [3.0, 3.0]])
 		self.assertEqual([-1, -2], domain.data_min)
 		self.assertEqual([1, 2], domain.data_max)
@@ -357,7 +357,7 @@ class ContinuousDomainTest(TestCase):
 		self.assertEqual([-1.0, 3.0, 0.0], Xt[1].tolist())
 
 	def test_fit_int(self):
-		domain = clone(ContinuousDomain(missing_values = -1))
+		domain = clone(ContinuousDomain(with_statistics = True, missing_values = -1))
 		X = Series([-2, -1, 0, -1, 3])
 		self.assertEqual(int, X.dtype)
 		Xt = domain.fit_transform(X)
@@ -368,7 +368,7 @@ class ContinuousDomainTest(TestCase):
 		self.assertEqual({"totalFreq" : 5, "missingFreq" : 2, "invalidFreq" : 0}, domain.counts_)
 
 	def test_mapper(self):
-		domain = ContinuousDomain()
+		domain = ContinuousDomain(with_statistics = True)
 		df = DataFrame([{"X1" : 2.0, "X2" : 2, "y" : 2.0}, {"X1" : 1.0, "X2" : 0.5}, {"X1" : 2}, {"X2" : 2}, {"X1" : 2.0, "y" : 1}, {"X1" : 3.0, "X2" : 3.5}])
 		mapper = DataFrameMapper([
 			(["X1", "X2"], [domain, SimpleImputer(), StandardScaler()]),
