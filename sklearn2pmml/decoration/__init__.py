@@ -137,9 +137,10 @@ class Domain(BaseEstimator, TransformerMixin, OneToOneFeatureMixin):
 		return where
 
 	def _transform_missing_values(self, X, where):
+		if not numpy.any(where):
+			return X
 		if self.missing_value_treatment == "return_invalid":
-			if numpy.any(where) > 0:
-				raise ValueError("Data contains {0} missing values".format(numpy.count_nonzero(where)))
+			raise ValueError("Data contains {0} missing values".format(numpy.count_nonzero(where)))
 		elif self.missing_value_treatment in ["as_is", "as_mean", "as_mode", "as_median", "as_value"]:
 			if self.missing_value_replacement is not None:
 				X = _set_values(X, where, self.missing_value_replacement)
@@ -154,9 +155,10 @@ class Domain(BaseEstimator, TransformerMixin, OneToOneFeatureMixin):
 		return X
 
 	def _transform_invalid_values(self, X, where):
+		if not numpy.any(where):
+			return X
 		if self.invalid_value_treatment == "return_invalid":
-			if numpy.any(where) > 0:
-				raise ValueError("Data contains {0} invalid values".format(numpy.count_nonzero(where)))
+			raise ValueError("Data contains {0} invalid values".format(numpy.count_nonzero(where)))
 		elif self.invalid_value_treatment == "as_is":
 			pass
 		elif self.invalid_value_treatment == "as_missing":
@@ -365,6 +367,8 @@ class ContinuousDomain(Domain):
 		return numpy.where(X > self.high_value, where, False)
 
 	def _transform_valid_values(self, X, where):
+		if not numpy.any(where):
+			return X
 		if self.outlier_treatment == "as_missing_values":
 			outlier_mask = self._outlier_mask(X, where)
 			if self.missing_values is not None:
