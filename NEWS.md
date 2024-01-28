@@ -1,3 +1,75 @@
+# 0.102.0
+
+## Breaking changes
+
+* Changed the default value of `Domain.with_statistics` attribute from `True` to `False`.
+
+This attribute controls the calculation of descriptive statistics during the fitting.
+The calculation of some descriptive statistics is costly (eg. interquartile range, median, standard deviation), which causes a notable flow-down of the `Domain.fit(X, y)` method.
+
+The descriptive statistics about the training dataset is stored using the `ModelStats` element under the main model element (ie. the `/PMML/<Model>/ModelStats` elenment).
+It is there for information purposes only. Its presence or absence does not affect the predictive capabilities of the model in any way.
+
+## New features
+
+* Fixed the `Domain.transform(X)` method to preserve the `X` argument unchanged.
+
+If the decorator needs to modify the dataset in any way (eg. performing missing or invalid value replacement), then it will create a copy of the argument dataset before modifying it.
+Otherwise, the argument dataset is passed through as-is.
+
+This aligns decorators with Scikit-Learn API guidelines that transformers and transformer-likes should not tamper with the original dataset.
+
+* Support for One-Model-Per-Target (OMPT)-style multi-target XGBoost estimators.
+
+When `XGBClassifier.fit(X, y)` and `XGBRegressor.fit(X, y)` methods are passed a multi-column `y` dataset, then XGBoost trains a OMPT-style multi-target model by default.
+
+An OMPT-style multi-target model is functionally identical to a collection of single-target models, as all targets are handled one-by-one both during fitting and prediction.
+In other words, the use of `MultiOutputClassifier` and `MultiOutputRegressor` meta-estimators is now deprecated when modelling multi-target datasets with XGBoost estimators.
+
+Before:
+
+``` python
+from sklearn.multioutput import MultiOutputRegressor
+from xgboost import XGBRegressor
+
+X = ...
+# A multi-column 2D array
+ynd = ...
+
+regressor = MultiOutputRegressor(XGBRegressor())
+regressor.fit(X, ynd)
+```
+
+After: 
+
+``` python
+regressor = XGBRegressor()
+regressor.fit(X, ynd)
+```
+
+* Ensured XGBoost 2.0 compatibility:
+  * Improved the partitioning of the main trees array into sub-arrays based on model type (boosting vs. bagging) and target cardinality (single-target vs. multi-target).
+  * Improved support for early stopping.
+
+See [JPMML-XGBoost 1.8.2](https://github.com/jpmml/jpmml-xgboost/blob/master/NEWS.md#182)
+
+Earlier SkLearn2PMML package versions may accept and convert XGBoost 2.0 without errors, but the resulting PMML document may contain an ensemble model with a wrong selection and/or wrong number of member decision tree models in it.
+These kind of conversion issues can be easily detected by embedding the model verification dataset into the model.
+
+## Minor improvements and fixes
+
+* Improved support for `XGBClassifier.classes_` property.
+
+This member was promoted from attribute to property during the XGBoost 1.7 to 2.0 upgrade, thereby making it "invisible" in non-Python environments.
+
+The temporary workaround was to manually re-assign this property to a `XGBClassifier.pmml_classes_` attribute.
+See https://github.com/jpmml/sklearn2pmml/issues/402
+
+While the above workaround continues to be relevant with advanced targets (eg. string-valued category levels) it is no longer needed for default targets.
+
+* Added `GBDTLRClassifier.classes_` property.
+
+
 # 0.101.0
 
 ## Breaking changes
