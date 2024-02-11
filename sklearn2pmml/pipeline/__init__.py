@@ -153,3 +153,6 @@ class PMMLPipeline(Pipeline):
 				target_values = target_values[:, 0]
 				self.verification = _Verification(active_values, target_values, precision, zeroThreshold)
 				self.verification.probability_values = probability_values
+
+	def customize(self, customizations):
+		self.customizations = numpy.asarray(customizations)
