@@ -1,4 +1,52 @@
-# 0.102.0
+# 0.103.0 #
+
+## Breaking changes
+
+None.
+
+## New features
+
+* Added `PMMLPipeline.customize(customizations)` method.
+
+This method accepts one or more PMML fragment strings, which will be embedded into the main model element after all the automated PMML generation routines have been completed.
+The customizations may replace existing elements, or define completely new elements.
+
+The intended use case is defining model metadata such as [`ModelStats`](https://dmg.org/pmml/v4-4-1/Statistics.html#xsdElement_ModelStats) and [`ModelExplanation`](https://dmg.org/pmml/v4-4-1/ModelExplanation.html#xsdElement_ModelExplanation) elements.
+
+For example, embedding regression model quality information:
+
+``` python
+from lxml import etree
+
+pipeline = PMMLPipeline([
+  ("regressor", ...)
+])
+pipeline.fit(X, y)
+
+# Calculate R squared
+score = pipeline.score(X, y)
+
+# Generate a PMML 4.4 fragment
+model_explanation = etree.Element("{http://www.dmg.org/PMML-4_4}ModelExplanation")
+predictive_model_quality = etree.SubElement(model_explanation, "{http://www.dmg.org/PMML-4_4}PredictiveModelQuality")
+predictive_model_quality.attrib["targetField"] = y.name
+predictive_model_quality.attrib["r-squared"] = str(score)
+
+pipeline.customize(etree.tostring(model_explanation))
+```
+
+See [SkLearn2PMML-410](https://github.com/jpmml/sklearn2pmml/issues/410)
+
+## Minor improvements and fixes
+
+* Fixed the scoping of target fields in `StackingClassifier` and `StackingRegressor` estimators.
+
+See [JPMML-SkLearn-192](https://github.com/jpmml/jpmml-sklearn/issues/192)
+
+* Updated all JPMML-Converter library dependencies to latest versions.
+
+
+# 0.102.0 #
 
 ## Breaking changes
 
@@ -7,7 +55,7 @@
 This attribute controls the calculation of descriptive statistics during the fitting.
 The calculation of some descriptive statistics is costly (eg. interquartile range, median, standard deviation), which causes a notable flow-down of the `Domain.fit(X, y)` method.
 
-The descriptive statistics about the training dataset is stored using the `ModelStats` element under the main model element (ie. the `/PMML/<Model>/ModelStats` elenment).
+The descriptive statistics about the training dataset is stored using the [`ModelStats`](https://dmg.org/pmml/v4-4-1/Statistics.html#xsdElement_ModelStats) element under the main model element (ie. the `/PMML/<Model>/ModelStats` elenment).
 It is there for information purposes only. Its presence or absence does not affect the predictive capabilities of the model in any way.
 
 ## New features
@@ -51,7 +99,7 @@ regressor.fit(X, ynd)
   * Improved the partitioning of the main trees array into sub-arrays based on model type (boosting vs. bagging) and target cardinality (single-target vs. multi-target).
   * Improved support for early stopping.
 
-See [JPMML-XGBoost 1.8.2](https://github.com/jpmml/jpmml-xgboost/blob/master/NEWS.md#182)
+See [JPMML-XGBoost v1.8.2](https://github.com/jpmml/jpmml-xgboost/blob/master/NEWS.md#182)
 
 Earlier SkLearn2PMML package versions may accept and convert XGBoost 2.0 without errors, but the resulting PMML document may contain an ensemble model with a wrong selection and/or wrong number of member decision tree models in it.
 These kind of conversion issues can be easily detected by embedding the model verification dataset into the model.
@@ -63,14 +111,14 @@ These kind of conversion issues can be easily detected by embedding the model ve
 This member was promoted from attribute to property during the XGBoost 1.7 to 2.0 upgrade, thereby making it "invisible" in non-Python environments.
 
 The temporary workaround was to manually re-assign this property to a `XGBClassifier.pmml_classes_` attribute.
-See https://github.com/jpmml/sklearn2pmml/issues/402
-
 While the above workaround continues to be relevant with advanced targets (eg. string-valued category levels) it is no longer needed for default targets.
+
+See [SkLearn2PMML-402](https://github.com/jpmml/sklearn2pmml/issues/402)
 
 * Added `GBDTLRClassifier.classes_` property.
 
 
-# 0.101.0
+# 0.101.0 #
 
 ## Breaking changes
 
@@ -129,7 +177,7 @@ data_usermin = [0.0] * len(columns)
 data_usermax = [10.0] * len(columns)
 
 mapper = DataFrameMapper([
-	(columns.tolist(), ContinuousDomain(data_min = data_usermin, data_max = data_usermax))
+  (columns.tolist(), ContinuousDomain(data_min = data_usermin, data_max = data_usermax))
 ])
 mapper.fit_transform(iris_X, iris_y)
 ```
@@ -165,7 +213,6 @@ This makes these two transformers compatible with Scikit-Learn's `set_output` AP
 * Added `Memorizer.get_feature_names_out()` and `Recaller.get_feature_names_out()` methods.
 
 This makes memory managers compatible with Scikit-Learn's `set_output` API.
-
 
 ## Minor improvements and fixes
 
