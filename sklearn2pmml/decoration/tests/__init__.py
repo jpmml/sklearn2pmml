@@ -10,8 +10,15 @@ from sklearn_pandas import DataFrameMapper
 from sklego.preprocessing import IdentityTransformer
 from unittest import TestCase
 
+import math
 import numpy
 import pandas
+
+def nan_eq(left, right):
+	for i, j in zip(left, right):
+		if i != j and not (math.isnan(i) and math.isnan(j)):
+			return False
+	return True
 
 class AliasTest(TestCase):
 
@@ -136,12 +143,12 @@ class CategoricalDomainTest(TestCase):
 		self.assertIsNone(domain.dtype.categories)
 		self.assertEqual([-1, 0, 1], domain.dtype_.categories.tolist())
 		self.assertEqual([-1, 0, 1, 0, -1], Xt.values.tolist())
-		domain = clone(CategoricalDomain(invalid_value_treatment = "as_value", invalid_value_replacement = 0, data_values = [[0, 1]], dtype = "category"))
+		domain = clone(CategoricalDomain(invalid_value_treatment = "as_missing", data_values = [[0, 1]], dtype = "category"))
 		self.assertFalse(hasattr(domain, "dtype_"))
 		Xt = domain.fit_transform(X)
 		self.assertTrue(isinstance(domain.dtype_, CategoricalDtype))
 		self.assertEqual([0, 1], domain.dtype_.categories.tolist())
-		self.assertEqual([0, 0, 1, 0, 0], Xt.values.tolist())
+		self.assertTrue(nan_eq([float("NaN"), 0, 1, 0, float("NaN")], Xt.values.tolist()))
 
 	def test_fit_int64(self):
 		domain = clone(CategoricalDomain())

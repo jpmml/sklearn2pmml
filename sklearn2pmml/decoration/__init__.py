@@ -116,6 +116,18 @@ class Domain(BaseEstimator, TransformerMixin, OneToOneFeatureMixin):
 	def _empty_fit(self):
 		return not (self.with_data or self.with_statistics)
 
+	def _to_missing(self, X, where):
+		if not numpy.any(where):
+			return X
+		missing_value = None
+		if self.missing_values is not None:
+			if type(self.missing_values) is list:
+				missing_value = self.missing_values[0]
+			else:
+				missing_value = self.missing_values
+		X = _set_values(X, where, missing_value)
+		return X
+
 	def _missing_value_mask(self, X):
 		if self.missing_values is not None:
 			def is_missing(X, missing_value):
@@ -163,6 +175,7 @@ class Domain(BaseEstimator, TransformerMixin, OneToOneFeatureMixin):
 		elif self.invalid_value_treatment == "as_is":
 			pass
 		elif self.invalid_value_treatment == "as_missing":
+			X = self._to_missing(X, where)
 			X = self._transform_missing_values(X, where)
 		elif self.invalid_value_treatment == "as_value":
 			if self.invalid_value_replacement is not None:
@@ -405,12 +418,7 @@ class ContinuousDomain(Domain):
 			return X
 		if self.outlier_treatment == "as_missing_values":
 			outlier_mask = self._outlier_mask(X, where)
-			if self.missing_values is not None:
-				if type(self.missing_values) is list:
-					raise ValueError()
-				X = _set_values(X, outlier_mask, self.missing_values)
-			else:
-				X = _set_values(X, outlier_mask, None)
+			X = self._to_missing(X, outlier_mask)
 			X = self._transform_missing_values(X, outlier_mask)
 		elif self.outlier_treatment == "as_extreme_values":
 			outlier_mask = self._negative_outlier_mask(X, where)
