@@ -46,10 +46,6 @@
 					<groupId>com.google.guava</groupId>
 					<artifactId>guava</artifactId>
 				</exclusion>
-				<exclusion>
-					<groupId>org.jpmml</groupId>
-					<artifactId>pmml-python-testing</artifactId>
-				</exclusion>
 			</exclusions>
 		</dependency>
 		<dependency>
@@ -61,45 +57,21 @@
 			<groupId>org.jpmml</groupId>
 			<artifactId>pmml-sklearn-h2o</artifactId>
 			<version>${jpmml-sklearn.version}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.jpmml</groupId>
-					<artifactId>pmml-converter-testing</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.jpmml</groupId>
 			<artifactId>pmml-sklearn-lightgbm</artifactId>
 			<version>${jpmml-sklearn.version}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.jpmml</groupId>
-					<artifactId>pmml-converter-testing</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.jpmml</groupId>
 			<artifactId>pmml-sklearn-statsmodels</artifactId>
 			<version>${jpmml-sklearn.version}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.jpmml</groupId>
-					<artifactId>pmml-python-testing</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.jpmml</groupId>
 			<artifactId>pmml-sklearn-xgboost</artifactId>
 			<version>${jpmml-sklearn.version}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.jpmml</groupId>
-					<artifactId>pmml-converter-testing</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 
 		<dependency>
@@ -126,7 +98,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-clean-plugin</artifactId>
-				<version>3.3.1</version>
+				<version>3.3.2</version>
 				<executions>
 					<execution>
 						<id>clean-dependencies</id>
@@ -151,7 +123,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.11.0</version>
+				<version>3.12.1</version>
 				<configuration>
 					<source>1.8</source>
 					<target>1.8</target>
@@ -160,7 +132,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
-				<version>3.6.0</version>
+				<version>3.6.1</version>
 				<executions>
 					<execution>
 						<id>copy-dependencies</id>
@@ -226,6 +198,14 @@
 						</goals>
 						<configuration>
 							<target>
+								<delete>
+									<fileset
+										dir="${project.basedir}/sklearn2pmml/resources"
+									>
+										<include name="pmml-converter-testing-*.jar"/>
+										<include name="pmml-python-testing-*.jar"/>
+									</fileset>
+								</delete>
 								<fileset
 									id="classpath"
 									dir="${project.basedir}/sklearn2pmml/resources"
@@ -258,7 +238,7 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>properties-maven-plugin</artifactId>
-				<version>1.1.0</version>
+				<version>1.2.1</version>
 				<executions>
 					<execution>
 						<phase>initialize</phase>
