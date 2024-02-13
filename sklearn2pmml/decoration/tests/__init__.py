@@ -123,13 +123,25 @@ class CategoricalDomainTest(TestCase):
 		self.assertEqual([1, 2, 0], Xt[:, 1].tolist())
 
 	def test_fit_int_categorical(self):
-		domain = clone(CategoricalDomain(dtype = CategoricalDtype()))
-		self.assertIsNone(domain.dtype.categories)
+		domain = clone(CategoricalDomain(dtype = "category"))
 		self.assertFalse(hasattr(domain, "dtype_"))
 		X = Series([-1, 0, 1, 0, -1])
 		Xt = domain.fit_transform(X)
+		self.assertTrue(isinstance(domain.dtype_, CategoricalDtype))
+		self.assertEqual([-1, 0, 1], domain.dtype_.categories.tolist())
+		domain = clone(CategoricalDomain(dtype = CategoricalDtype()))
+		self.assertIsNone(domain.dtype.categories)
+		self.assertFalse(hasattr(domain, "dtype_"))
+		Xt = domain.fit_transform(X)
 		self.assertIsNone(domain.dtype.categories)
 		self.assertEqual([-1, 0, 1], domain.dtype_.categories.tolist())
+		self.assertEqual([-1, 0, 1, 0, -1], Xt.values.tolist())
+		domain = clone(CategoricalDomain(invalid_value_treatment = "as_value", invalid_value_replacement = 0, data_values = [[0, 1]], dtype = "category"))
+		self.assertFalse(hasattr(domain, "dtype_"))
+		Xt = domain.fit_transform(X)
+		self.assertTrue(isinstance(domain.dtype_, CategoricalDtype))
+		self.assertEqual([0, 1], domain.dtype_.categories.tolist())
+		self.assertEqual([0, 0, 1, 0, 0], Xt.values.tolist())
 
 	def test_fit_int64(self):
 		domain = clone(CategoricalDomain())

@@ -1,4 +1,4 @@
-from pandas import DataFrame
+from pandas import CategoricalDtype, DataFrame
 from pandas.api.types import is_object_dtype
 from sklearn.base import clone, BaseEstimator, TransformerMixin
 try:
@@ -10,6 +10,7 @@ from sklearn2pmml import _is_pandas_categorical
 from sklearn2pmml.util import cast, common_dtype, is_1d, to_numpy
 
 import copy
+import itertools
 import numpy
 import numbers
 import pandas
@@ -201,12 +202,21 @@ class DiscreteDomain(Domain):
 		if data_values:
 			if not with_data:
 				raise ValueError("Valid values require with_data attribute")
+			if isinstance(dtype, CategoricalDtype) and data_values != (dtype.categories).tolist():
+				raise ValueError("Valid values are invalid")
 		self.data_values = data_values
+
+	def _is_ordered(self):
+		raise NotImplementedError()
 
 	def _valid_value_mask(self, X, where):
 		if hasattr(self, "data_values_"):
 			data_values = self.data_values_
-
+		elif _is_pandas_categorical(self.dtype_):
+			data_values = self.dtype_.categories
+		else:
+			data_values = None
+		if data_values is not None:
 			def _isin_mask(x, values):
 				if hasattr(x, "isin"):
 					return x.isin(values)
@@ -231,7 +241,14 @@ class DiscreteDomain(Domain):
 
 	def fit(self, X, y = None):
 		if self.dtype is not None:
-			X = cast(X, self.dtype)
+			if isinstance(self.dtype, str) and self.dtype == "category":
+				if self.data_values is not None:
+					dtype = CategoricalDtype(list(itertools.chain.from_iterable(self.data_values)), ordered = self._is_ordered())
+				else:
+					dtype = self.dtype
+				X = cast(X, dtype)
+			else:
+				X = cast(X, self.dtype)
 		self.dtype_ = common_dtype(X)
 		if self._empty_fit():
 			return self
@@ -284,11 +301,21 @@ class CategoricalDomain(DiscreteDomain):
 
 	def __init__(self, missing_values = None, missing_value_treatment = "as_is", missing_value_replacement = None, invalid_value_treatment = "return_invalid", invalid_value_replacement = None, with_data = True, with_statistics = False, dtype = None, display_name = None, data_values = None):
 		super(CategoricalDomain, self).__init__(missing_values = missing_values, missing_value_treatment = missing_value_treatment, missing_value_replacement = missing_value_replacement, invalid_value_treatment = invalid_value_treatment, invalid_value_replacement = invalid_value_replacement, with_data = with_data, with_statistics = with_statistics, dtype = dtype, display_name = display_name, data_values = data_values)
+		if isinstance(dtype, CategoricalDtype) and dtype.ordered:
+			raise ValueError()
+
+	def _is_ordered(self):
+		return False
 
 class OrdinalDomain(DiscreteDomain):
 
 	def __init__(self, missing_values = None, missing_value_treatment = "as_is", missing_value_replacement = None, invalid_value_treatment = "return_invalid", invalid_value_replacement = None, with_data = True, with_statistics = False, dtype = None, display_name = None, data_values = None):
 		super(OrdinalDomain, self).__init__(missing_values = missing_values, missing_value_treatment = missing_value_treatment, missing_value_replacement = missing_value_replacement, invalid_value_treatment = invalid_value_treatment, invalid_value_replacement = invalid_value_replacement, with_data = with_data, with_statistics = with_statistics, dtype = dtype, display_name = display_name, data_values = data_values)
+		if isinstance(dtype, CategoricalDtype) and not dtype.ordered:
+			raise ValueError()
+
+	def _is_ordered(self):
+		return True
 
 def _interquartile_range(X, axis):
 	quartiles = numpy.nanpercentile(X, [25, 75], axis = axis)
