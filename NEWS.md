@@ -1,3 +1,45 @@
+# 0.103.1 #
+
+## Breaking changes
+
+None.
+
+## New features
+
+* Added support for `pandas.CategoricalDtype` data type to the `DiscreteDomain` class and its subclasses.
+
+It has been possible to set the `DiscreteDomain.dtype` parameter to a Pandas' categorical data type for quite some time.
+However, up until this point, the JPMML-SkLearn library did not interact with this extra information in any way, because the valid value space (VVS) was constructed solely based on the `DiscreteDomain.data_values_` attribute.
+
+The Pandas' categorical data type is not relevant in pure Scikit-Learn workflows.
+However, it is indispensable for the proper representation of categorical features in LightGBM and XGBoost workflows.
+
+Default usage (the VVS is learned automatically from the training dataset):
+
+``` python
+domain = CategoricalDomain(..., dtype = "category")
+```
+
+Advanced usage (the VVS is pre-defined):
+
+``` python
+vvs = [...]
+
+# The DiscreteDomain.data_values parameter expects a list-like of list-likes, hence the double indexing syntax
+domain = CategoricalDomain(..., data_values = [vvs], dtype = CategoricalDtype(categories = vvs))
+```
+
+See [SkLearn2PMML-411](https://github.com/jpmml/sklearn2pmml/issues/411)
+
+## Minor improvements and fixes
+
+* Fixed the invalid value replacement for the "as_missing" treatment.
+
+This bug manifested itself in configurations where the `DiscreteDomain.missing_value_replacement` parameter was unset (meaning "leave as default missing value"), and the `DiscreteDomain.missing_values` parameter was set to a non-`None` value (meaning "the default missing value is <value>").
+
+* Updated JPMML-LightGBM dependency.
+
+
 # 0.103.0 #
 
 ## Breaking changes
