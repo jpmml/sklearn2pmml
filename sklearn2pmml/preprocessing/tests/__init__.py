@@ -1,7 +1,8 @@
 from datetime import datetime
-from pandas import DataFrame, Series
+from pandas import CategoricalDtype, DataFrame, Series
 from sklearn_pandas import DataFrameMapper
 from sklearn.base import clone
+from sklearn.exceptions import NotFittedError
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import make_pipeline
@@ -229,9 +230,12 @@ class ExpressionTransformerTest(TestCase):
 		self.assertTrue(hasattr(transformer, "default_value"))
 		self.assertTrue(hasattr(transformer, "invalid_value_treatment"))
 		self.assertTrue(hasattr(transformer, "dtype"))
+		self.assertFalse(hasattr(transformer, "dtype_"))
 		transformer = ExpressionTransformer("X['a'] + X['b']", map_missing_to = -1, dtype = int)
 		X = DataFrame([[0, 1], [1, 2]], columns = ["a", "b"])
 		Xt = transformer.fit_transform(X)
+		self.assertEqual(int, transformer.dtype)
+		self.assertEqual(int, transformer.dtype_)
 		self.assertIsInstance(Xt, numpy.ndarray)
 		self.assertEqual(int, Xt.dtype)
 		self.assertEqual([[1], [3]], Xt.tolist())
@@ -247,6 +251,8 @@ class ExpressionTransformerTest(TestCase):
 		transformer = ExpressionTransformer("X['a'] + X['b']", default_value = -1, dtype = float)
 		X = DataFrame([[0.5, 0.5], [1.0, 2.0]], columns = ["a", "b"])
 		Xt = transformer.fit_transform(X)
+		self.assertEqual(float, transformer.dtype)
+		self.assertEqual(float, transformer.dtype_)
 		self.assertIsInstance(Xt, numpy.ndarray)
 		self.assertEqual(float, Xt.dtype)
 		self.assertEqual([[1.0], [3.0]], Xt.tolist())
@@ -258,6 +264,8 @@ class ExpressionTransformerTest(TestCase):
 		self.assertIsNone(transformer.dtype)
 		X = numpy.array([[0.5, 0.5], [1.0, 2.0]])
 		Xt = transformer.fit_transform(X)
+		self.assertEqual(None, transformer.dtype)
+		self.assertEqual(None, transformer.dtype_)
 		self.assertIsInstance(Xt, numpy.ndarray)
 		self.assertEqual([[1], [3]], Xt.tolist())
 		transformer = ExpressionTransformer("X[0] - X[1]")
@@ -280,6 +288,36 @@ class ExpressionTransformerTest(TestCase):
 		self.assertEqual([[-1], [13]], transformer.transform(X).tolist())
 		end_err_state = numpy.geterr()
 		self.assertEqual(begin_err_state, end_err_state)
+
+	def test_category_transform(self):
+		begin_err_state = numpy.geterr()
+		transformer = ExpressionTransformer("numpy.rint(X[0])", dtype = "category")
+		self.assertTrue(hasattr(transformer, "dtype"))
+		self.assertFalse(hasattr(transformer, "dtype_"))
+		X = DataFrame([[1.2], [0.1], [1.8], [2.3], [0.7], [0.0]], columns = ["a"])
+		with self.assertRaises(NotFittedError):
+			transformer.transform(X)
+		Xt = transformer.fit_transform(X)
+		self.assertTrue(hasattr(transformer, "dtype"))
+		self.assertTrue(hasattr(transformer, "dtype_"))
+		self.assertIsInstance(transformer.dtype, str)
+		self.assertIsInstance(transformer.dtype_, CategoricalDtype)
+		self.assertEqual([0, 1, 2], transformer.dtype_.categories.tolist())
+		self.assertIsInstance(Xt, numpy.ndarray)
+		self.assertEqual(float, Xt.dtype)
+		self.assertEqual([[1.0], [0.0], [2.0], [2.0], [1.0], [0.0]], Xt.tolist())
+		end_err_state = numpy.geterr()
+		self.assertEqual(begin_err_state, end_err_state)
+		transformer = ExpressionTransformer("numpy.rint(X[0])", dtype = CategoricalDtype(categories = [0, 1]))
+		self.assertTrue(hasattr(transformer, "dtype"))
+		self.assertFalse(hasattr(transformer, "dtype_"))
+		Xt = transformer.fit_transform(X)
+		self.assertTrue(hasattr(transformer, "dtype"))
+		self.assertTrue(hasattr(transformer, "dtype_"))
+		self.assertIs(transformer.dtype, transformer.dtype_)
+		self.assertIsInstance(Xt, numpy.ndarray)
+		self.assertEqual(float, Xt.dtype)
+		self.assertTrue(nan_eq([[1.0], [0.0], [float("NaN")], [float("NaN")], [1.0], [0.0]], Xt.tolist()))
 
 	def test_func_transform(self):
 		expr = to_expr(_signum)

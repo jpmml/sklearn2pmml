@@ -14,6 +14,7 @@ try:
 	from sklearn.base import OneToOneFeatureMixin
 except:
 	from sklearn.base import _OneToOneFeatureMixin as OneToOneFeatureMixin
+from sklearn.exceptions import NotFittedError
 from sklearn.pipeline import Pipeline
 from sklearn2pmml import _is_pandas_categorical, _is_proto_pandas_categorical
 from sklearn2pmml.util import cast, dt_transform, ensure_1d, ensure_def, eval_rows, to_expr_func, to_numpy, Expression, Predicate
@@ -227,10 +228,7 @@ class ExpressionTransformer(BaseEstimator, TransformerMixin):
 		self.invalid_value_treatment = invalid_value_treatment
 		self.dtype = dtype
 
-	def fit(self, X, y = None):
-		return self
-
-	def transform(self, X):
+	def _eval(self, X):
 		expr_func = to_expr_func(self.expr)
 
 		def _eval_row(x):
@@ -254,8 +252,28 @@ class ExpressionTransformer(BaseEstimator, TransformerMixin):
 		# Evaluate in PMML compatibility mode
 		with numpy.errstate(divide = "raise"):
 			Xt = eval_rows(X, _eval_row)
-		if self.dtype is not None:
-			Xt = cast(Xt, self.dtype)
+		return Xt
+
+	def fit(self, X, y = None):
+		if _is_proto_pandas_categorical(self.dtype):
+			Xt = self._eval(X)
+			if self.dtype is not None:
+				Xt = cast(Xt, self.dtype)
+			self.dtype_ = Xt.dtype
+		else:
+			self.dtype_ = self.dtype
+		return self
+
+	def transform(self, X):
+		Xt = self._eval(X)
+		if hasattr(self, "dtype_"):
+			dtype = self.dtype_
+		else:
+			if _is_proto_pandas_categorical(self.dtype):
+				raise NotFittedError()
+			dtype = self.dtype
+		if dtype is not None:
+			Xt = cast(Xt, dtype)
 		return _col2d(Xt)
 
 class IdentityTransformer(BaseEstimator, TransformerMixin, OneToOneFeatureMixin):
