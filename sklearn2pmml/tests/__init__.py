@@ -3,7 +3,7 @@ from sklearn.dummy import DummyRegressor
 from sklearn.feature_selection import f_regression, SelectFromModel, SelectKBest
 from sklearn.pipeline import Pipeline
 from sklearn.tree import DecisionTreeRegressor
-from sklearn2pmml import _classpath, _escape, _escape_steps, _expand_complex_key, _is_categorical, _is_ordinal, _java_version, _parse_java_version, _strip_module, load_class_mapping, make_class_mapping_jar, make_pmml_pipeline, EstimatorProxy, SelectorProxy
+from sklearn2pmml import _classpath, _escape, _escape_steps, _expand_complex_key, _is_categorical, _is_ordinal, _is_proto_pandas_categorical, _java_version, _parse_java_version, _strip_module, load_class_mapping, make_class_mapping_jar, make_pmml_pipeline, EstimatorProxy, SelectorProxy
 from sklearn2pmml.pipeline import PMMLPipeline
 from unittest import TestCase
 
@@ -31,6 +31,16 @@ class DTypeTest(TestCase):
 		x = x.astype(CategoricalDtype())
 		self.assertEqual([1, 0, 1], x.values.tolist())
 		self.assertTrue(_is_categorical(x.dtype))
+
+	def test_is_proto_pandas_categorical(self):
+		dtype = "category"
+		self.assertTrue(_is_proto_pandas_categorical(dtype))
+		dtype = CategoricalDtype()
+		self.assertTrue(_is_proto_pandas_categorical(dtype))
+		dtype = CategoricalDtype(categories = [])
+		self.assertFalse(_is_proto_pandas_categorical(dtype))
+		dtype = CategoricalDtype(categories = ["a", "b", "c"])
+		self.assertFalse(_is_proto_pandas_categorical(dtype))
 
 	def test_is_ordinal(self):
 		x = Categorical(["True", "False", "True"], categories = ["True", "False"], ordered = True)

@@ -6,7 +6,7 @@ try:
 	from sklearn.base import OneToOneFeatureMixin
 except:
 	from sklearn.base import _OneToOneFeatureMixin as OneToOneFeatureMixin
-from sklearn2pmml import _is_pandas_categorical
+from sklearn2pmml import _is_pandas_categorical, _is_proto_pandas_categorical
 from sklearn2pmml.util import cast, common_dtype, is_1d, to_numpy
 
 import copy
@@ -254,7 +254,7 @@ class DiscreteDomain(Domain):
 
 	def fit(self, X, y = None):
 		if self.dtype is not None:
-			if isinstance(self.dtype, str) and self.dtype == "category":
+			if _is_proto_pandas_categorical(self.dtype):
 				if self.data_values is not None:
 					dtype = CategoricalDtype(list(itertools.chain.from_iterable(self.data_values)), ordered = self._is_ordered())
 				else:

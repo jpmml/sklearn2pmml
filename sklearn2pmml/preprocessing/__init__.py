@@ -15,6 +15,7 @@ try:
 except:
 	from sklearn.base import _OneToOneFeatureMixin as OneToOneFeatureMixin
 from sklearn.pipeline import Pipeline
+from sklearn2pmml import _is_pandas_categorical, _is_proto_pandas_categorical
 from sklearn2pmml.util import cast, dt_transform, ensure_1d, ensure_def, eval_rows, to_expr_func, to_numpy, Expression, Predicate
 
 import numpy
@@ -97,7 +98,7 @@ class CastTransformer(BaseEstimator, TransformerMixin, OneToOneFeatureMixin):
 		self.dtype = dtype
 
 	def fit(self, X, y = None):
-		if self.dtype == "category":
+		if _is_proto_pandas_categorical(self.dtype):
 			X = to_numpy(X)
 			nonmissing_mask = pandas.notnull(X)
 			categories = numpy.unique(X[nonmissing_mask])
@@ -125,7 +126,7 @@ class CutTransformer(BaseEstimator, TransformerMixin):
 	def transform(self, X):
 		X = ensure_1d(X)
 		Xt = pandas.cut(X, bins = self.bins, right = self.right, labels = self.labels, include_lowest = self.include_lowest)
-		if Xt.dtype == "category":
+		if _is_pandas_categorical(Xt.dtype):
 			Xt = numpy.asarray(Xt)
 		return _col2d(Xt)
 

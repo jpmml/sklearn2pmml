@@ -44,6 +44,13 @@ def _is_pandas_categorical(dtype):
 		return dtype.name == "category"
 	return False
 
+def _is_proto_pandas_categorical(dtype):
+	if isinstance(dtype, str) and dtype == "category":
+		return True
+	if isinstance(dtype, CategoricalDtype):
+		return dtype.categories is None
+	return False
+
 def _is_ordinal(dtype):
 	if _is_pandas_ordinal(dtype):
 		return True
