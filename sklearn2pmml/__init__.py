@@ -391,8 +391,8 @@ def load_class_mapping(user_classpath = []):
 
 	"""
 	mapping = dict()
-	processor = lambda x: mapping.update(_expand_mapping(_parse_properties(x.readlines())))
-	_process_classpath("META-INF/sklearn2pmml.properties", processor, user_classpath)
+	func = lambda x: mapping.update(_expand_mapping(_parse_properties(x.readlines())))
+	_process_classpath("META-INF/sklearn2pmml.properties", func, user_classpath)
 	return mapping
 
 def make_class_mapping_jar(mapping, path):

@@ -115,6 +115,7 @@ class Evaluatable:
 			self.expr = expr
 		else:
 			raise TypeError()
+
 		def to_source(function_def):
 			if isinstance(function_def, str):
 				if "\n" not in function_def:
@@ -126,6 +127,7 @@ class Evaluatable:
 				return inspect.getsource(function_def)
 			else:
 				raise TypeError()
+
 		self.function_defs = [to_source(function_def) for function_def in function_defs]
 
 	def setup(self, env):

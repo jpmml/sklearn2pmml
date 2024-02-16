@@ -5,7 +5,7 @@ except ImportError:
 	from collections import Hashable
 from datetime import datetime
 from io import StringIO
-from pandas import CategoricalDtype, DataFrame, Series
+from pandas import CategoricalDtype, DataFrame
 from scipy.interpolate import BSpline
 from scipy.sparse import lil_matrix
 from sklearn.base import BaseEstimator, TransformerMixin
@@ -34,17 +34,18 @@ def _regex_engine(pattern):
 		return re.compile(pattern)
 
 def _col2d(X):
-	if isinstance(X, Series):
-		X = X.to_numpy()
+	X = to_numpy(X)
 	return X.reshape(-1, 1)
 
 def _int(X):
 	if numpy.isscalar(X):
 		return int(X)
 	else:
-		if isinstance(X, Series):
-			X = X.to_numpy()
-		return X.astype(int)
+		return cast(X, int)
+
+def _unique(X):
+	nonmissing_mask = pandas.notnull(X)
+	return numpy.unique(X[nonmissing_mask])
 
 class Aggregator(BaseEstimator, TransformerMixin):
 	"""Aggregate continuous data."""
@@ -101,9 +102,7 @@ class CastTransformer(BaseEstimator, TransformerMixin, OneToOneFeatureMixin):
 	def fit(self, X, y = None):
 		if _is_proto_pandas_categorical(self.dtype):
 			X = to_numpy(X)
-			nonmissing_mask = pandas.notnull(X)
-			categories = numpy.unique(X[nonmissing_mask])
-			self.dtype_ = CategoricalDtype(categories, ordered = False)
+			self.dtype_ = CategoricalDtype(categories = _unique(X), ordered = False)
 		else:
 			self.dtype_ = self.dtype
 		return self
@@ -128,7 +127,7 @@ class CutTransformer(BaseEstimator, TransformerMixin):
 		X = ensure_1d(X)
 		Xt = pandas.cut(X, bins = self.bins, right = self.right, labels = self.labels, include_lowest = self.include_lowest)
 		if _is_pandas_categorical(Xt.dtype):
-			Xt = numpy.asarray(Xt)
+			Xt = to_numpy(Xt)
 		return _col2d(Xt)
 
 class DataFrameConstructor(BaseEstimator, TransformerMixin):
@@ -162,6 +161,7 @@ class DurationTransformer(BaseEstimator, TransformerMixin):
 		def to_int_duration(X):
 			duration = self._to_duration(pandas.to_timedelta(X - self.epoch))
 			return _int(duration)
+
 		return dt_transform(X, to_int_duration)
 
 class DaysSinceYearTransformer(DurationTransformer):
@@ -199,6 +199,7 @@ class SecondsSinceMidnightTransformer(BaseEstimator, TransformerMixin):
 			dt = pandas.to_datetime(X)
 			duration = self._to_duration(dt - dt.normalize())
 			return _int(duration)
+
 		return dt_transform(X, to_int_duration)
 
 class ExpressionTransformer(BaseEstimator, TransformerMixin):
@@ -491,7 +492,7 @@ class PMMLLabelBinarizer(BaseEstimator, TransformerMixin):
 
 	def fit(self, X, y = None):
 		X = ensure_1d(X)
-		self.classes_ = numpy.unique(X[~pandas.isnull(X)])
+		self.classes_ = _unique(X)
 		return self
 
 	def transform(self, X):
@@ -516,7 +517,7 @@ class PMMLLabelEncoder(BaseEstimator, TransformerMixin):
 
 	def fit(self, X, y = None):
 		X = ensure_1d(X)
-		self.classes_ = numpy.unique(X[~pandas.isnull(X)])
+		self.classes_ = _unique(X)
 		return self
 
 	def transform(self, X):
@@ -643,8 +644,7 @@ class StringNormalizer(BaseEstimator, TransformerMixin):
 		return self
 
 	def transform(self, X):
-		X = to_numpy(X)
-		Xt = X.astype("U")
+		Xt = cast(X, "U")
 		# Transform
 		if self.function is None:
 			pass

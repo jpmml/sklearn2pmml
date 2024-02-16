@@ -6,6 +6,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import LabelBinarizer, OneHotEncoder, StandardScaler
 from sklearn2pmml.decoration import Alias, CategoricalDomain, ContinuousDomain, ContinuousDomainEraser, DateDomain, DateTimeDomain, DiscreteDomainEraser, Domain, MultiAlias, MultiDomain
 from sklearn2pmml.preprocessing import ExpressionTransformer
+from sklearn2pmml.util import to_numpy
 from sklearn_pandas import DataFrameMapper
 from sklego.preprocessing import IdentityTransformer
 from unittest import TestCase
@@ -158,7 +159,7 @@ class CategoricalDomainTest(TestCase):
 		self.assertEqual([-1, 1, 2], domain.data_values_.tolist())
 		self.assertEqual([-1, pandas.NA, 1, 2, -1], Xt.tolist())
 		domain = clone(CategoricalDomain())
-		X = X.to_numpy()
+		X = to_numpy(X)
 		self.assertEqual([False, True, False, False, False], domain._missing_value_mask(X).tolist())
 		Xt = domain.fit_transform(X)
 		self.assertEqual([-1, 1, 2], domain.data_values_.tolist())
