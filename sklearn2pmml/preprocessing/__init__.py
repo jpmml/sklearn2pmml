@@ -657,7 +657,7 @@ class StringNormalizer(BaseEstimator, TransformerMixin):
 		# Trim blanks
 		if self.trim_blanks:
 			Xt = numpy.char.strip(Xt)
-		return Xt
+		return _col2d(Xt)
 
 def _to_sparse(X, step_mask, step_result):
 	# Make array

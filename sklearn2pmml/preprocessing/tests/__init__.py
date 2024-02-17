@@ -604,12 +604,10 @@ class StringNormalizerTest(TestCase):
 	def test_transform(self):
 		X = numpy.asarray([" One", " two ", "THRee "])
 		normalizer = StringNormalizer(function = None)
-		self.assertEqual(["One", "two", "THRee"], normalizer.transform(X).tolist())
+		self.assertEqual([["One"], ["two"], ["THRee"]], normalizer.transform(X).tolist())
 		normalizer = StringNormalizer(function = "uppercase", trim_blanks = False)
-		self.assertEqual([" ONE", " TWO ", "THREE "], normalizer.transform(X).tolist())
+		self.assertEqual([[" ONE"], [" TWO "], ["THREE "]], normalizer.transform(X).tolist())
 		normalizer = StringNormalizer(function = "lowercase")
-		self.assertEqual(["one", "two", "three"], normalizer.transform(X).tolist())
-		X = X.reshape(3, 1)
 		self.assertEqual([["one"], ["two"], ["three"]], normalizer.transform(X).tolist())
 
 class SubstringTransformerTest(TestCase):
