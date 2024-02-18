@@ -73,8 +73,7 @@ def dt_transform(X, func):
 	if len(shape) > 1:
 		X = X.ravel()
 	Xt = func(X)
-	if isinstance(Xt, Index):
-		Xt = Xt.values
+	Xt = to_numpy(Xt)
 	if len(shape) > 1:
 		Xt = Xt.reshape(shape)
 	return Xt

@@ -15,11 +15,10 @@ import math
 import numpy
 import pandas
 
-def nan_eq(left, right):
-	for i, j in zip(left, right):
-		if i != j and not (math.isnan(i) and math.isnan(j)):
-			return False
-	return True
+def _list_equal(left, right):
+	left = DataFrame(left, dtype = object)
+	right = DataFrame(right, dtype = object)
+	return left.equals(right)
 
 class AliasTest(TestCase):
 
@@ -143,13 +142,13 @@ class CategoricalDomainTest(TestCase):
 		Xt = domain.fit_transform(X)
 		self.assertIsNone(domain.dtype.categories)
 		self.assertEqual([-1, 0, 1], domain.dtype_.categories.tolist())
-		self.assertEqual([-1, 0, 1, 0, -1], Xt.values.tolist())
+		self.assertEqual([-1, 0, 1, 0, -1], Xt.tolist())
 		domain = clone(CategoricalDomain(invalid_value_treatment = "as_missing", data_values = [[0, 1]], dtype = "category"))
 		self.assertFalse(hasattr(domain, "dtype_"))
 		Xt = domain.fit_transform(X)
 		self.assertTrue(isinstance(domain.dtype_, CategoricalDtype))
 		self.assertEqual([0, 1], domain.dtype_.categories.tolist())
-		self.assertTrue(nan_eq([float("NaN"), 0, 1, 0, float("NaN")], Xt.values.tolist()))
+		self.assertTrue(_list_equal([float("NaN"), 0, 1, 0, float("NaN")], Xt.tolist()))
 
 	def test_fit_int64(self):
 		domain = clone(CategoricalDomain())

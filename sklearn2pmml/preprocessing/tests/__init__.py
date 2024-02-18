@@ -21,22 +21,10 @@ import numpy
 import pandas
 import scipy
 
-def _data():
-	strings = Series(["0", "1", "2"], name = "string", dtype = str)
-	booleans = Series([False, True, True], name = "boolean", dtype = bool)
-	cont_ints = Series([0, 1, 2], name = "cont_int", dtype = int)
-	cat_ints = Series([0, 1, 2], name = "cat_int", dtype = int).astype("category")
-	floats = Series([0.0, 1.0, 2.0], name = "float", dtype = float)
-	return pandas.concat([strings, booleans, cont_ints, cat_ints, floats], axis = 1)
-
-def nan_eq(left, right):
-	for i, j in zip(left, right):
-		if isinstance(i, list) or isinstance(j, list):
-			i = i[0]
-			j = j[0]
-		if i != j and not (math.isnan(i) and math.isnan(j)):
-			return False
-	return True
+def _list_equal(left, right):
+	left = DataFrame(left, dtype = object)
+	right = DataFrame(right, dtype = object)
+	return left.equals(right)
 
 class AggregatorTest(TestCase): 
 
@@ -64,7 +52,7 @@ class AggregatorTest(TestCase):
 		X = X.reshape((2, 3))
 		self.assertEqual([[0.5], [1.5]], aggregator.transform(X).tolist())
 		X = X.reshape((6, -1))
-		self.assertTrue(nan_eq([[1.0], [0.5], [2.0], [3.0], [float("NaN")], [1.5]], aggregator.transform(X).tolist()))
+		self.assertTrue(_list_equal([[1.0], [0.5], [2.0], [3.0], [float("NaN")], [1.5]], aggregator.transform(X).tolist()))
 
 	def test_sum_float(self):
 		X = numpy.asarray([1.0, float("NaN"), 2.0, 1.0])
@@ -141,13 +129,13 @@ class CutTransformerTest(TestCase):
 		bins = [float("-inf"), -1.0, 0.0, 1.0, float("+inf")]
 		transformer = CutTransformer(bins, labels = False, right = True)
 		X = numpy.array([-2.0, -1.0, -0.5, 0.0, float("NaN"), 0.5, 1.0, 2.0])
-		self.assertTrue(nan_eq([[0], [0], [1], [1], [float("NaN")], [2], [2], [3]], transformer.transform(X).tolist()))
+		self.assertTrue(_list_equal([[0], [0], [1], [1], [float("NaN")], [2], [2], [3]], transformer.transform(X).tolist()))
 		transformer = CutTransformer(bins, labels = False, right = False)
-		self.assertTrue(nan_eq([[0], [1], [1], [2], [float("NaN")], [2], [3], [3]], transformer.transform(X).tolist()))
+		self.assertTrue(_list_equal([[0], [1], [1], [2], [float("NaN")], [2], [3], [3]], transformer.transform(X).tolist()))
 		bins = [-3.0, -1.0, 1.0, 3.0]
 		transformer = CutTransformer(bins, labels = False, right = True, include_lowest = True)
 		X = numpy.array([-3.0, -2.0, float("NaN"), 2.0, 3.0])
-		self.assertTrue(nan_eq([[0], [0], [float("NaN")], [2], [2]], transformer.transform(X).tolist()))
+		self.assertTrue(_list_equal([[0], [0], [float("NaN")], [2], [2]], transformer.transform(X).tolist()))
 		X = numpy.array([-5.0])
 		self.assertTrue(numpy.isnan(transformer.transform(X)).tolist()[0])
 		X = numpy.array([5.0])
@@ -184,7 +172,7 @@ class SeriesConstructorTest(TestCase):
 		Xt = transformer.fit_transform(X)
 		self.assertIsInstance(Xt.dtype, CategoricalDtype)
 		self.assertEqual(["one", "two"], Xt.dtype.categories.tolist())
-		self.assertTrue(nan_eq(["one", "two", float("NaN"), "one", float("NaN")], Xt.tolist()))
+		self.assertTrue(_list_equal(["one", "two", float("NaN"), "one", float("NaN")], Xt.tolist()))
 
 class DurationTransformerTest(TestCase):
 
@@ -340,7 +328,7 @@ class ExpressionTransformerTest(TestCase):
 		self.assertIs(transformer.dtype, transformer.dtype_)
 		self.assertIsInstance(Xt, numpy.ndarray)
 		self.assertEqual(float, Xt.dtype)
-		self.assertTrue(nan_eq([[1.0], [0.0], [float("NaN")], [float("NaN")], [1.0], [0.0]], Xt.tolist()))
+		self.assertTrue(_list_equal([[1.0], [0.0], [float("NaN")], [float("NaN")], [1.0], [0.0]], Xt.tolist()))
 
 	def test_func_transform(self):
 		expr = to_expr(_signum)
@@ -418,9 +406,9 @@ class LookupTransformerTest(TestCase):
 		X = numpy.array([[0.0], [90.0]])
 		self.assertEqual([[math.cos(0.0)], [math.cos(90.0)]], transformer.transform(X).tolist())
 		X = numpy.array([float("NaN"), 180.0])
-		self.assertTrue(nan_eq([[float("NaN")], [float("NaN")]], transformer.transform(X)))
+		self.assertTrue(_list_equal([[float("NaN")], [float("NaN")]], transformer.transform(X).tolist()))
 		transformer = LookupTransformer(mapping, -999.0)
-		self.assertTrue(nan_eq([[float("NaN")], [-999.0]], transformer.transform(X)))
+		self.assertTrue(_list_equal([[float("NaN")], [-999.0]], transformer.transform(X).tolist()))
 
 	def test_transform_string(self):
 		mapping = {
@@ -670,6 +658,14 @@ class H2OFrameCreatorTest(TestCase):
 	def test_init(self):
 		with self.assertWarns(DeprecationWarning):
 			H2OFrameCreator()
+
+def _data():
+	strings = Series(["0", "1", "2"], name = "string", dtype = str)
+	booleans = Series([False, True, True], name = "boolean", dtype = bool)
+	cont_ints = Series([0, 1, 2], name = "cont_int", dtype = int)
+	cat_ints = Series([0, 1, 2], name = "cat_int", dtype = int).astype("category")
+	floats = Series([0.0, 1.0, 2.0], name = "float", dtype = float)
+	return pandas.concat([strings, booleans, cont_ints, cat_ints, floats], axis = 1)
 
 class LightGBMTest(TestCase):
 
