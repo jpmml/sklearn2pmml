@@ -288,7 +288,10 @@ class ExpressionTransformer(BaseEstimator, TransformerMixin):
 			dtype = self.dtype
 		if dtype is not None:
 			Xt = cast(Xt, dtype)
-		return _col2d(Xt)
+		if _is_pandas_categorical(dtype):
+			return Xt
+		else:
+			return _col2d(Xt)
 
 	def fit_transform(self, X, y = None):
 		Xt = self._eval(X)
@@ -301,7 +304,10 @@ class ExpressionTransformer(BaseEstimator, TransformerMixin):
 		else:
 			dtype = None
 		self.dtype_ = dtype
-		return _col2d(Xt)
+		if _is_pandas_categorical(dtype):
+			return Xt
+		else:
+			return _col2d(Xt)
 
 class IdentityTransformer(BaseEstimator, TransformerMixin, OneToOneFeatureMixin):
 	"""Passes data through as-is."""
