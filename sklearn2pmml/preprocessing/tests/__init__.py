@@ -136,13 +136,11 @@ class CutTransformerTest(TestCase):
 		transformer = CutTransformer(bins, labels = False, right = True, include_lowest = True)
 		X = numpy.array([-3.0, -2.0, float("NaN"), 2.0, 3.0])
 		self.assertTrue(_list_equal([[0], [0], [float("NaN")], [2], [2]], transformer.transform(X).tolist()))
-		X = numpy.array([-5.0])
-		self.assertTrue(numpy.isnan(transformer.transform(X)).tolist()[0])
-		X = numpy.array([5.0])
-		self.assertTrue(numpy.isnan(transformer.transform(X)).tolist()[0])
+		X = numpy.array([-5.0, 5.0])
+		self.assertTrue(_list_equal([[float("NaN")], [float("NaN")]], transformer.transform(X).tolist()))
 		bins = [float("-inf"), float("+inf")]
 		transformer = CutTransformer(bins, labels = ["any"])
-		self.assertEqual([["any"]], transformer.transform(X).tolist())
+		self.assertEqual([["any"], ["any"]], transformer.transform(X).tolist())
 
 class DataFrameConstructorTest(TestCase):
 
