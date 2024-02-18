@@ -8,7 +8,7 @@ from sklearn.impute import SimpleImputer
 from sklearn.pipeline import make_pipeline
 from sklearn.pipeline import FeatureUnion, Pipeline
 from sklearn2pmml.decoration import Alias, DateDomain, DateTimeDomain
-from sklearn2pmml.preprocessing import Aggregator, CastTransformer, ConcatTransformer, CutTransformer, DataFrameConstructor, DateTimeFormatter, DaysSinceYearTransformer, ExpressionTransformer, FilterLookupTransformer, IdentityTransformer, LookupTransformer, MatchesTransformer, MultiLookupTransformer, NumberFormatter, PMMLLabelBinarizer, PMMLLabelEncoder, PowerFunctionTransformer, ReplaceTransformer, SecondsSinceMidnightTransformer, SecondsSinceYearTransformer, SelectFirstTransformer, StringNormalizer, SubstringTransformer, WordCountTransformer
+from sklearn2pmml.preprocessing import Aggregator, CastTransformer, ConcatTransformer, CutTransformer, DataFrameConstructor, DateTimeFormatter, DaysSinceYearTransformer, ExpressionTransformer, FilterLookupTransformer, IdentityTransformer, LookupTransformer, MatchesTransformer, MultiLookupTransformer, NumberFormatter, PMMLLabelBinarizer, PMMLLabelEncoder, PowerFunctionTransformer, ReplaceTransformer, SecondsSinceMidnightTransformer, SecondsSinceYearTransformer, SelectFirstTransformer, SeriesConstructor, StringNormalizer, SubstringTransformer, WordCountTransformer
 from sklearn2pmml.preprocessing.h2o import H2OFrameConstructor, H2OFrameCreator
 from sklearn2pmml.preprocessing.lightgbm import make_lightgbm_column_transformer, make_lightgbm_dataframe_mapper
 from sklearn2pmml.preprocessing.xgboost import make_xgboost_column_transformer, make_xgboost_dataframe_mapper
@@ -31,8 +31,9 @@ def _data():
 
 def nan_eq(left, right):
 	for i, j in zip(left, right):
-		i = i[0]
-		j = j[0]
+		if isinstance(i, list) or isinstance(j, list):
+			i = i[0]
+			j = j[0]
 		if i != j and not (math.isnan(i) and math.isnan(j)):
 			return False
 	return True
@@ -158,10 +159,32 @@ class CutTransformerTest(TestCase):
 class DataFrameConstructorTest(TestCase):
 
 	def test_fit_transform(self):
-		X = numpy.asarray([[1, "one"], [2, "two"], [3, "three"]])
 		transformer = DataFrameConstructor(columns = ["int", "str"], dtype = object)
+		X = numpy.asarray([[1, "one"], [2, "two"], [3, "three"]])
 		Xt = transformer.fit_transform(X)
 		self.assertIsInstance(Xt, DataFrame)
+		self.assertEqual(["int", "str"], Xt.columns.values.tolist())
+		self.assertEqual(object, Xt["int"].dtype)
+		self.assertEqual(object, Xt["str"].dtype)
+
+class SeriesConstructorTest(TestCase):
+
+	def test_fit_transform(self):
+		transformer = SeriesConstructor(name = "x", dtype = object)
+		X = numpy.asarray(["one", "two", "three", "one", "three"])
+		Xt = transformer.fit_transform(X)
+		self.assertIsInstance(Xt, Series)
+		self.assertEqual("x", Xt.name)
+		self.assertEqual(object, Xt.dtype)
+		transformer = SeriesConstructor(name = "x", dtype = "category")
+		Xt = transformer.fit_transform(X)
+		self.assertIsInstance(Xt.dtype, CategoricalDtype)
+		self.assertEqual(["one", "three", "two"], Xt.dtype.categories.tolist())
+		transformer = SeriesConstructor(name = "x", dtype = CategoricalDtype(["one", "two"]))
+		Xt = transformer.fit_transform(X)
+		self.assertIsInstance(Xt.dtype, CategoricalDtype)
+		self.assertEqual(["one", "two"], Xt.dtype.categories.tolist())
+		self.assertTrue(nan_eq(["one", "two", float("NaN"), "one", float("NaN")], Xt.tolist()))
 
 class DurationTransformerTest(TestCase):
 

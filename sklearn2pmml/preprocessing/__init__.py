@@ -5,7 +5,7 @@ except ImportError:
 	from collections import Hashable
 from datetime import datetime
 from io import StringIO
-from pandas import CategoricalDtype, DataFrame
+from pandas import CategoricalDtype, DataFrame, Series
 from scipy.interpolate import BSpline
 from scipy.sparse import lil_matrix
 from sklearn.base import BaseEstimator, TransformerMixin
@@ -141,6 +141,19 @@ class DataFrameConstructor(BaseEstimator, TransformerMixin):
 
 	def transform(self, X):
 		return DataFrame(X, columns = self.columns, dtype = self.dtype)
+
+class SeriesConstructor(BaseEstimator, TransformerMixin):
+
+	def __init__(self, name, dtype):
+		self.name = name
+		self.dtype = dtype
+
+	def fit(self, X, y = None):
+		return self
+
+	def transform(self, X):
+		X = ensure_1d(X)
+		return Series(X, name = self.name, dtype = self.dtype)
 
 class DurationTransformer(BaseEstimator, TransformerMixin):
 	"""Calculate time difference."""
