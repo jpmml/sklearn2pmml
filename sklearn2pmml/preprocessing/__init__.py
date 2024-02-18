@@ -272,9 +272,10 @@ class ExpressionTransformer(BaseEstimator, TransformerMixin):
 		if _is_proto_pandas_categorical(self.dtype):
 			Xt = self._eval(X)
 			Xt = cast(Xt, self.dtype)
-			self.dtype_ = Xt.dtype
+			dtype = Xt.dtype
 		else:
-			self.dtype_ = self.dtype
+			dtype = self.dtype
+		self.dtype_ = dtype
 		return self
 
 	def transform(self, X):
@@ -294,11 +295,12 @@ class ExpressionTransformer(BaseEstimator, TransformerMixin):
 		if self.dtype is not None:
 			Xt = cast(Xt, self.dtype)
 			if _is_proto_pandas_categorical(self.dtype):
-				self.dtype_ = Xt.dtype
+				dtype = Xt.dtype
 			else:
-				self.dtype_ = self.dtype
+				dtype = self.dtype
 		else:
-			self.dtype_ = None
+			dtype = None
+		self.dtype_ = dtype
 		return _col2d(Xt)
 
 class IdentityTransformer(BaseEstimator, TransformerMixin, OneToOneFeatureMixin):
