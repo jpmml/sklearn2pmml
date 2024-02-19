@@ -12,7 +12,7 @@ from sklearn2pmml.preprocessing import Aggregator, CastTransformer, ConcatTransf
 from sklearn2pmml.preprocessing.h2o import H2OFrameConstructor, H2OFrameCreator
 from sklearn2pmml.preprocessing.lightgbm import make_lightgbm_column_transformer, make_lightgbm_dataframe_mapper
 from sklearn2pmml.preprocessing.xgboost import make_xgboost_column_transformer, make_xgboost_dataframe_mapper
-from sklearn2pmml.util import to_expr, Expression, Reshaper
+from sklearn2pmml.util import to_expr, Expression
 from unittest import TestCase
 
 import inspect
@@ -123,7 +123,7 @@ class CutTransformerTest(TestCase):
 		X = numpy.array([-25, -1, 5, 25])
 		Xt = transformer.fit_transform(X)
 		self.assertIsInstance(Xt, numpy.ndarray)
-		self.assertEqual([["x-neg"], ["neg"], ["pos"], ["x-pos"]], Xt.tolist())
+		self.assertEqual(["x-neg", "neg", "pos", "x-pos"], Xt.tolist())
 
 	def test_transform_float(self):
 		bins = [float("-inf"), -1.0, 0.0, 1.0, float("+inf")]
@@ -140,7 +140,7 @@ class CutTransformerTest(TestCase):
 		self.assertTrue(_list_equal([[float("NaN")], [float("NaN")]], transformer.transform(X).tolist()))
 		bins = [float("-inf"), float("+inf")]
 		transformer = CutTransformer(bins, labels = ["any"])
-		self.assertEqual([["any"], ["any"]], transformer.transform(X).tolist())
+		self.assertEqual(["any", "any"], transformer.transform(X).tolist())
 
 class DataFrameConstructorTest(TestCase):
 
@@ -357,6 +357,10 @@ class NumberFormatterTest(TestCase):
 		self.assertTrue(hasattr(transformer, "pattern"))
 		X = Series([-1, 0, 1.5])
 		Xt = transformer.fit_transform(X)
+		self.assertIsInstance(Xt, Series)
+		self.assertEqual([" -1", "  0", "  1"], Xt.tolist())
+		X = numpy.asarray([[-1], [0], [1.5]])
+		Xt = transformer.fit_transform(X)
 		self.assertIsInstance(Xt, numpy.ndarray)
 		self.assertEqual([[" -1"], ["  0"], ["  1"]], Xt.tolist())
 
@@ -400,7 +404,7 @@ class LookupTransformerTest(TestCase):
 			LookupTransformer(mapping, int(0))
 		transformer = LookupTransformer(mapping, float("NaN"))
 		X = Series([0.0, 45.0, 90.0])
-		self.assertEqual([[math.cos(0.0)], [math.cos(45.0)], [math.cos(90.0)]], transformer.transform(X).tolist())
+		self.assertEqual([math.cos(0.0), math.cos(45.0), math.cos(90.0)], transformer.transform(X).tolist())
 		X = numpy.array([[0.0], [90.0]])
 		self.assertEqual([[math.cos(0.0)], [math.cos(90.0)]], transformer.transform(X).tolist())
 		X = numpy.array([float("NaN"), 180.0])
@@ -420,7 +424,7 @@ class LookupTransformerTest(TestCase):
 		mapping.pop(None)
 		transformer = LookupTransformer(mapping, None)
 		X = Series(["one", "two", "three"])
-		self.assertEqual([["ein"], ["zwei"], ["drei"]], transformer.transform(X).tolist())
+		self.assertEqual(["ein", "zwei", "drei"], transformer.transform(X).tolist())
 		X = numpy.array([[None], ["zero"]])
 		self.assertEqual([[None], [None]], transformer.transform(X).tolist())
 		transformer = LookupTransformer(mapping, "(other)")
@@ -595,16 +599,16 @@ class MatchesTransformerTest(TestCase):
 	def test_transform(self):
 		X = numpy.asarray(["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"])
 		transformer = MatchesTransformer("ar?y")
-		self.assertEqual([[True], [True], [False], [False], [True], [False], [False], [False], [False], [False], [False], [False]], transformer.transform(X).tolist())
+		self.assertEqual([True, True, False, False, True, False, False, False, False, False, False, False], transformer.transform(X).tolist())
 
 class ReplaceTransformerTest(TestCase):
 
 	def test_transform(self):
 		X = numpy.asarray(["A", "B", "BA", "BB", "BAB", "ABBA", "BBBB"])
 		transformer = ReplaceTransformer("B+", "c")
-		self.assertEqual([["A"], ["c"], ["cA"], ["c"], ["cAc"], ["AcA"], ["c"]], transformer.transform(X).tolist())
+		self.assertEqual(["A", "c", "cA", "c", "cAc", "AcA", "c"], transformer.transform(X).tolist())
 		vectorizer = CountVectorizer()
-		pipeline = make_pipeline(transformer, Reshaper((-1, )), vectorizer)
+		pipeline = make_pipeline(transformer, vectorizer)
 		Xt = pipeline.fit_transform(X)
 		self.assertEqual((7, 3), Xt.shape)
 
@@ -613,10 +617,12 @@ class StringNormalizerTest(TestCase):
 	def test_transform(self):
 		X = numpy.asarray([" One", " two ", "THRee "])
 		normalizer = StringNormalizer(function = None)
-		self.assertEqual([["One"], ["two"], ["THRee"]], normalizer.transform(X).tolist())
+		self.assertEqual(["One", "two", "THRee"], normalizer.transform(X).tolist())
 		normalizer = StringNormalizer(function = "uppercase", trim_blanks = False)
-		self.assertEqual([[" ONE"], [" TWO "], ["THREE "]], normalizer.transform(X).tolist())
+		self.assertEqual([" ONE", " TWO ", "THREE "], normalizer.transform(X).tolist())
 		normalizer = StringNormalizer(function = "lowercase")
+		self.assertEqual(["one", "two", "three"], normalizer.transform(X).tolist())
+		X = X.reshape((3, 1))
 		self.assertEqual([["one"], ["two"], ["three"]], normalizer.transform(X).tolist())
 
 class SubstringTransformerTest(TestCase):
@@ -624,7 +630,7 @@ class SubstringTransformerTest(TestCase):
 	def test_transform(self):
 		X = numpy.asarray(["", "a", "aB", "aBc", "aBc9", "aBc9x"])
 		transformer = SubstringTransformer(1, 4)
-		self.assertEqual([[""], [""], ["B"], ["Bc"], ["Bc9"], ["Bc9"]], transformer.transform(X).tolist())
+		self.assertEqual(["", "", "B", "Bc", "Bc9", "Bc9"], transformer.transform(X).tolist())
 
 class WordCountTransformerTest(TestCase):
 

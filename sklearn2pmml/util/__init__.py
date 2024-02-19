@@ -50,7 +50,7 @@ def is_1d(X):
 	else:
 		return False
 
-def ensure_1d(X):
+def to_1d(X):
 	if isinstance(X, (Categorical, Series)):
 		return X
 	elif isinstance(X, DataFrame):
@@ -64,7 +64,7 @@ def ensure_1d(X):
 	elif (len(shape) == 2) and (shape[1] == 1):
 		return X.ravel()
 	else:
-		raise ValueError("Expected 1d array, got {0}d array of shape {1}".format(len(shape), str(shape)))
+		raise ValueError("Expected 1d array or 2d column vector array, got {0}d array of shape {1}".format(len(shape), str(shape)))
 
 def dt_transform(X, func):
 	if hasattr(X, "applymap"):

@@ -17,7 +17,7 @@ except:
 from sklearn.exceptions import NotFittedError
 from sklearn.pipeline import Pipeline
 from sklearn2pmml import _is_pandas_categorical, _is_proto_pandas_categorical
-from sklearn2pmml.util import cast, dt_transform, ensure_1d, ensure_def, eval_rows, to_expr_func, to_numpy, Expression, Predicate
+from sklearn2pmml.util import cast, dt_transform, ensure_def, eval_rows, to_1d, to_expr_func, to_numpy, Expression, Predicate, Reshaper
 
 import numpy
 import pandas
@@ -82,12 +82,13 @@ class BSplineTransformer(BaseEstimator, TransformerMixin):
 		self.bspline = bspline
 
 	def fit(self, X, y = None):
-		X = ensure_1d(X)
+		to_1d(X)
 		return self
 
 	def transform(self, X):
-		X = ensure_1d(X)
-		return self.bspline(X)
+		X1d = to_1d(X)
+		Xt = self.bspline(X1d)
+		return Xt.reshape(X.shape)
 
 class CastTransformer(BaseEstimator, TransformerMixin, OneToOneFeatureMixin):
 	"""Change data type."""
@@ -120,15 +121,15 @@ class CutTransformer(BaseEstimator, TransformerMixin):
 		self.include_lowest = include_lowest
 
 	def fit(self, X, y = None):
-		X = ensure_1d(X)
+		to_1d(X)
 		return self
 
 	def transform(self, X):
-		X = ensure_1d(X)
-		Xt = pandas.cut(X, bins = self.bins, right = self.right, labels = self.labels, include_lowest = self.include_lowest)
+		X1d = to_1d(X)
+		Xt = pandas.cut(X1d, bins = self.bins, right = self.right, labels = self.labels, include_lowest = self.include_lowest)
 		if _is_pandas_categorical(Xt.dtype):
 			Xt = to_numpy(Xt)
-		return _col2d(Xt)
+		return Xt.reshape(X.shape)
 
 class DataFrameConstructor(BaseEstimator, TransformerMixin):
 
@@ -149,11 +150,12 @@ class SeriesConstructor(BaseEstimator, TransformerMixin):
 		self.dtype = dtype
 
 	def fit(self, X, y = None):
+		to_1d(X)
 		return self
 
 	def transform(self, X):
-		X = ensure_1d(X)
-		return Series(X, name = self.name, dtype = self.dtype)
+		X1d = to_1d(X)
+		return Series(X1d, name = self.name, dtype = self.dtype)
 
 class DurationTransformer(BaseEstimator, TransformerMixin):
 	"""Calculate time difference."""
@@ -337,13 +339,14 @@ class DateTimeFormatter(BaseEstimator, TransformerMixin):
 		return x.strftime(self.pattern)
 
 	def fit(self, X):
+		to_1d(X)
 		return self
 
 	def transform(self, X):
-		X = ensure_1d(X)
+		X1d = to_1d(X)
 		func = lambda x: self._strftime(x)
-		Xt = eval_rows(X, func)
-		return _col2d(Xt)
+		Xt = eval_rows(X1d, func, shape = X.shape)
+		return Xt
 
 class NumberFormatter(BaseEstimator, TransformerMixin):
 	"""Formats numbers according to a pattern. Analogous to C's printf() function.
@@ -363,13 +366,14 @@ class NumberFormatter(BaseEstimator, TransformerMixin):
 			return buffer.getvalue()
 
 	def fit(self, X):
+		to_1d(X)
 		return self
 
 	def transform(self, X):
-		X = ensure_1d(X)
+		X1d = to_1d(X)
 		func = lambda x: self._printf(x)
-		Xt = eval_rows(X, func)
-		return _col2d(Xt)
+		Xt = eval_rows(X1d, func, shape = X.shape)
+		return Xt
 
 class LookupTransformer(BaseEstimator, TransformerMixin):
 	"""Re-map 1D categorical data.
@@ -415,11 +419,11 @@ class LookupTransformer(BaseEstimator, TransformerMixin):
 		return transform_dict
 
 	def fit(self, X, y = None):
-		X = ensure_1d(X)
+		to_1d(X)
 		return self
 
 	def transform(self, X):
-		X = ensure_1d(X)
+		X1d = to_1d(X)
 		transform_dict = self._transform_dict()
 
 		def _eval_row(x):
@@ -427,8 +431,8 @@ class LookupTransformer(BaseEstimator, TransformerMixin):
 				return x
 			return transform_dict[x]
 
-		Xt = eval_rows(X, _eval_row)
-		return _col2d(Xt)
+		Xt = eval_rows(X1d, _eval_row, shape = X.shape)
+		return Xt
 
 class FilterLookupTransformer(LookupTransformer):
 	"""Selectively re-map 1D categorical data.
@@ -456,11 +460,16 @@ class FilterLookupTransformer(LookupTransformer):
 		return self
 
 	def transform(self, X):
-		X = ensure_1d(X)
+		X1d = to_1d(X)
 		transform_dict = self._transform_dict()
-		func = lambda k: transform_dict[k] if k in transform_dict else k
-		Xt = eval_rows(X, func)
-		return _col2d(Xt)
+
+		def _eval_row(x):
+			if x not in transform_dict:
+				return x
+			return transform_dict[x]
+
+		Xt = eval_rows(X1d, _eval_row, shape = X.shape)
+		return Xt
 
 def _deeptype(t):
 	return tuple([type(e) for e in t])
@@ -512,18 +521,18 @@ class PMMLLabelBinarizer(BaseEstimator, TransformerMixin):
 		self.sparse_output = sparse_output
 
 	def fit(self, X, y = None):
-		X = ensure_1d(X)
-		self.classes_ = _unique(X)
+		X1d = to_1d(X)
+		self.classes_ = _unique(X1d)
 		return self
 
 	def transform(self, X):
-		X = ensure_1d(X)
+		X1d = to_1d(X)
 		mapping = _make_index(self.classes_)
 		if self.sparse_output:
-			Xt = lil_matrix((len(X), len(mapping)), dtype = int)
+			Xt = lil_matrix((len(X1d), len(mapping)), dtype = int)
 		else:
-			Xt = numpy.zeros((len(X), len(mapping)), dtype = int)
-		for i, v in enumerate(X):
+			Xt = numpy.zeros((len(X1d), len(mapping)), dtype = int)
+		for i, v in enumerate(X1d):
 			if (pandas.notnull(v)) and (v in mapping):
 				Xt[i, mapping[v]] = 1
 		if self.sparse_output:
@@ -537,14 +546,14 @@ class PMMLLabelEncoder(BaseEstimator, TransformerMixin):
 		self.missing_values = missing_values
 
 	def fit(self, X, y = None):
-		X = ensure_1d(X)
-		self.classes_ = _unique(X)
+		X1d = to_1d(X)
+		self.classes_ = _unique(X1d)
 		return self
 
 	def transform(self, X):
-		X = ensure_1d(X)
+		X1d = to_1d(X)
 		mapping = _make_index(self.classes_)
-		Xt = numpy.array([self.missing_values if pandas.isnull(v) else mapping.get(v, self.missing_values) for v in X])
+		Xt = numpy.array([self.missing_values if pandas.isnull(v) else mapping.get(v, self.missing_values) for v in X1d])
 		return _col2d(Xt)
 
 class PowerFunctionTransformer(BaseEstimator, TransformerMixin):
@@ -582,15 +591,15 @@ class MatchesTransformer(BaseEstimator, TransformerMixin):
 		self.pattern = pattern
 
 	def fit(self, X, y = None):
-		X = ensure_1d(X)
+		to_1d(X)
 		return self
 
 	def transform(self, X):
-		X = ensure_1d(X)
+		X1d = to_1d(X)
 		engine = _regex_engine(self.pattern)
 		func = lambda x: bool(engine.search(x))
-		Xt = eval_rows(X, func)
-		return _col2d(Xt)
+		Xt = eval_rows(X1d, func, shape = X.shape)
+		return Xt
 
 class ReplaceTransformer(BaseEstimator, TransformerMixin):
 	"""Replace all RE pattern matches."""
@@ -600,15 +609,15 @@ class ReplaceTransformer(BaseEstimator, TransformerMixin):
 		self.replacement = replacement
 
 	def fit(self, X, y = None):
-		X = ensure_1d(X)
+		to_1d(X)
 		return self
 
 	def transform(self, X):
-		X = ensure_1d(X)
+		X1d = to_1d(X)
 		engine = _regex_engine(self.pattern)
 		func = lambda x: engine.sub(self.replacement, x)
-		Xt = eval_rows(X, func)
-		return _col2d(Xt)
+		Xt = eval_rows(X1d, func, shape = X.shape)
+		return Xt
 
 class SubstringTransformer(BaseEstimator, TransformerMixin):
 	"""Extract substring."""
@@ -622,14 +631,14 @@ class SubstringTransformer(BaseEstimator, TransformerMixin):
 		self.end = end
 
 	def fit(self, X, y = None):
-		X = ensure_1d(X)
+		to_1d(X)
 		return self
 
 	def transform(self, X):
-		X = ensure_1d(X)
+		X1d = to_1d(X)
 		func = lambda x: x[self.begin:self.end]
-		Xt = eval_rows(X, func)
-		return _col2d(Xt)
+		Xt = eval_rows(X1d, func, shape = X.shape)
+		return Xt
 
 class WordCountTransformer(BaseEstimator, TransformerMixin):
 	"""Count tokens."""
@@ -640,16 +649,17 @@ class WordCountTransformer(BaseEstimator, TransformerMixin):
 		self.pipeline_ = Pipeline([
 			("word_replacer", ReplaceTransformer(pattern = "({0})".format(word_pattern), replacement = "1")),
 			("non_word_replacer", ReplaceTransformer(pattern = "({0})".format(non_word_pattern), replacement = "")),
+			("reshaper", Reshaper((-1, 1))),
 			("counter", ExpressionTransformer("len(X[0])", dtype = int))
 		])
 
 	def fit(self, X, y = None):
-		X = ensure_1d(X)
+		to_1d(X)
 		return self
 
 	def transform(self, X):
-		X = ensure_1d(X)
-		return self.pipeline_.transform(X)
+		X1d = to_1d(X)
+		return self.pipeline_.transform(X1d)
 
 class StringNormalizer(BaseEstimator, TransformerMixin):
 	"""Normalize the case and surrounding whitespace."""
@@ -678,7 +688,7 @@ class StringNormalizer(BaseEstimator, TransformerMixin):
 		# Trim blanks
 		if self.trim_blanks:
 			Xt = numpy.char.strip(Xt)
-		return _col2d(Xt)
+		return Xt
 
 def _to_sparse(X, step_mask, step_result):
 	# Make array
