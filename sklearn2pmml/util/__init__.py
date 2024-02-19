@@ -187,15 +187,21 @@ def to_expr_func(expr, modules = ["math", "numpy", "pandas"]):
 	else:
 		raise TypeError()
 
-def eval_rows(X, func, dtype = object):
+def eval_rows(X, func, shape = None, dtype = None):
 	if hasattr(X, "apply"):
 		if isinstance(X, Series):
-			return X.apply(func)
-		return X.apply(func, axis = 1)
-	nrow = X.shape[0]
-	Xt = numpy.empty(shape = (nrow, ), dtype = dtype)
-	for i in range(0, nrow):
-		Xt[i] = func(X[i])
+			Xt = X.apply(func)
+		else:
+			Xt = X.apply(func, axis = 1)
+		if dtype is not None:
+			Xt = Xt.astype(dtype)
+	else:
+		nrow = X.shape[0]
+		Xt = numpy.empty(shape = (nrow, ), dtype = (dtype if dtype is not None else object))
+		for i in range(0, nrow):
+			Xt[i] = func(X[i])
+		if shape is not None:
+			Xt = Xt.reshape(shape)
 	return Xt
 
 def fqn(obj):
