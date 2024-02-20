@@ -33,10 +33,6 @@ def _regex_engine(pattern):
 		import re
 		return re.compile(pattern)
 
-def _col2d(X):
-	X = to_numpy(X)
-	return X.reshape(-1, 1)
-
 def _int(X):
 	if numpy.isscalar(X):
 		return int(X)
@@ -72,7 +68,7 @@ class Aggregator(BaseEstimator, TransformerMixin):
 			Xt = numpy.nanmean(X, axis = 1)
 		else:
 			raise ValueError(self.function)
-		return _col2d(Xt)
+		return Xt.reshape((-1, 1))
 
 class BSplineTransformer(BaseEstimator, TransformerMixin):
 
@@ -498,7 +494,7 @@ class MultiLookupTransformer(LookupTransformer):
 			return transform_dict[tuple(x)]
 
 		Xt = eval_rows(X, _eval_row, to_numpy = True)
-		return _col2d(Xt)
+		return Xt.reshape((-1, 1))
 
 def _make_index(values):
 	result = {}
@@ -548,7 +544,7 @@ class PMMLLabelEncoder(BaseEstimator, TransformerMixin):
 		X1d = to_1d(X)
 		mapping = _make_index(self.classes_)
 		Xt = numpy.array([self.missing_values if pandas.isnull(v) else mapping.get(v, self.missing_values) for v in X1d])
-		return _col2d(Xt)
+		return Xt.reshape((-1, 1))
 
 class PowerFunctionTransformer(BaseEstimator, TransformerMixin):
 	"""Raise numeric data to power."""
@@ -576,7 +572,7 @@ class ConcatTransformer(BaseEstimator, TransformerMixin):
 	def transform(self, X):
 		func = lambda x: self.separator.join([str(v) for v in x])
 		Xt = eval_rows(X, func, to_numpy = True)
-		return _col2d(Xt)
+		return Xt.reshape((-1, 1))
 
 class MatchesTransformer(BaseEstimator, TransformerMixin):
 	"""Match RE pattern."""
