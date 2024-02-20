@@ -187,7 +187,7 @@ def to_expr_func(expr, modules = ["math", "numpy", "pandas"]):
 	else:
 		raise TypeError()
 
-def eval_rows(X, func, shape = None, dtype = None):
+def eval_rows(X, func, to_numpy = False, shape = None, dtype = None):
 	if hasattr(X, "apply"):
 		if isinstance(X, Series):
 			Xt = X.apply(func)
@@ -195,6 +195,10 @@ def eval_rows(X, func, shape = None, dtype = None):
 			Xt = X.apply(func, axis = 1)
 		if dtype is not None:
 			Xt = Xt.astype(dtype)
+		if to_numpy:
+			Xt = Xt.to_numpy()
+			if shape is not None:
+				Xt = Xt.reshape(shape)
 	else:
 		nrow = X.shape[0]
 		Xt = numpy.empty(shape = (nrow, ), dtype = (dtype if dtype is not None else object))

@@ -17,7 +17,7 @@ except:
 from sklearn.exceptions import NotFittedError
 from sklearn.pipeline import Pipeline
 from sklearn2pmml import _is_pandas_categorical, _is_proto_pandas_categorical
-from sklearn2pmml.util import cast, dt_transform, ensure_def, eval_rows, to_1d, to_expr_func, to_numpy, Expression, Predicate, Reshaper
+from sklearn2pmml.util import cast, dt_transform, ensure_def, eval_rows, is_1d, to_1d, to_expr_func, to_numpy, Expression, Predicate, Reshaper
 
 import numpy
 import pandas
@@ -267,7 +267,7 @@ class ExpressionTransformer(BaseEstimator, TransformerMixin):
 
 		# Evaluate in PMML compatibility mode
 		with numpy.errstate(divide = "raise"):
-			Xt = eval_rows(X, _eval_row)
+			Xt = eval_rows(X, _eval_row, to_numpy = (not is_1d(X)), shape = (-1, 1))
 		return Xt
 
 	def fit(self, X, y = None):
@@ -290,10 +290,7 @@ class ExpressionTransformer(BaseEstimator, TransformerMixin):
 			dtype = self.dtype
 		if dtype is not None:
 			Xt = cast(Xt, dtype)
-		if _is_pandas_categorical(dtype):
-			return Xt
-		else:
-			return _col2d(Xt)
+		return Xt
 
 	def fit_transform(self, X, y = None):
 		Xt = self._eval(X)
@@ -306,10 +303,7 @@ class ExpressionTransformer(BaseEstimator, TransformerMixin):
 		else:
 			dtype = None
 		self.dtype_ = dtype
-		if _is_pandas_categorical(dtype):
-			return Xt
-		else:
-			return _col2d(Xt)
+		return Xt
 
 class IdentityTransformer(BaseEstimator, TransformerMixin, OneToOneFeatureMixin):
 	"""Passes data through as-is."""
@@ -503,7 +497,7 @@ class MultiLookupTransformer(LookupTransformer):
 			x = x if isinstance(x, Hashable) else tuple(numpy.squeeze(numpy.asarray(x)))
 			return transform_dict[tuple(x)]
 
-		Xt = eval_rows(X, _eval_row)
+		Xt = eval_rows(X, _eval_row, to_numpy = True)
 		return _col2d(Xt)
 
 def _make_index(values):
@@ -581,7 +575,7 @@ class ConcatTransformer(BaseEstimator, TransformerMixin):
 
 	def transform(self, X):
 		func = lambda x: self.separator.join([str(v) for v in x])
-		Xt = eval_rows(X, func)
+		Xt = eval_rows(X, func, to_numpy = True)
 		return _col2d(Xt)
 
 class MatchesTransformer(BaseEstimator, TransformerMixin):
