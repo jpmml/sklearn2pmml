@@ -33,12 +33,6 @@ def _regex_engine(pattern):
 		import re
 		return re.compile(pattern)
 
-def _int(X):
-	if numpy.isscalar(X):
-		return int(X)
-	else:
-		return cast(X, int)
-
 def _unique(X):
 	nonmissing_mask = pandas.notnull(X)
 	return numpy.unique(X[nonmissing_mask])
@@ -152,6 +146,12 @@ class SeriesConstructor(BaseEstimator, TransformerMixin):
 	def transform(self, X):
 		X1d = to_1d(X)
 		return Series(X1d, name = self.name, dtype = self.dtype)
+
+def _int(X):
+	if numpy.isscalar(X):
+		return int(X)
+	else:
+		return cast(X, int)
 
 class DurationTransformer(BaseEstimator, TransformerMixin):
 	"""Calculate time difference."""
@@ -609,6 +609,35 @@ class ReplaceTransformer(BaseEstimator, TransformerMixin):
 		Xt = eval_rows(X1d, func, shape = X.shape)
 		return Xt
 
+class StringNormalizer(BaseEstimator, TransformerMixin):
+	"""Normalize the case and surrounding whitespace."""
+
+	def __init__(self, function = None, trim_blanks = True):
+		functions = ["lower", "lowercase", "upper", "uppercase"]
+		if (function is not None) and (function not in functions):
+			raise ValueError("Function {0} not in {1}".format(function, functions))
+		self.function = function
+		self.trim_blanks = trim_blanks
+
+	def fit(self, X, y = None):
+		return self
+
+	def transform(self, X):
+		Xt = cast(X, "U")
+		# Transform
+		if self.function is None:
+			pass
+		elif self.function == "lower" or self.function == "lowercase":
+			Xt = numpy.char.lower(Xt)
+		elif self.function == "upper" or self.function == "uppercase":
+			Xt = numpy.char.upper(Xt)
+		else:
+			raise ValueError(self.function)
+		# Trim blanks
+		if self.trim_blanks:
+			Xt = numpy.char.strip(Xt)
+		return Xt
+
 class SubstringTransformer(BaseEstimator, TransformerMixin):
 	"""Extract substring."""
 
@@ -651,35 +680,6 @@ class WordCountTransformer(BaseEstimator, TransformerMixin):
 		# The expression "X]0]" assumes a two-dimensional array
 		X1d = to_numpy(X1d).reshape((-1, 1))
 		return self.pipeline_.transform(X1d)
-
-class StringNormalizer(BaseEstimator, TransformerMixin):
-	"""Normalize the case and surrounding whitespace."""
-
-	def __init__(self, function = None, trim_blanks = True):
-		functions = ["lower", "lowercase", "upper", "uppercase"]
-		if (function is not None) and (function not in functions):
-			raise ValueError("Function {0} not in {1}".format(function, functions))
-		self.function = function
-		self.trim_blanks = trim_blanks
-
-	def fit(self, X, y = None):
-		return self
-
-	def transform(self, X):
-		Xt = cast(X, "U")
-		# Transform
-		if self.function is None:
-			pass
-		elif self.function == "lower" or self.function == "lowercase":
-			Xt = numpy.char.lower(Xt)
-		elif self.function == "upper" or self.function == "uppercase":
-			Xt = numpy.char.upper(Xt)
-		else:
-			raise ValueError(self.function)
-		# Trim blanks
-		if self.trim_blanks:
-			Xt = numpy.char.strip(Xt)
-		return Xt
 
 def _to_sparse(X, step_mask, step_result):
 	# Make array
