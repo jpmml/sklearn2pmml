@@ -635,8 +635,10 @@ class SubstringTransformerTest(TestCase):
 class WordCountTransformerTest(TestCase):
 
 	def test_transform(self):
-		X = numpy.asarray(["", "Hello World", "Happy New Year", "!?"])
 		transformer = WordCountTransformer()
+		X = Series(["", "Hellow World", "Happy New Year", "!?"])
+		self.assertEqual([[0], [2], [3], [0]], transformer.transform(X).tolist())
+		X = numpy.asarray([[""], ["Hello World"], ["Happy New Year"], ["!?"]])
 		self.assertEqual([[0], [2], [3], [0]], transformer.transform(X).tolist())
 
 class SelectFirstTransformerTest(TestCase):

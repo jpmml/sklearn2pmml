@@ -639,7 +639,6 @@ class WordCountTransformer(BaseEstimator, TransformerMixin):
 		self.pipeline_ = Pipeline([
 			("word_replacer", ReplaceTransformer(pattern = "({0})".format(word_pattern), replacement = "1")),
 			("non_word_replacer", ReplaceTransformer(pattern = "({0})".format(non_word_pattern), replacement = "")),
-			("reshaper", Reshaper((-1, 1))),
 			("counter", ExpressionTransformer("len(X[0])", dtype = int))
 		])
 
@@ -649,6 +648,8 @@ class WordCountTransformer(BaseEstimator, TransformerMixin):
 
 	def transform(self, X):
 		X1d = to_1d(X)
+		# The expression "X]0]" assumes a two-dimensional array
+		X1d = to_numpy(X1d).reshape((-1, 1))
 		return self.pipeline_.transform(X1d)
 
 class StringNormalizer(BaseEstimator, TransformerMixin):
