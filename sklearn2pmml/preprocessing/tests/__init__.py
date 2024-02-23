@@ -153,6 +153,19 @@ class DataFrameConstructorTest(TestCase):
 		self.assertEqual(object, Xt["int"].dtype)
 		self.assertEqual(object, Xt["str"].dtype)
 
+	def test_get_feature_names_out(self):
+		transformer = DataFrameConstructor(columns = ["x1", "x2"], dtype = int)
+		self.assertEqual(["x1", "x2"], transformer.get_feature_names_out().tolist())
+		X = numpy.asarray([[0, 0], [0, 1], [1, 1]])
+		pipeline = Pipeline([
+			("transformer", transformer)
+		])
+		if hasattr(pipeline, "set_output"):
+			pipeline.set_output(transform = None)
+			Xt = pipeline.fit_transform(X)
+			self.assertIsInstance(Xt, DataFrame)
+			self.assertEqual(["x1", "x2"], Xt.columns.tolist())
+
 class SeriesConstructorTest(TestCase):
 
 	def test_fit_transform(self):

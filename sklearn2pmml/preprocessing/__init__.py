@@ -127,6 +127,9 @@ class DataFrameConstructor(BaseEstimator, TransformerMixin):
 		self.columns = columns
 		self.dtype = dtype
 
+	def get_feature_names_out(self, input_features = None):
+		return numpy.asarray(self.columns)
+
 	def fit(self, X, y = None):
 		return self
 
