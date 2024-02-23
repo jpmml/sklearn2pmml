@@ -33,7 +33,7 @@
 	</issueManagement>
 
 	<properties>
-		<jpmml-sklearn.version>1.7.49</jpmml-sklearn.version>
+		<jpmml-sklearn.version>1.7.50</jpmml-sklearn.version>
 	</properties>
 
 	<dependencies>
