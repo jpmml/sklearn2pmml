@@ -188,9 +188,10 @@ class SeriesConstructorTest(TestCase):
 
 	def test_get_feature_names_out(self):
 		transformer = SeriesConstructor(name = None, dtype = int)
-		with self.assertRaises(NotFittedError):
-			transformer.get_feature_names_out()
 		X = numpy.asarray([0, 2, 1])
+		Xt = transformer.fit_transform(X)
+		self.assertIsInstance(Xt, Series)
+		self.assertEqual(None, Xt.name)
 		pipeline = Pipeline([
 			("transformer", transformer)
 		])
@@ -204,6 +205,9 @@ class SeriesConstructorTest(TestCase):
 			self.assertIsInstance(Xt, DataFrame)
 			self.assertEqual([0], Xt.columns.tolist())
 		transformer = SeriesConstructor(name = "flag", dtype = int)
+		Xt = transformer.fit_transform(X)
+		self.assertIsInstance(Xt, Series)
+		self.assertEqual("flag", Xt.name)
 		self.assertEqual(["flag"], transformer.get_feature_names_out().tolist())
 		pipeline = Pipeline([
 			("transformer", transformer)
