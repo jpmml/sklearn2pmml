@@ -7,6 +7,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import make_pipeline
 from sklearn.pipeline import FeatureUnion, Pipeline
+from sklearn.preprocessing import OneHotEncoder
 from sklearn2pmml.decoration import Alias, DateDomain, DateTimeDomain
 from sklearn2pmml.preprocessing import Aggregator, CastTransformer, ConcatTransformer, CutTransformer, DataFrameConstructor, DateTimeFormatter, DaysSinceYearTransformer, ExpressionTransformer, FilterLookupTransformer, IdentityTransformer, LookupTransformer, MatchesTransformer, MultiLookupTransformer, NumberFormatter, PMMLLabelBinarizer, PMMLLabelEncoder, PowerFunctionTransformer, ReplaceTransformer, SecondsSinceMidnightTransformer, SecondsSinceYearTransformer, SelectFirstTransformer, SeriesConstructor, StringNormalizer, SubstringTransformer, WordCountTransformer
 from sklearn2pmml.preprocessing.h2o import H2OFrameConstructor, H2OFrameCreator
@@ -184,6 +185,38 @@ class SeriesConstructorTest(TestCase):
 		self.assertIsInstance(Xt.dtype, CategoricalDtype)
 		self.assertEqual(["one", "two"], Xt.dtype.categories.tolist())
 		self.assertTrue(_list_equal(["one", "two", float("NaN"), "one", float("NaN")], Xt.tolist()))
+
+	def test_get_feature_names_out(self):
+		transformer = SeriesConstructor(name = None, dtype = int)
+		with self.assertRaises(NotFittedError):
+			transformer.get_feature_names_out()
+		X = numpy.asarray([0, 2, 1])
+		pipeline = Pipeline([
+			("transformer", transformer)
+		])
+		if hasattr(pipeline, "set_output"):
+			pipeline.set_output(transform = None)
+			Xt = pipeline.fit_transform(X)
+			self.assertIsInstance(Xt, Series)
+			self.assertEqual(None, Xt.name)
+			pipeline.set_output(transform = "pandas")
+			Xt = pipeline.fit_transform(X)
+			self.assertIsInstance(Xt, DataFrame)
+			self.assertEqual([0], Xt.columns.tolist())
+		transformer = SeriesConstructor(name = "flag", dtype = int)
+		self.assertEqual(["flag"], transformer.get_feature_names_out().tolist())
+		pipeline = Pipeline([
+			("transformer", transformer)
+		])
+		if hasattr(pipeline, "set_output"):
+			pipeline.set_output(transform = None)
+			Xt = pipeline.fit_transform(X)
+			self.assertIsInstance(Xt, Series)
+			self.assertEqual("flag", Xt.name)
+			pipeline.set_output(transform = "pandas")
+			Xt = pipeline.fit_transform(X)
+			self.assertIsInstance(Xt, DataFrame)
+			self.assertEqual(["flag"], Xt.columns.tolist())
 
 class DurationTransformerTest(TestCase):
 

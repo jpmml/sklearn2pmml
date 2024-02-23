@@ -136,11 +136,16 @@ class DataFrameConstructor(BaseEstimator, TransformerMixin):
 	def transform(self, X):
 		return DataFrame(X, columns = self.columns, dtype = self.dtype)
 
-class SeriesConstructor(BaseEstimator, TransformerMixin):
+class SeriesConstructor(BaseEstimator, TransformerMixin, OneToOneFeatureMixin):
 
 	def __init__(self, name, dtype):
 		self.name = name
 		self.dtype = dtype
+
+	def get_feature_names_out(self, input_features = None):
+		if self.name is not None:
+			return numpy.asarray([self.name])
+		return super(SeriesConstructor, self).get_feature_names_out(input_features = input_features)
 
 	def fit(self, X, y = None):
 		to_1d(X)
