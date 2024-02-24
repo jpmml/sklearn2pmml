@@ -1,3 +1,56 @@
+# 0.103.2 #
+
+## Breaking changes
+
+* Refactored the `transform(X)` methods of SkLearn2PMML custom transformers to maximally preserve the original type and dimensionality of data containers.
+
+For example, if the input to a single-column transformation is a Pandas' Series, and the nature of the transformation allows for it, then the output will also be a Pandas' Series.
+Previously, the output was force-converted into a 2D Numpy array of shape `(n_samples, 1)`.
+
+This change should go unnoticed for the majority of pipelines, as most Scikit-Learn transformers and estimators are quite lenient towards what they accept as input.
+Any conflicts can be resolved by converting and/or reshaping the data container to a 2D Numpy array manually.
+
+## New features
+
+* Improved support for Pandas' categorical data type.
+
+There is now a clear distinction between "proto" and "post" states of a data type object.
+A "proto" object is a `category` string literal or an empty `pandas.CategoricalDtype` object.
+A "post" object is fully initialized `pandas.CategoricalDtype` object that has been retrieved from some data container (typically, a training dataset).
+
+* Added `ExpressionTransformer.dtype_` attribute.
+
+A fitted `ExpressionTransformer` object now holds data type information using two attributes.
+First, the `dtype` attribute holds the "proto" state - what was requested.
+Second, the `dtype_` attribute holds the "post" state - what was actually found and delivered.
+
+For example:
+
+``` python
+transformer = ExpressionTransformer(..., dtype = "category")
+Xt = transformer.fit_transform(X, y)
+
+# Prints "category" string literal
+print(transformer.dtype)
+
+# Prints pandas.CategoricalDtype object
+print(transformer.dtype_)
+print(transformer.dtype_.categories)
+```
+
+* Added `SeriesConstructor` meta-transformer.
+
+This meta-transformer supersedes the `DataFrameConstructor` meta-transformer for single-column data container conversion needs.
+
+## Minor improvements and fixes
+
+* Added `ExpressionTransformer.fit_transform(X, y)` method.
+
+* Added `DataFrameConstructor.get_feature_names_out()` and `SeriesConstructor.get_feature_names_out()` methods.
+
+This makes these two meta-transformers compatible with Scikit-Learn's `set_output` API.
+
+
 # 0.103.1 #
 
 ## Breaking changes
@@ -109,7 +162,7 @@ Otherwise, the argument dataset is passed through as-is.
 
 This aligns decorators with Scikit-Learn API guidelines that transformers and transformer-likes should not tamper with the original dataset.
 
-* Support for One-Model-Per-Target (OMPT)-style multi-target XGBoost estimators.
+* Added support for One-Model-Per-Target (OMPT)-style multi-target XGBoost estimators.
 
 When `XGBClassifier.fit(X, y)` and `XGBRegressor.fit(X, y)` methods are passed a multi-column `y` dataset, then XGBoost trains a OMPT-style multi-target model by default.
 
@@ -226,7 +279,7 @@ mapper.fit_transform(iris_X, iris_y)
 
 * Improved support for the "category" data type in the `CastTransformer.fit(X, y)` method.
 
-If the `CastTransformer.dtype` parameter value is "category" (ie. string literal), then the fit method will auto-detect valid category levels, and will set the `CastTransformer.dtype_` attribute to a `pandas.CategoricalDtype` object instead.
+If the `CastTransformer.dtype` parameter value is "category" (ie. a string literal), then the fit method will auto-detect valid category levels, and will set the `CastTransformer.dtype_` attribute to a `pandas.CategoricalDtype` object instead.
 The subsequent transform method invocations are now guaranteed to exhibit stable transformation behaviour.
 Previously, each method call was computing its own set of valid category values.
 
