@@ -29,6 +29,7 @@ setup(
 		"sklearn2pmml.feature_extraction",
 		"sklearn2pmml.feature_extraction.text",
 		"sklearn2pmml.feature_selection",
+		"sklearn2pmml.metrics",
 		"sklearn2pmml.neural_network",
 		"sklearn2pmml.pipeline",
 		"sklearn2pmml.postprocessing",
