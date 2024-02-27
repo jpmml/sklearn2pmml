@@ -191,7 +191,7 @@ def _java_version(java_home = None):
 	return _parse_java_version(error)
 
 def _parse_java_version(java_version):
-	match = re.match("^(.*)\sversion\s\"(.*)\"(|\s.+)$", java_version, re.MULTILINE)
+	match = re.match(r"^(.*)\sversion\s\"(.*)\"(|\s.+)$", java_version, re.MULTILINE)
 	if match:
 		return (match.group(1), match.group(2))
 	else:
@@ -338,7 +338,7 @@ def sklearn2pmml(estimator, pmml_path, with_repr = False, java_home = None, java
 				os.remove(dump)
 
 def _parse_properties(lines):
-	splitter = re.compile("\s*=\s*")
+	splitter = re.compile(r"\s*=\s*")
 	properties = dict()
 	for line in lines:
 		line = line.decode("UTF-8").rstrip()

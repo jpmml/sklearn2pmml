@@ -15,7 +15,7 @@ for i in range(sys.maxunicode):
 
 class Matcher:
 
-	def __init__(self, word_re = "\w+"):
+	def __init__(self, word_re = r"\w+"):
 		self.word_re = word_re
 
 	def __getstate__(self):
@@ -32,7 +32,7 @@ class Matcher:
 
 class Splitter:
 
-	def __init__(self, word_separator_re = "\s+"):
+	def __init__(self, word_separator_re = r"\s+"):
 		self.word_separator_re = word_separator_re
 
 	def __getstate__(self):
