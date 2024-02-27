@@ -111,8 +111,8 @@ class ClassifierQuality(PredictiveModelQuality):
 
 class BinaryClassifierQuality(ClassifierQuality):
 
-	def __init__(self, estimator, X, y, target_field):
-		super(BinaryClassifierQuality, self).__init__(estimator = estimator, X = X, y = y, target_field = target_field)
+	def __init__(self, estimator, X, y, target_field, data_usage = "training", data_name = None):
+		super(BinaryClassifierQuality, self).__init__(estimator = estimator, X = X, y = y, target_field = target_field, data_usage = data_usage, data_name = data_name)
 
 		if len(self.classes_) != 2:
 			raise ValueError()
