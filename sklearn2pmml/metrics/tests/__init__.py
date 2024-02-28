@@ -2,8 +2,10 @@ from sklearn.datasets import load_diabetes, load_iris
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
-from sklearn2pmml.metrics import BinaryClassifierQuality, ClassifierQuality, RegressorQuality, ModelExplanation
+from sklearn2pmml.metrics import BinaryClassifierQuality, ClassifierQuality, Extension, ModelExplanation, RegressorQuality
 from unittest import TestCase
+
+import datetime
 
 def make_model_explanation(estimator, X, y, quality):
 	X_train, X_test, y_train, y_test = train_test_split(X, y, train_size = 0.75)
@@ -16,6 +18,7 @@ def make_model_explanation(estimator, X, y, quality):
 	quality_test = quality(pipeline, X_test, y_test, target_field = y.name, data_usage = "test") \
 		.with_all_metrics()
 	return ModelExplanation() \
+		.append(Extension(name = "timestamp", value = datetime.datetime.utcnow().isoformat())) \
 		.append(quality_train).append(quality_test)
 
 class ModelExplanationTest(TestCase):

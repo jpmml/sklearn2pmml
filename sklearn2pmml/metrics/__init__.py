@@ -55,6 +55,16 @@ class ConfusionMatrix(PMMLElement):
 			pmml_matrix.append(Array(row).root)
 		self.append(pmml_matrix)
 
+class Extension(PMMLElement):
+
+	def __init__(self, name = None, value = None):
+		super(Extension, self).__init__(etree.Element(NS_PMML44 + "Extension"))
+
+		if name is not None:
+			self.set("name", name)
+		if value is not None:
+			self.set("value", value)
+
 class ModelExplanation(PMMLElement):
 
 	def __init__(self):
