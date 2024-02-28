@@ -115,13 +115,11 @@ class PMMLPipeline(Pipeline):
 			return numpy.hstack((y_apply, y_applyt))
 		return y_apply
 
-	def configure(self, **pmml_options):
-		if len(pmml_options) > 0:
-			estimator = self._final_estimator
-			while isinstance(estimator, Pipeline):
-				estimator = estimator._final_estimator
-			estimator.pmml_options_ = dict()
-			estimator.pmml_options_.update(pmml_options)
+	def _deep_final_estimator(self):
+		estimator = self._final_estimator
+		while hasattr(estimator, "_final_estimator"):
+			estimator = estimator._final_estimator
+		return estimator
 
 	def verify(self, X, predict_params = {}, predict_proba_params = {}, precision = 1e-13, zeroThreshold = 1e-13):
 		active_fields = _get_column_names(X)
@@ -132,7 +130,7 @@ class PMMLPipeline(Pipeline):
 		active_values = _get_values(X)
 		y = self.predict(X, **predict_params)
 		target_values = _get_values(y)
-		estimator = self._final_estimator
+		estimator = self._deep_final_estimator()
 		if isinstance(estimator, BaseEstimator):
 			if isinstance(estimator, RegressorMixin):
 				self.verification = _Verification(active_values, target_values, precision, zeroThreshold)
@@ -153,6 +151,19 @@ class PMMLPipeline(Pipeline):
 				target_values = target_values[:, 0]
 				self.verification = _Verification(active_values, target_values, precision, zeroThreshold)
 				self.verification.probability_values = probability_values
+
+	def configure(self, **pmml_options):
+		estimator = self._deep_final_estimator()
+		if len(pmml_options) > 0:
+			if hasattr(estimator, "pmml_options_"):
+				options = dict(estimator.pmml_options_)
+				options.update(pmml_options)
+			else:
+				options = dict(pmml_options)
+			estimator.pmml_options_ = options
+		else:
+			if hasattr(estimator, "pmml_options_"):
+				delattr(estimator, "pmml_options_")
 
 	def customize(self, customizations):
 		self.customizations = numpy.asarray(customizations)

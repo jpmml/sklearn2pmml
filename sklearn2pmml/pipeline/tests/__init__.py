@@ -46,24 +46,6 @@ class PMMLPipelineTest(TestCase):
 		self.assertEqual([y_proba for i in range(0, 6)], pipeline.predict_proba(X).tolist())
 		self.assertEqual([y_proba + y_probat for i in range(0, 6)], pipeline.predict_proba_transform(X).tolist())
 
-	def test_configure(self):
-		regressor = DecisionTreeRegressor()
-		pipeline = PMMLPipeline([
-			("pipeline", Pipeline([
-				("regressor", regressor)
-			]))
-		])
-		self.assertIsInstance(pipeline._final_estimator, Pipeline)
-		self.assertIsInstance(pipeline['pipeline']._final_estimator, DecisionTreeRegressor)
-		self.assertFalse(hasattr(regressor, "pmml_options_"))
-		pipeline.configure()
-		self.assertFalse(hasattr(regressor, "pmml_options_"))
-		pipeline.configure(compact = True, flat = True)
-		self.assertTrue(hasattr(regressor, "pmml_options_"))
-		pmml_options = regressor.pmml_options_
-		self.assertEqual(True, pmml_options["compact"])
-		self.assertEqual(True, pmml_options["flat"])
-
 	def test_fit_verify(self):
 		pipeline = PMMLPipeline([("estimator", DummyRegressor())])
 		self.assertFalse(hasattr(pipeline, "active_fields"))
@@ -84,3 +66,30 @@ class PMMLPipelineTest(TestCase):
 		X.columns = ["x2", "x1"]
 		with self.assertRaises(ValueError):
 			pipeline.verify(X.sample(2)) 
+
+	def test_configure(self):
+		regressor = DecisionTreeRegressor()
+		pipeline = PMMLPipeline([
+			("pipeline", Pipeline([
+				("regressor", regressor)
+			]))
+		])
+		self.assertIsInstance(pipeline._final_estimator, Pipeline)
+		self.assertIsInstance(pipeline._final_estimator._final_estimator, DecisionTreeRegressor)
+		self.assertIs(pipeline._deep_final_estimator(), regressor)
+		self.assertFalse(hasattr(regressor, "pmml_options_"))
+		pipeline.configure()
+		self.assertFalse(hasattr(regressor, "pmml_options_"))
+		pipeline.configure(compact = True, flat = True)
+		self.assertTrue(hasattr(regressor, "pmml_options_"))
+		pmml_options = regressor.pmml_options_
+		self.assertEqual(2, len(pmml_options))
+		self.assertEqual(True, pmml_options["compact"])
+		self.assertEqual(True, pmml_options["flat"])
+		pipeline.configure(compact = False)
+		pmml_options = regressor.pmml_options_
+		self.assertEqual(2, len(pmml_options))
+		self.assertEqual(False, pmml_options["compact"])
+		self.assertEqual(True, pmml_options["flat"])
+		pipeline.configure()
+		self.assertFalse(hasattr(regressor, "pmml_options_"))
