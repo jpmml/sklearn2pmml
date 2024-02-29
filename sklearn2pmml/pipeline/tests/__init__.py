@@ -3,6 +3,7 @@ from sklearn.dummy import DummyClassifier, DummyRegressor
 from sklearn.pipeline import FeatureUnion, Pipeline
 from sklearn.preprocessing import FunctionTransformer
 from sklearn.tree import DecisionTreeRegressor
+from sklearn2pmml.metrics import Extension
 from sklearn2pmml.pipeline import _get_column_names, PMMLPipeline
 from unittest import TestCase
 
@@ -93,3 +94,19 @@ class PMMLPipelineTest(TestCase):
 		self.assertEqual(True, pmml_options["flat"])
 		pipeline.configure()
 		self.assertFalse(hasattr(regressor, "pmml_options_"))
+
+	def test_customize(self):
+		regressor = DecisionTreeRegressor()
+		pipeline = PMMLPipeline([
+			("regressor", regressor)
+		])
+		extension = Extension(name = "name", value = "value")
+		self.assertFalse(hasattr(regressor, "pmml_customizations_"))
+		pipeline.customize(command = "insert", xpath_expr = None, pmml_element = extension)
+		self.assertTrue(hasattr(regressor, "pmml_customizations_"))
+		self.assertEqual(1, len(regressor.pmml_customizations_))
+		extension = Extension(name = "name", value = "new value")
+		pipeline.customize(command = "update", xpath_expr = "/:TreeModel/:Extension", pmml_element = extension)
+		self.assertEqual(2, len(regressor.pmml_customizations_))
+		pipeline.customize(command = "delete", xpath_expr = "/:TreeModel/:Extension")
+		self.assertEqual(3, len(regressor.pmml_customizations_))
