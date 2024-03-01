@@ -2,7 +2,8 @@ from sklearn.datasets import load_diabetes, load_iris
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
-from sklearn2pmml.metrics import BinaryClassifierQuality, ClassifierQuality, Extension, ModelExplanation, RegressorQuality
+from sklearn2pmml.metrics import BinaryClassifierQuality, ClassifierQuality, ModelExplanation, RegressorQuality
+from sklearn2pmml.util.pmml import Extension
 from unittest import TestCase
 
 import datetime

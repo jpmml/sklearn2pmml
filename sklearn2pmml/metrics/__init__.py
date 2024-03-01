@@ -1,79 +1,32 @@
-from lxml import etree
-from pandas.api.types import is_string_dtype, is_integer_dtype
 from sklearn.metrics import accuracy_score, confusion_matrix, fbeta_score, mean_absolute_error, mean_squared_error, precision_score, r2_score, recall_score
+from sklearn2pmml.util.pmml import make_element
+from sklearn2pmml.util.pmml import Array, PMMLElement
 
 import numpy
-
-NS_PMML44 = "{http://www.dmg.org/PMML-4_4}"
-
-class PMMLElement(object):
-
-	def __init__(self, root):
-		self.root = root
-
-	def tostring(self, encoding = "utf-8"):
-		return etree.tostring(self.root, pretty_print = True).decode(encoding)
-
-	def set(self, name, value):
-		self.root.set(name, str(value))
-		return self
-
-	def append(self, element):
-		self.root.append(element.root if isinstance(element, PMMLElement) else element)
-		return self
-
-	def text(self, text):
-		self.root.text = text
-
-class Array(PMMLElement):
-
-	def __init__(self, values):
-		super(Array, self).__init__(etree.Element(NS_PMML44 + "Array"))
-
-		if is_string_dtype(values):
-			vtype = "string"
-		elif is_integer_dtype(values):
-			vtype = "int"
-		else:
-			vtype = "real"
-
-		self.set("n", str(len(values)))
-		self.set("type", vtype)
-		self.text(" ".join([str(value) for value in values]))
 
 class ConfusionMatrix(PMMLElement):
 
 	def __init__(self, labels, confusion_matrix):
-		super(ConfusionMatrix, self).__init__(etree.Element(NS_PMML44 + "ConfusionMatrix"))
+		super(ConfusionMatrix, self).__init__(make_element("ConfusionMatrix"))
 
-		pmml_class_labels = etree.Element(NS_PMML44 + "ClassLabels")
+		pmml_class_labels = make_element("ClassLabels")
 		pmml_class_labels.append(Array(labels).root)
 		self.append(pmml_class_labels)
 
-		pmml_matrix = etree.Element(NS_PMML44 + "Matrix")
+		pmml_matrix = make_element("Matrix")
 		for row in confusion_matrix:
 			pmml_matrix.append(Array(row).root)
 		self.append(pmml_matrix)
 
-class Extension(PMMLElement):
-
-	def __init__(self, name = None, value = None):
-		super(Extension, self).__init__(etree.Element(NS_PMML44 + "Extension"))
-
-		if name is not None:
-			self.set("name", name)
-		if value is not None:
-			self.set("value", value)
-
 class ModelExplanation(PMMLElement):
 
 	def __init__(self):
-		super(ModelExplanation, self).__init__(etree.Element(NS_PMML44 + "ModelExplanation"))
+		super(ModelExplanation, self).__init__(make_element("ModelExplanation"))
 
 class PredictiveModelQuality(PMMLElement):
 
 	def __init__(self, estimator, X, y, target_field, data_usage, data_name):
-		super(PredictiveModelQuality, self).__init__(etree.Element(NS_PMML44 + "PredictiveModelQuality", targetField = target_field))
+		super(PredictiveModelQuality, self).__init__(make_element("PredictiveModelQuality", targetField = target_field))
 
 		self.estimator = estimator
 

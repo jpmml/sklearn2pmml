@@ -3,8 +3,8 @@ from sklearn.dummy import DummyClassifier, DummyRegressor
 from sklearn.pipeline import FeatureUnion, Pipeline
 from sklearn.preprocessing import FunctionTransformer
 from sklearn.tree import DecisionTreeRegressor
-from sklearn2pmml.metrics import Extension
 from sklearn2pmml.pipeline import _get_column_names, PMMLPipeline
+from sklearn2pmml.util.pmml import Extension
 from unittest import TestCase
 
 import numpy
