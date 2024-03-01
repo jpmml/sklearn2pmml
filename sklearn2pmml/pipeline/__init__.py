@@ -1,6 +1,7 @@
 from pandas import DataFrame, Series
 from sklearn.base import BaseEstimator, ClassifierMixin, RegressorMixin
 from sklearn.pipeline import Pipeline
+from sklearn2pmml.configuration import add_options, clear_options
 from sklearn2pmml.customization import add_customizations, clear_customizations, Customization
 from sklearn2pmml.util import to_numpy
 
@@ -153,18 +154,12 @@ class PMMLPipeline(Pipeline):
 				self.verification = _Verification(active_values, target_values, precision, zeroThreshold)
 				self.verification.probability_values = probability_values
 
-	def configure(self, **pmml_options):
+	def configure(self, **options):
 		estimator = self._deep_final_estimator()
-		if len(pmml_options) > 0:
-			if hasattr(estimator, "pmml_options_"):
-				options = dict(estimator.pmml_options_)
-				options.update(pmml_options)
-			else:
-				options = dict(pmml_options)
-			estimator.pmml_options_ = options
+		if len(options) > 0:
+			add_options(estimator, **options)
 		else:
-			if hasattr(estimator, "pmml_options_"):
-				delattr(estimator, "pmml_options_")
+			clear_options(estimator)
 
 	def customize(self, command = "insert", xpath_expr = None, pmml_element = None):
 		estimator = self._deep_final_estimator()
