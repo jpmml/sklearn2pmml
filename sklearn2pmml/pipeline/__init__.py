@@ -156,7 +156,7 @@ class PMMLPipeline(Pipeline):
 
 	def configure(self, **options):
 		estimator = self._deep_final_estimator()
-		if len(options) > 0:
+		if len(options):
 			add_options(estimator, **options)
 		else:
 			clear_options(estimator)

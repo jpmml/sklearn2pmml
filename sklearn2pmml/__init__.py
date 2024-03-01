@@ -320,11 +320,11 @@ def sklearn2pmml(estimator, pmml_path, with_repr = False, java_home = None, java
 		output, error = process.communicate()
 		retcode = process.poll()
 		if debug or retcode:
-			if len(output) > 0:
+			if len(output):
 				print("Standard output:\n{0}".format(output))
 			else:
 				print("Standard output is empty")
-			if len(error) > 0:
+			if len(error):
 				print("Standard error:\n{0}".format(error))
 			else:
 				print("Standard error is empty")
