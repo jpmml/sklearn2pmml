@@ -1,6 +1,7 @@
 from pandas import DataFrame, Series
 from sklearn.base import BaseEstimator, ClassifierMixin, RegressorMixin
 from sklearn.pipeline import Pipeline
+from sklearn2pmml.customization import add_customizations, clear_customizations, Customization
 from sklearn2pmml.util import to_numpy
 
 import numpy
@@ -17,33 +18,6 @@ class _Verification(object):
 			raise ValueError("Zero threshold cannot be negative")
 		self.precision = precision
 		self.zeroThreshold = zeroThreshold
-
-class _Customization(object):
-
-	def __init__(self, command, xpath_expr, pmml_element):
-		commands = ["insert", "update", "delete"]
-		if command not in commands:
-			raise ValueError("Command {} not in {}".format(command, commands))
-		self.command = command
-		if xpath_expr is not None:
-			if not isinstance(xpath_expr, str):
-				raise TypeError("XPath expression is not a string")
-		else:
-			if command in ["update", "delete"]:
-				raise ValueError("Command {} requires XPath expression".format(command))
-		self.xpath_expr = xpath_expr
-		# XXX: isinstance(pmml, sklearn2pmml.metrics.PMMLElement)
-		if hasattr(pmml_element, "tostring"):
-			pmml_element = pmml_element.tostring()
-		if pmml_element is not None:
-			if not isinstance(pmml_element, str):
-				raise TypeError("PMML element is not a string")
-			if command in ["delete"]:
-				raise ValueError("Command {} does not support PMML element".format(command))
-		else:
-			if command in ["insert", "update"]:
-				raise ValueError("Command {} requires PMML element".format(command))
-		self.pmml_element = pmml_element
 
 def _get_column_names(X):
 	def _filter_column_names(X):
@@ -195,13 +169,7 @@ class PMMLPipeline(Pipeline):
 	def customize(self, command = "insert", xpath_expr = None, pmml_element = None):
 		estimator = self._deep_final_estimator()
 		if command:
-			customization = _Customization(command = command, xpath_expr = xpath_expr, pmml_element = pmml_element)
-			if hasattr(estimator, "pmml_customizations_"):
-				customizations = estimator.pmml_customizations_
-				customizations = numpy.append(customizations, customization)
-			else:
-				customizations = numpy.asarray([customization])
-			estimator.pmml_customizations_ = customizations
+			customization = Customization(command = command, xpath_expr = xpath_expr, pmml_element = pmml_element)
+			add_customizations(estimator, [customization])
 		else:
-			if hasattr(estimator, "pmml_customizations_"):
-				delattr(estimator, "pmml_customizations_")
+			clear_customizations(estimator)
