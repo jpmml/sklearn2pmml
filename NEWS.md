@@ -1,3 +1,59 @@
+# 0.103.3 #
+
+## Breaking changes
+
+* Refactored the `PMMLPipeline.customize(customizations: [str])` method into `PMMLPipeline.customize(command: str, xpath_expr: str, pmml_element: str)`.
+
+This method may be invoked any number of times.
+Each invocation appends a `sklearn2pmml.customization.Customization` object to the `pmml_customizations_` attribute of the final estimator step.
+
+The `command` argument is one of SQL-inspired keywords `insert`, `update` or `delete` (to insert a new element, or to update or delete an existing element, respectively).
+The `xpath_expr` is an XML Path (XPath) expression for pinpointing the action site. The XPath expression is evaluated relative to the main model element.
+The `pmml_element` is a PMML fragment string.
+
+For example, suppressing the secondary results by deleting the `Output` element:
+
+``` python
+pipeline = PMMLPipeline([
+  ("classifier", ...)
+])
+pipeline.fit(X, y)
+pipeline.customize(command = "delete", xpath_expr = "//:Output")
+```
+
+## New features
+
+* Added `sklearn2pmml.metrics` module.
+
+This module provides high-level `BinaryClassifierQuality`, `ClassifierQuality` and `RegressorQuality` pmml classes for the automated generation of [`PredictiveModelQuality`](https://dmg.org/pmml/v4-4-1/ModelExplanation.html#xsdElement_PredictiveModelQuality) elements for most common estimator types.
+
+Refactoring the v0.103.0 code example:
+
+``` python
+from sklearn2pmml.metrics import ModelExplanation, RegressorQuality
+
+pipeline = PMMLPipeline([
+  ("regressor", ...)
+])
+pipeline.fit(X, y)
+
+model_explanation = ModelExplanation()
+predictive_model_quality = RegressorQuality(pipeline, X, y, target_field = y.name) \
+  .with_all_metrics()
+model_explanation.append(predictive_model_quality)
+
+pipeline.customize(command = "insert", pmml_element = model_explanation.tostring())
+```
+
+* Added `sklearn2pmml.util.pmml` module.
+
+## Minor improvements and fixes
+
+* Added `EstimatorProxy.classes_` propery.
+
+* Extracted `sklearn2pmml.configuration` and `sklearn2pmml.customization` modules.
+
+
 # 0.103.2 #
 
 ## Breaking changes
