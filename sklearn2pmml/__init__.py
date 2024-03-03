@@ -76,6 +76,10 @@ class EstimatorProxy(BaseEstimator):
 			if hasattr(self.estimator, attr_name):
 				setattr(self, attr_name, getattr(self.estimator, attr_name))
 
+	@property
+	def classes_(self):
+		return self.estimator.classes_
+
 	def fit(self, X, y = None, **fit_params):
 		self.estimator.fit(X, y, **fit_params)
 		self._copy_attrs()
