@@ -45,7 +45,7 @@ setup(
 	install_requires = [
 		"dill>=0.3.4",
 		"joblib>=0.13.0",
-		"scikit-learn>=0.18.0",
-		"sklearn-pandas>=0.0.10"
+		"scikit-learn>=1.0",
+		"sklearn-pandas>=1.8.0"
 	]
 )
