@@ -56,21 +56,28 @@ class PMMLPipeline(Pipeline):
 		class_name = self.__class__.__name__
 		return "%s(steps=[%s])" % (class_name, (",\n" + (1 + len(class_name) // 2) * " ").join(repr(step) for step in self.steps))
 
-	def _fit(self, X, y = None, **fit_params):
-		# Collect feature name(s)
+	def _collect_metadata(self, X, y = None):
+		# Feature name(s)
 		active_fields = _get_column_names(X)
 		if active_fields is not None:
 			self.active_fields = active_fields
 		else:
 			warnings.warn("X is missing feature names. The reproducibility of predictions between Scikit-Learn and PMML can not be guaranteed")
-		# Collect label name(s)
+		# Label name(s)
 		target_fields = _get_column_names(y)
 		if target_fields is not None:
 			self.target_fields = target_fields
 		else:
 			if y is not None:
 				warnings.warn("y is missing target field name(s)")
-		return super(PMMLPipeline, self)._fit(X = X, y = y, **fit_params)
+
+	def fit(self, X, y = None, **fit_params):
+		self._collect_metadata(X = X, y = y)
+		return super(PMMLPipeline, self).fit(X = X, y = y, **fit_params)
+
+	def fit_transform(self, X, y = None, **fit_params):
+		self._collect_metadata(X = X, y = y)
+		return super(PMMLPipeline, self).fit_transform(X = X, y = y, **fit_params)
 
 	def _transform(self, X):
 		Xt = X
