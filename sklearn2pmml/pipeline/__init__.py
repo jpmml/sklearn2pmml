@@ -90,10 +90,6 @@ class PMMLPipeline(Pipeline):
 					Xt = transform.transform(Xt)
 		return Xt
 
-	def predict_proba(self, X, **predict_proba_params):
-		Xt = self._transform(X)
-		return self.steps[-1][-1].predict_proba(Xt, **predict_proba_params)
-
 	def apply(self, X):
 		Xt = self._transform(X)
 		yt = self.steps[-1][-1].apply(Xt)
