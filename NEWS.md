@@ -1,3 +1,77 @@
+# 0.104.0 #
+
+## Breaking changes
+
+* Updated Scikit-Learn version requirement from `0.18+` to `1.0+`.
+
+This change helps the SkLearn2PMML package to better cope with breaking changes in Scikit-Learn APIs.
+The underlying [JPMML-SkLearn](https://github.com/jpmml/jpmml-sklear) library retains the maximum version coverage, because it is dealing with Scikit-Learn serialized state (Pickle/Joblib or Dill), which is considerably more stable.
+
+## New features
+
+* Added support for Scikit-Learn 1.4.X.
+
+The JPMML-SkLearn library had its integration tests rebuilt with Scikit-Learn `1.4.0` and `1.4.1.post1` versions.
+All supported transformers and estimators passed cleanly.
+
+See [SkLearn2PMML-409](https://github.com/jpmml/sklearn2pmml/issues/409) and [JPMML-SkLearn-195](https://github.com/jpmml/jpmml-sklearn/issues/195).
+
+* Added support for `BaseHistGradientBoosting._preprocessor` attribute.
+
+This attribute gets initialized automatically if a `HistGradientBoostingClassifier` or `HistGradientBoostingRegressor` estimator is inputted with categorical features.
+
+In Scikit-Learn 1.0 through 1.3 it is necessary to pre-process categorical features manually.
+The indices of (ordinally-) encoded columns must be tracked and passed to the estimator using the `categorical_features` parameter:
+
+``` python
+from sklearn_pandas import DataFrameMapper
+from sklearn.preprocessing import OrdinalEncoder
+from sklearn2pmml.decoration import CategoricalDomain, ContinuousDomain
+
+mapper = DataFrameMapper(
+  [([cont_col], ContinuousDomain()) for cont_col in cont_cols] +
+  [([cat_col], [CategoricalDomain(), OrdinalEncoder()]) for cat_col in cat_cols]
+)
+
+regressor = HistGradientBoostingRegressor(categorical_features = [...])
+
+pipeline = Pipeline([
+  ("mapper", mapper),
+  ("regressor", regressor)
+])
+pipeline.fit(X, y)
+```
+
+In Scikit-Learn 1.4, this workflow simplifies to the following:
+
+``` python
+# Activate full Pandas' support by specifying `input_df = True` and `df_out = True` 
+mapper = DataFrameMapper(
+  [([cont_col], ContinuousDomain()) for cont_col in cont_cols] +
+  [([cat_col], CategoricalDomain(dtype = "category")) for cat_col in cat_cols]
+, input_df = True, df_out = True)
+
+# Auto-detect categorical features by their data type
+regressor = HistGradientBoostingRegressor(categorical_features = "from_dtype")
+
+pipeline = Pipeline([
+  ("mapper", mapper),
+  ("regressor", regressor)
+])
+pipeline.fit(X, y)
+
+# Print out feature type information
+# This list should contain one or more `True` values
+print(pipeline._final_estimator.is_categorical_)
+``` 
+
+## Minor improvements and fixes
+
+* Improved support for `ColumnTransformer.transformers` attribute.
+
+Column selection using dense boolean arrays.
+
+
 # 0.103.3 #
 
 ## Breaking changes
