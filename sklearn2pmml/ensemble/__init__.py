@@ -6,7 +6,6 @@ except ImportError:
 	from sklearn.linear_model.base import LinearClassifierMixin, LinearModel, LinearRegression, SparseCoefMixin
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.utils.metaestimators import _BaseComposition
-from sklearn2pmml import _is_ordinal
 from sklearn2pmml.util import eval_rows, fqn, to_expr_func, Predicate
 
 import copy
@@ -136,52 +135,6 @@ class GBDTLRClassifier(GBDTEstimator, ClassifierMixin):
 	def predict_proba(self, X):
 		idt = self._encoded_leaf_indices(X)
 		return self.lr_.predict_proba(idt)
-
-def _codes(y):
-	if hasattr(y, "cat"):
-		return (y.cat).codes.values
-	else:
-		return y.codes
-
-class OrdinalClassifier(BaseEstimator, ClassifierMixin):
-
-	def __init__(self, estimator):
-		self.estimator = estimator
-
-	def fit(self, X, y, **fit_params):
-		dtype = y.dtype
-		if not _is_ordinal(dtype):
-			raise TypeError()
-		y_codes = _codes(y)
-		self.classes_ = numpy.asarray(dtype.categories)
-		self.estimators_ = []
-		n_estimators = len(self.classes_) - 1
-		for i in range(n_estimators):
-			y_bin = (y_codes > i).astype(int)
-			estimator = clone(self.estimator)
-			estimator.fit(X, y_bin, **fit_params)
-			self.estimators_.append(estimator)
-		return self
-
-	def predict(self, X, **predict_params):
-		proba = self.predict_proba(X, **predict_params)
-		indices = numpy.argmax(proba, axis = 1)
-		return numpy.take(self.classes_, indices)
-
-	def predict_proba(self, X, **predict_proba_params):
-		n_estimators = len(self.classes_) - 1
-		proba = []
-		for i in range(n_estimators):
-			proba.append(self.estimators_[i].predict_proba(X, **predict_proba_params)[:, 1])
-		result = []
-		for i in range(n_estimators + 1):
-			if i == 0:
-				result.append(1 - proba[0])
-			elif i == n_estimators:
-				result.append(proba[-1])
-			else:
-				result.append(proba[i - 1] - proba[i])
-		return numpy.asarray(result).T
 
 def _to_sparse(X, step_mask, step_result):
 	# Make array
