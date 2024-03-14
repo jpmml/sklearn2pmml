@@ -1,9 +1,6 @@
 from sklearn.base import clone, BaseEstimator, ClassifierMixin, RegressorMixin
-try:
-	from sklearn.linear_model import LinearRegression
-	from sklearn.linear_model._base import LinearClassifierMixin, LinearModel, SparseCoefMixin
-except ImportError:
-	from sklearn.linear_model.base import LinearClassifierMixin, LinearModel, LinearRegression, SparseCoefMixin
+from sklearn.linear_model import LinearRegression
+from sklearn.linear_model._base import LinearClassifierMixin, LinearModel, SparseCoefMixin
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.utils.metaestimators import _BaseComposition
 from sklearn2pmml.util import eval_rows, fqn, to_expr_func, Predicate

@@ -1,16 +1,8 @@
 from pandas import CategoricalDtype
 from sklearn.base import BaseEstimator
+from sklearn.compose import ColumnTransformer
 from sklearn.exceptions import NotFittedError
-try:
-	from sklearn.compose import ColumnTransformer
-except ImportError:
-	class ColumnTransformer:
-		pass
-try:
-	from sklearn.feature_selection._base import SelectorMixin
-except ImportError:
-	from sklearn.feature_selection.base import SelectorMixin
-from sklearn.feature_selection import SelectFromModel
+from sklearn.feature_selection import SelectFromModel, SelectorMixin
 from sklearn.pipeline import FeatureUnion, Pipeline
 from sklearn_pandas import DataFrameMapper
 from sklearn2pmml.resources import _package_classpath

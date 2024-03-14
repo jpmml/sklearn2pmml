@@ -1,9 +1,6 @@
 from pandas import DataFrame
 from sklearn.base import BaseEstimator
-try:
-	from sklearn.feature_selection._base import SelectorMixin
-except ImportError:
-	from sklearn.feature_selection.base import SelectorMixin
+from sklearn.feature_selection import SelectorMixin
 from sklearn.utils.validation import check_is_fitted
 from sklearn2pmml.util import to_numpy
 

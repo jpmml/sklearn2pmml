@@ -4,7 +4,7 @@ from sklearn.base import clone, BaseEstimator, TransformerMixin
 try:
 	# SkLearn 1.2.0+
 	from sklearn.base import OneToOneFeatureMixin
-except:
+except ImportError:
 	from sklearn.base import _OneToOneFeatureMixin as OneToOneFeatureMixin
 from sklearn2pmml import _is_pandas_categorical, _is_proto_pandas_categorical
 from sklearn2pmml.util import cast, common_dtype, is_1d, to_numpy

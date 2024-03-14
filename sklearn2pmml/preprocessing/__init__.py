@@ -12,7 +12,7 @@ from sklearn.base import BaseEstimator, TransformerMixin
 try:
 	# SkLearn 1.2.0+
 	from sklearn.base import OneToOneFeatureMixin
-except:
+except ImportError:
 	from sklearn.base import _OneToOneFeatureMixin as OneToOneFeatureMixin
 from sklearn.exceptions import NotFittedError
 from sklearn.pipeline import Pipeline
