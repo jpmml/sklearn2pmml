@@ -1,10 +1,14 @@
 from pandas import CategoricalDtype
+try:
+	from sklearn_pandas import DataFrameMapper
+except ImportError:
+	class DataFrameMapper(object):
+		pass
 from sklearn.base import BaseEstimator
 from sklearn.compose import ColumnTransformer
 from sklearn.exceptions import NotFittedError
 from sklearn.feature_selection import SelectFromModel, SelectorMixin
 from sklearn.pipeline import FeatureUnion, Pipeline
-from sklearn_pandas import DataFrameMapper
 from sklearn2pmml.resources import _package_classpath
 from subprocess import PIPE, Popen
 from zipfile import ZipFile
@@ -17,7 +21,6 @@ import pandas
 import platform
 import re
 import sklearn
-import sklearn_pandas
 import tempfile
 import warnings
 
@@ -269,7 +272,6 @@ def sklearn2pmml(estimator, pmml_path, with_repr = False, java_home = None, java
 		print("python: {0}".format(platform.python_version()))
 		print("sklearn2pmml: {0}".format(__version__))
 		print("sklearn: {0}".format(sklearn.__version__))
-		print("sklearn_pandas: {0}".format(sklearn_pandas.__version__))
 		print("pandas: {0}".format(pandas.__version__))
 		print("numpy: {0}".format(numpy.__version__))
 		print("dill: {0}".format(dill.__version__))
