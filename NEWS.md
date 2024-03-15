@@ -1,8 +1,56 @@
+# 0.104.1 #
+
+## Breaking changes
+
+* Removed `sklearn2pmml.ensemble.OrdinalClassifier` class.
+
+The uses of this class should be replaced with the uses of the `sklego.meta.OrdinalClassifier` class (see below), which implements exactly the same algorithm, and offers extra functionality such as calibration and parallelized fitting.
+
+## New features
+
+* Added support for `sklego.meta.OrdinalClassifier` class.
+
+``` python
+from pandas import CategoricalDtype, Series
+
+# A proper ordinal target
+y_bin = Series(_bin(y), dtype = CategoricalDtype(categories = [...], ordered = True), name = "bin(y)")
+
+classifier = OrdinalClassifier(LogisticRegression(), use_calibration = True, ...)
+# Map categories from objects to integer codes
+classifier.fit(X, (y_bin.cat).codes.values)
+
+# Store the categories mapping:
+# the `OrdinalClassifier.classes_` attribute holds integer codes, 
+# and the `OrdinalClassifier.pmml_classes_` holds the corresponding objects
+classifier.pmml_classes_ = y_bin.dtype.categories
+```
+
+See [Scikit-Lego-607](https://github.com/koaning/scikit-lego/issues/607)
+
+## Minor improvements and fixes
+
+* Removed the SkLearn-Pandas package from installation requirements.
+
+The `sklearn_pandas.DataFrameMapper` meta-transformer is giving way to the `sklearn.compose.ColumnTransformer` meta-transformer in most common pipelines.
+
+* Fixed the base-N encoding of missing values.
+
+This bug manifested itself when missing values were assigned to a category by itself.
+
+This bug was discovered when rebuilding integration tests with Category-Encoders 2.6(.3).
+It is currently unclear if the base-N encoding algorithm had its behaviour changed between Category-Encoders 2.5 and 2.6 development lines.
+
+In any case, when using SkLearn2PMML 0.104.1 or newer, it is advisable to upgrade to Category-Encoders 2.6.0 or newer.
+
+* Ensured compatibility with Category-Encoders 2.6.3, Imbalanced-Learn 0.12.0, OptBinning 0.19.0 and Scikit-Lego 0.7.4.
+
+
 # 0.104.0 #
 
 ## Breaking changes
 
-* Updated Scikit-Learn version requirement from `0.18+` to `1.0+`.
+* Updated Scikit-Learn installation requirement from `0.18+` to `1.0+`.
 
 This change helps the SkLearn2PMML package to better cope with breaking changes in Scikit-Learn APIs.
 The underlying [JPMML-SkLearn](https://github.com/jpmml/jpmml-sklear) library retains the maximum version coverage, because it is dealing with Scikit-Learn serialized state (Pickle/Joblib or Dill), which is considerably more stable.
@@ -11,10 +59,10 @@ The underlying [JPMML-SkLearn](https://github.com/jpmml/jpmml-sklear) library re
 
 * Added support for Scikit-Learn 1.4.X.
 
-The JPMML-SkLearn library had its integration tests rebuilt with Scikit-Learn `1.4.0` and `1.4.1.post1` versions.
+The JPMML-SkLearn library integration tests were rebuilt with Scikit-Learn `1.4.0` and `1.4.1.post1` versions.
 All supported transformers and estimators passed cleanly.
 
-See [SkLearn2PMML-409](https://github.com/jpmml/sklearn2pmml/issues/409) and [JPMML-SkLearn-195](https://github.com/jpmml/jpmml-sklearn/issues/195).
+See [SkLearn2PMML-409](https://github.com/jpmml/sklearn2pmml/issues/409) and [JPMML-SkLearn-195](https://github.com/jpmml/jpmml-sklearn/issues/195)
 
 * Added support for `BaseHistGradientBoosting._preprocessor` attribute.
 
