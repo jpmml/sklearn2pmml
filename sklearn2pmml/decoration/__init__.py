@@ -198,6 +198,7 @@ class Domain(BaseEstimator, TransformerMixin, OneToOneFeatureMixin):
 		return False
 
 	def transform(self, X):
+		self._check_n_features(X, reset = False)
 		if self.dtype is not None:
 			X = cast(X, self.dtype)
 		missing_mask, valid_mask, invalid_mask = self._compute_masks(X)
@@ -253,6 +254,7 @@ class DiscreteDomain(Domain):
 		return super(DiscreteDomain, self)._valid_value_mask(X, where)
 
 	def fit(self, X, y = None):
+		self._check_n_features(X, reset = True)
 		if self.dtype is not None:
 			if _is_proto_pandas_categorical(self.dtype):
 				if self.data_values is not None:
@@ -365,6 +367,7 @@ class ContinuousDomain(Domain):
 		return super(ContinuousDomain, self)._valid_value_mask(X, where)
 
 	def fit(self, X, y = None):
+		self._check_n_features(X, reset = True)
 		if self.dtype is not None:
 			X = cast(X, self.dtype)
 		self.dtype_ = common_dtype(X)
@@ -452,6 +455,7 @@ class TemporalDomain(Domain):
 			raise ValueError("Temporal data type {0} not in {1}".format(dtype, dtypes))
 
 	def fit(self, X, y = None):
+		self._check_n_features(X, reset = True)
 		self.dtype_ = common_dtype(X)
 		return self
 
