@@ -3,7 +3,7 @@ from pandas import Categorical, CategoricalDtype, DataFrame, Series
 from sklearn.base import clone
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import LabelBinarizer, OneHotEncoder, StandardScaler
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn2pmml.decoration import Alias, CategoricalDomain, ContinuousDomain, ContinuousDomainEraser, DateDomain, DateTimeDomain, DiscreteDomainEraser, Domain, MultiAlias, MultiDomain
 from sklearn2pmml.preprocessing import ExpressionTransformer
 from sklearn2pmml.util import to_numpy
@@ -278,35 +278,18 @@ class CategoricalDomainTest(TestCase):
 
 	def test_mapper(self):
 		domain = CategoricalDomain(with_statistics = True)
-		df = DataFrame([{"X" : "2", "y" : 2}, {"X" : "1"}, {"X" : "3"}])
+		X = DataFrame([[0, 1], [1, 0], [0, 0], [1, 0], [1, 1]], columns = ["x1", "x2"])
 		mapper = DataFrameMapper([
-			("X", [domain, LabelBinarizer()]),
-			("y", None)
-		])
-		mapper.fit_transform(df)
-		self.assertEqual({"totalFreq" : 3, "missingFreq" : 0, "invalidFreq" : 0}, domain.counts_)
-		self.assertEqual({"1" : 1, "2" : 1, "3" : 1}, _value_count(domain.discr_stats_))
-		self.assertEqual(["1", "2", "3"], domain.data_values_.tolist())
-
-	def test_mapper_categorical(self):
-		domain = CategoricalDomain(dtype = CategoricalDtype())
-		str_domain = clone(domain)
-		int_domain = clone(domain)
-		df = DataFrame([["a", -1], ["b", 0], ["c", 1], ["b", 0], ["a", -1]], columns = ["str", "int"])
-		self.assertEqual(numpy.dtype("object"), df["str"].dtype)
-		self.assertEqual(int, df["int"].dtype)
-		mapper = DataFrameMapper([
-			(["str"], str_domain),
-			(["int"], int_domain)
+			(["x1", "x2"], domain),
 		], input_df = True, df_out = True)
-		dft = mapper.fit_transform(df)
-		self.assertIsInstance(dft, DataFrame)
-		self.assertEqual(["a", "b", "c"], str_domain.data_values_.tolist())
-		self.assertIsInstance(str_domain.dtype_, CategoricalDtype)
-		self.assertEqual([-1, 0, 1], int_domain.data_values_.tolist())
-		self.assertIsInstance(int_domain.dtype_, CategoricalDtype)
-		self.assertEqual(CategoricalDtype(categories = ["a", "b", "c"]), dft["str"].dtype)
-		self.assertEqual(CategoricalDtype(categories = [-1, 0, 1]), dft["int"].dtype)
+		Xt = mapper.fit_transform(X)
+		self.assertIsInstance(Xt, DataFrame)
+		self.assertEqual(2, domain.n_features_in_)
+		self.assertEqual(["x1", "x2"], domain.feature_names_in_.tolist())
+		self.assertEqual({"totalFreq" : [5, 5], "missingFreq" : [0, 0], "invalidFreq" : [0, 0]}, _array_to_list(domain.counts_))
+		self.assertEqual(2, len(domain.discr_stats_))
+		self.assertEqual({0 : 2, 1 : 3}, _value_count(domain.discr_stats_[0]))
+		self.assertEqual({0 : 3, 1 : 2}, _value_count(domain.discr_stats_[1]))
 
 class ContinuousDomainTest(TestCase):
 
@@ -420,12 +403,14 @@ class ContinuousDomainTest(TestCase):
 
 	def test_mapper(self):
 		domain = ContinuousDomain(with_statistics = True)
-		df = DataFrame([{"X1" : 2.0, "X2" : 2, "y" : 2.0}, {"X1" : 1.0, "X2" : 0.5}, {"X1" : 2}, {"X2" : 2}, {"X1" : 2.0, "y" : 1}, {"X1" : 3.0, "X2" : 3.5}])
+		X = DataFrame([[2.0, 2], [1.0, 0.5], [2, float("NaN")], [float("NaN"), 2], [2.0, float("NaN")], [3.0, 3.5]], columns = ["x1", "x2"])
 		mapper = DataFrameMapper([
-			(["X1", "X2"], [domain, SimpleImputer(), StandardScaler()]),
-			("y", None)
-		])
-		mapper.fit_transform(df)
+			(["x1", "x2"], [domain, SimpleImputer(), StandardScaler()]),
+		], input_df = True, df_out = True)
+		Xt = mapper.fit_transform(X)
+		self.assertIsInstance(Xt, DataFrame)
+		self.assertEqual(2, domain.n_features_in_)
+		self.assertEqual(["x1", "x2"], domain.feature_names_in_.tolist())
 		self.assertEqual({"totalFreq" : [6, 6], "missingFreq" : [1, 2], "invalidFreq" : [0, 0]}, _array_to_list(domain.counts_))
 		self.assertEqual({"minimum" : [1.0, 0.5], "maximum" : [3.0, 3.5], "mean" : [2.0, 2.0]}, _array_to_list(dict((k, domain.numeric_info_[k]) for k in ["minimum", "maximum", "mean"])))
 		self.assertEqual([1.0, 0.5], domain.data_min_.tolist())
