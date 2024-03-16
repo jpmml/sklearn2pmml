@@ -83,9 +83,9 @@ def to_pydatetime(X, dtype):
 	if hasattr(Xt, "dt"):
 		Xt = Xt.dt
 	if dtype == "datetime64[D]":
-		Xt = Xt.floor("D")
+		Xt = Xt.floor(freq = "D")
 	elif dtype == "datetime64[s]":
-		Xt = Xt.floor("S")
+		Xt = Xt.floor(freq = "s")
 	else:
 		raise ValueError(dtype)
 	return Xt.to_pydatetime()
