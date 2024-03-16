@@ -63,6 +63,11 @@ class MultiAlias(TransformerWrapper):
 	def get_feature_names_out(self, input_features = None):
 		return numpy.asarray(self.names)
 
+def _check_input(estimator, X, reset):
+	estimator._check_n_features(X, reset = reset)
+	estimator._check_feature_names(X, reset = reset)
+	return X
+
 def _check_cols(X, values):
 	if is_1d(X):
 		if hasattr(values, "__len__") and len(values) > 1:
@@ -112,11 +117,6 @@ class Domain(BaseEstimator, TransformerMixin, OneToOneFeatureMixin):
 		self.with_statistics = with_statistics
 		self.dtype = dtype
 		self.display_name = display_name
-
-	def _check_input(self, X, reset):
-		self._check_n_features(X, reset = reset)
-		self._check_feature_names(X, reset = reset)
-		return X
 
 	def _empty_fit(self):
 		return not (self.with_data or self.with_statistics)
@@ -203,7 +203,7 @@ class Domain(BaseEstimator, TransformerMixin, OneToOneFeatureMixin):
 		return False
 
 	def transform(self, X):
-		self._check_input(X, reset = False)
+		_check_input(self, X, reset = False)
 		if self.dtype is not None:
 			X = cast(X, self.dtype)
 		missing_mask, valid_mask, invalid_mask = self._compute_masks(X)
@@ -259,7 +259,7 @@ class DiscreteDomain(Domain):
 		return super(DiscreteDomain, self)._valid_value_mask(X, where)
 
 	def fit(self, X, y = None):
-		self._check_input(X, reset = True)
+		_check_input(self, X, reset = True)
 		if self.dtype is not None:
 			if _is_proto_pandas_categorical(self.dtype):
 				if self.data_values is not None:
@@ -372,7 +372,7 @@ class ContinuousDomain(Domain):
 		return super(ContinuousDomain, self)._valid_value_mask(X, where)
 
 	def fit(self, X, y = None):
-		self._check_input(X, reset = True)
+		_check_input(self, X, reset = True)
 		if self.dtype is not None:
 			X = cast(X, self.dtype)
 		self.dtype_ = common_dtype(X)
@@ -460,7 +460,7 @@ class TemporalDomain(Domain):
 			raise ValueError("Temporal data type {0} not in {1}".format(dtype, dtypes))
 
 	def fit(self, X, y = None):
-		self._check_input(X, reset = True)
+		_check_input(self, X, reset = True)
 		self.dtype_ = common_dtype(X)
 		return self
 
@@ -480,6 +480,7 @@ class MultiDomain(BaseEstimator, TransformerMixin):
 		self.domains = domains
 
 	def fit(self, X, y = None):
+		_check_input(self, X, reset = True)
 		rows, columns = X.shape
 		if len(self.domains) != columns:
 			raise ValueError("The number of columns {0} is not equal to the number of domain objects {1}".format(columns, len(self.domains)))
@@ -494,9 +495,8 @@ class MultiDomain(BaseEstimator, TransformerMixin):
 		return self
 
 	def transform(self, X):
+		_check_input(self, X, reset = False)
 		rows, columns = X.shape
-		if len(self.domains) != columns:
-			raise ValueError("The number of columns {0} is not equal to the number of domain objects {1}".format(columns, len(self.domains)))
 		# XXX
 		X = X.copy()
 		if isinstance(X, DataFrame):
