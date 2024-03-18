@@ -1,5 +1,5 @@
 from datetime import datetime
-from pandas import Categorical, CategoricalDtype, DataFrame, Series
+from pandas import BooleanDtype, Categorical, CategoricalDtype, DataFrame, Int64Dtype, Series
 from sklearn.base import clone
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
@@ -79,6 +79,27 @@ class DomainTest(TestCase):
 			Domain(invalid_value_treatment = "return_invalid", invalid_value_replacement = 0)
 
 class CategoricalDomainTest(TestCase):
+
+	def test_fit_boolean_missing(self):
+		domain = clone(CategoricalDomain())
+		X = Series([0, pandas.NA, 0, 1], dtype = BooleanDtype())
+		self.assertIsInstance(X.dtype, BooleanDtype)
+		self.assertEqual([False, True, False, False], domain._missing_value_mask(X).tolist())
+		Xt = domain.fit_transform(X)
+		self.assertIsInstance(Xt, Series)
+		self.assertIsInstance(Xt.dtype, BooleanDtype)
+		self.assertFalse(hasattr(domain, "n_features_in_"))
+		self.assertEqual([False, True], domain.data_values_.tolist())
+		self.assertEqual([False, pandas.NA, False, True], Xt.tolist())
+		domain = clone(CategoricalDomain())
+		X = to_numpy(X)
+		self.assertEqual([False, True, False, False], domain._missing_value_mask(X).tolist())
+		Xt = domain.fit_transform(X)
+		self.assertIsInstance(Xt, numpy.ndarray)
+		self.assertEqual(numpy.dtype("O"), Xt.dtype)
+		self.assertFalse(hasattr(domain, "n_features_in_"))
+		self.assertEqual([False, True], domain.data_values_.tolist())
+		self.assertEqual([False, None, False, True], Xt.tolist())
 
 	def test_fit_int(self):
 		domain = clone(CategoricalDomain(with_data = False, with_statistics = False))
@@ -162,10 +183,12 @@ class CategoricalDomainTest(TestCase):
 
 	def test_fit_int64(self):
 		domain = clone(CategoricalDomain())
-		X = Series([-1, None, 1, 2, -1]).astype("Int64")
+		X = Series([-1, pandas.NA, 1, 2, -1], dtype = "Int64")
+		self.assertIsInstance(X.dtype, Int64Dtype)
 		self.assertEqual([False, True, False, False, False], domain._missing_value_mask(X).tolist())
 		Xt = domain.fit_transform(X)
 		self.assertIsInstance(Xt, Series)
+		self.assertIsInstance(Xt.dtype, Int64Dtype)
 		self.assertFalse(hasattr(domain, "n_features_in_"))
 		self.assertEqual([-1, 1, 2], domain.data_values_.tolist())
 		self.assertEqual([-1, pandas.NA, 1, 2, -1], Xt.tolist())
@@ -400,6 +423,18 @@ class ContinuousDomainTest(TestCase):
 		self.assertEqual(-2, domain.data_min_)
 		self.assertEqual(3, domain.data_max_)
 		self.assertEqual({"totalFreq" : 5, "missingFreq" : 2, "invalidFreq" : 0}, domain.counts_)
+
+	def test_fit_int64(self):
+		domain = clone(ContinuousDomain(with_statistics = True))
+		X = Series([-2, -1, 0, -1, 3], dtype = "Int64")
+		self.assertIsInstance(X.dtype, Int64Dtype)
+		Xt = domain.fit_transform(X)
+		self.assertIsInstance(Xt, Series)
+		self.assertIsInstance(Xt.dtype, Int64Dtype)
+		self.assertFalse(hasattr(domain, "n_features_in_"))
+		self.assertEqual(-2, domain.data_min_)
+		self.assertEqual(3, domain.data_max_)
+		self.assertEqual({"totalFreq" : 5, "missingFreq" : 0, "invalidFreq" : 0}, domain.counts_)
 
 	def test_mapper(self):
 		domain = ContinuousDomain(with_statistics = True)

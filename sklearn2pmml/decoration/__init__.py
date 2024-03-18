@@ -136,8 +136,8 @@ class Domain(BaseEstimator, TransformerMixin, OneToOneFeatureMixin):
 	def _missing_value_mask(self, X):
 		if self.missing_values is not None:
 			def is_missing(X, missing_value):
-				# float("NaN") != float("NaN")
-				if isinstance(missing_value, float) and numpy.isnan(missing_value):
+				# Values like float("NaN"), Numpy.NaN and Pandas.NA fail the '==' operator
+				if pandas.isnull(missing_value):
 					return pandas.isnull(X)
 				return X == missing_value
 
@@ -380,10 +380,14 @@ class ContinuousDomain(Domain):
 			return self
 		X = to_numpy(X)
 		if self.with_data:
-			if issubclass(self.dtype_.type, numbers.Integral):
-				info = numpy.iinfo(self.dtype_)
+			dtype = self.dtype_
+			# Unbox Pandas' extension data type to Numpy data type
+			if hasattr(dtype, "numpy_dtype"):
+				dtype = dtype.numpy_dtype
+			if issubclass(dtype.type, numbers.Integral):
+				info = numpy.iinfo(dtype)
 			else:
-				info = numpy.finfo(self.dtype_)
+				info = numpy.finfo(dtype)
 			missing_mask = self._missing_value_mask(X)
 			nonmissing_mask = ~missing_mask
 			if self.data_min is None:
