@@ -7,17 +7,30 @@ import numpy
 
 class ExpressionRegressor(BaseEstimator, RegressorMixin):
 
-	def __init__(self, expr):
+	def __init__(self, expr, normalization_method):
 		if not isinstance(expr, Expression):
 			raise TypeError()
 		self.expr = expr
+		normalization_methods = ["none", "exp"]
+		if normalization_method not in normalization_methods:
+			raise ValueError("Normalization method {0} not in {1}".format(normalization_method, normalization_methods))
+		self.normalization_method = normalization_method
 
 	def fit(self, X, y):
 		return self
 
-	def predict(self, X):
+	def decision_function(self, X):
 		func = to_expr_func(self.expr)
 		return eval_rows(X, func, dtype = float)
+
+	def predict(self, X):
+		y = self.decision_function(X)
+		if self.normalization_method == "none":
+			return y
+		elif self.normalization_method == "exp":
+			return numpy.exp(y)
+		else:
+			raise ValueError()
 
 class ExpressionClassifier(BaseEstimator, ClassifierMixin):
 

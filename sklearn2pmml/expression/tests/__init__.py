@@ -15,14 +15,19 @@ def _relu(x):
 class ExpressionRegressorTest(TestCase):
 
 	def test_predict(self):
-		regressor = ExpressionRegressor(Expression("_relu(X[0])", function_defs = [_relu]))
-		X = numpy.asarray([[-2], [-1], [0], [1], [2]], dtype = int)
-		pred = regressor.predict(X)
-		self.assertEqual(float, pred.dtype)
-		self.assertEqual([0, 0, 0, 1, 2], pred.tolist())
+		regressor = ExpressionRegressor(Expression("_relu(X[0])", function_defs = [_relu]), normalization_method = "none")
 		X = DataFrame([-2.5, -1.5, -0.5, 0.5, 1.5, 2.5], columns = ["x"])
 		pred = regressor.predict(X)
 		self.assertEqual([0.0, 0.0, 0.0, 0.5, 1.5, 2.5], pred.tolist())
+
+		regressor.normalization_method = "exp"
+		X = numpy.asarray([[-2], [-1], [0], [1], [2]], dtype = int)
+		pred_decision = regressor.decision_function(X)
+		self.assertEqual(float, pred_decision.dtype)
+		self.assertEqual([0, 0, 0, 1, 2], pred_decision.tolist())
+		pred = regressor.predict(X)
+		self.assertEqual(float, pred.dtype)
+		self.assertTrue(numpy.allclose([1.0, 1.0, 1.0, numpy.e, numpy.e ** 2], pred))
 
 def _is_negative(x):
 	if x < 0:
