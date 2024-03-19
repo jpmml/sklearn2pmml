@@ -45,7 +45,7 @@ class ExpressionClassifier(BaseEstimator, ClassifierMixin):
 			if not isinstance(v, Expression):
 				raise TypeError()
 		self.class_exprs = class_exprs
-		normalization_methods = ["logit", "simplemax", "softmax"]
+		normalization_methods = ["none", "logit", "simplemax", "softmax"]
 		if normalization_method not in normalization_methods:
 			raise ValueError("Normalization method {0} not in {1}".format(normalization_method, normalization_methods))
 		self.normalization_method = normalization_method
@@ -54,17 +54,24 @@ class ExpressionClassifier(BaseEstimator, ClassifierMixin):
 		self.classes_ = numpy.unique(y)
 		n_classes = len(self.classes_)
 		classes = set(self.class_exprs.keys())
-		if n_classes == 2 and self.normalization_method == "logit":
-			if (len(classes) != 1) or (classes.intersection(self.classes_) != classes):
+		if n_classes == 2 and self.normalization_method in ["none", "logit"]:
+			# One of the two classes
+			if len(classes) != 1 or classes.intersection(self.classes_) != classes:
 				raise ValueError()
 		elif n_classes >= 2 and self.normalization_method in ["simplemax", "softmax"]:
-			if (len(classes) != n_classes) or (classes.intersection(self.classes_) != classes):
+			# All classes
+			if len(classes) != n_classes or classes.intersection(self.classes_) != classes:
+				raise ValueError()
+		elif n_classes > 2 and self.normalization_method in ["none"]:
+			# All classes, except for the last class
+			if len(classes) != (n_classes - 1) or classes.intersection(self.classes_[:-1]) != classes:
 				raise ValueError()
 		else:
 			raise ValueError()
 		return self
 
 	def decision_function(self, X):
+		n_classes = len(self.classes_)
 		y = None
 		for clazz in self.classes_:
 			try:
@@ -77,7 +84,9 @@ class ExpressionClassifier(BaseEstimator, ClassifierMixin):
 				y = class_y
 			else:
 				y = numpy.vstack((y, class_y))
-		if self.normalization_method in ["simplemax", "softmax"]:
+		if n_classes >= 2 and self.normalization_method in ["simplemax", "softmax"]:
+			y = y.T.reshape(X.shape[0], -1)
+		elif n_classes > 2 and self.normalization_method in ["none"]:
 			y = y.T.reshape(X.shape[0], -1)
 		return y
 
@@ -87,18 +96,29 @@ class ExpressionClassifier(BaseEstimator, ClassifierMixin):
 		return numpy.take(self.classes_, indices, axis = 0)
 
 	def predict_proba(self, X):
-		y = self.decision_function(X)
 		n_classes = len(self.classes_)
-		if n_classes == 2 and self.normalization_method == "logit":
-			proba = expit(y)
+		y = self.decision_function(X)
+		if n_classes == 2 and self.normalization_method in ["none", "logit"]:
+			if self.normalization_method == "none":
+				proba = numpy.clip(y, 0, 1)
+			elif self.normalization_method == "logit":
+				proba = expit(y)
+			else:
+				raise ValueError()
 			clazz = next(iter(self.class_exprs.keys()))
 			if (self.classes_).tolist().index(clazz) == 1:
 				return numpy.vstack((1 - proba, proba)).T
 			else:
 				return numpy.vstack((proba, 1 - proba)).T
-		elif n_classes >= 2 and self.normalization_method == "simplemax":
-			return normalize(y, norm = "l1", axis = 1)
-		elif n_classes >= 2 and self.normalization_method == "softmax":
-			return softmax(y, axis = 1)
+		elif n_classes >= 2 and self.normalization_method in ["simplemax", "softmax"]:
+			if self.normalization_method == "simplemax":
+				return normalize(y, norm = "l1", axis = 1)
+			elif self.normalization_method == "softmax":
+				return softmax(y, axis = 1)
+			else:
+				raise ValueError()
+		elif n_classes > 2 and self.normalization_method in ["none"]:
+			y_rowsum = numpy.sum(y, axis = 1)
+			return numpy.hstack((y, (1 - y_rowsum).reshape(-1, 1)))
 		else:
 			raise ValueError()
