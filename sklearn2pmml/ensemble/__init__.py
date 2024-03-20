@@ -13,8 +13,8 @@ def _checkGBDTRegressor(gbdt):
 		return gbdt
 	else:
 		try:
-			from lightgbm import LGBMRegressor
-			if isinstance(gbdt, LGBMRegressor):
+			from lightgbm import Booster, LGBMRegressor
+			if isinstance(gbdt, (Booster, LGBMRegressor)):
 				return gbdt
 		except ImportError:
 			pass
@@ -30,8 +30,8 @@ def _checkGBDTClassifier(gbdt):
 		return gbdt
 	else:
 		try:
-			from lightgbm import LGBMClassifier
-			if isinstance(gbdt, LGBMClassifier):
+			from lightgbm import Booster, LGBMClassifier
+			if isinstance(gbdt, (Booster, LGBMClassifier)):
 				return gbdt
 		except ImportError:
 			pass
