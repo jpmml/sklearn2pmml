@@ -1,3 +1,104 @@
+# 0.105.0 #
+
+## Breaking changes
+
+None
+
+## New features
+
+* Added `Domain.n_features_in_` and `Domain.feature_names_in_` attributes.
+
+This brings domain decorators to conformance with "physical" Scikit-Learn input inspection standards such as [SLEP007](https://scikit-learn-enhancement-proposals.readthedocs.io/en/latest/slep007/proposal.html) and [SLEP010](https://scikit-learn-enhancement-proposals.readthedocs.io/en/latest/slep010/proposal.html).
+
+Domain decorators are natively about "logical" input inspection (ie. establishing and enforcing model's applicability domain).
+
+By combining these two complementary areas of functionality, they now make a great **first** step for any pipeline:
+
+``` python
+from sklearn.datasets import load_iris
+from sklearn.pipeline import Pipeline
+from sklearn2pmml.decoration import ContinuousDomain
+
+iris_X, iris_y = load_iris(return_X_y = True, as_frame = True)
+
+pipeline = Pipeline([
+  # Collect column-oriented model's applicability domain
+  ("domain", ContinuousDomain()),
+  ("classifier", ...)
+])
+pipeline.fit(iris_X, iris_y)
+
+# Dynamic properties, delegate to (the attributes of-) the first step
+print(pipeline.n_features_in_)
+print(pipeline.feature_names_in_)
+```
+
+* Added `MultiDomain.n_features_in_` and `MultiDomain.feature_names_in_` attribute.
+
+* Added support for missing values in tree and tree ensemble models.
+
+Scikit-Learn 1.3 extended the `Tree` data structure with a `missing_go_to_left` field.
+This field indicates the default split direction for each split, and is always present and populated whether the training dataset actually contained any missing values or not.
+
+As a result, Scikit-Learn 1.3 tree models are able to accept and make predictions on sparse datasets, even if they were trained on a fully dense dataset.
+There is currently no mechanism for a data scientist to tag tree models as "can or cannot be used with missing values".
+
+The JPMML-SkLearn library implements two `Tree` data structure conversion modes, which can be toggled using the `allow_missing` conversion option.
+The default mode corresponds to Scikit-Learn 0.18 through 1.2 behaviour, where a missing input causes the evaluation process to immediately bail out with a missing prediction.
+The "missing allowed" mode corresponds to Scikit-Learn 1.3 and newer behaviour, where a missing input is ignored, and the evaluation proceeds to the pre-defined child branch until a final non-missing prediction is reached.
+
+Right now, the data scientist must activate the latter mode manually, by configuring `allow_missing = True`:
+
+``` python
+from sklearn.tree import DecisionTreeClassifier
+from sklearn2pmml.pipeline import PMMLPipeline
+
+pipeline = PMMLPipeline([
+  ("classifier", DecisionTreeClassifier())
+])
+pipeline.fit(X, y)
+
+# Default mode
+pipeline.configure(allow_missing = False)
+sklearn2pmml(pipeline, "DecisionTree-default.pmml")
+
+# "Missing allowed" mode
+pipeline.configure(allow_missing = True)
+sklearn2pmml(pipeline, "DecisionTree-missing_allowed.pmml")
+```
+
+Both conversion modes generate standard PMML markup.
+However, the "missing allowed" mode results in slightly bigger PMML documents (say, up to 10-15%), because the default split direction is encoded using extra `Node@defaultChild` and `Node@id` attributes.
+The size difference disappears when the tree model is compacted.
+
+* Added support for nullable Pandas' scalar data types.
+
+If the dataset contains sparse columns, then they should be cast from the default Numpy `object` data type to the most appropriate nullable Pandas' scalar data type. The cast may be performed using a data type object (eg. `pandas.BooleanDtype`, `pandas.Int64Dtype`, `pandas.Float32Dtype`) or its string alias (eg. `Boolean`, `Int64`, `Float32`).
+
+This kind of "type hinting" is instrumental to generating high(er) quality PMML documents.
+
+## Minor improvements and fixes
+
+* Added `ExpressionRegressor.normalization_method` attribute.
+
+This attribute allows performing some most common normalizations atomically.
+
+The list of supported values is `none` and `exp`.
+
+* Refactored `ExpressionClassifier.normalization_method` attribute.
+
+The list of supported values is `none`, `logit`, `simplemax` and `softmax`.
+
+* Fixed the formatting of non-finite tree split values.
+
+It is possible that some tree splits perform comparisons against the positive infinity to indicate "always true" and "always false" conditions (eg. `x <= +Inf` and `x > +Inf`, respectively).
+
+Previously, infinite values were formatted using Java's default formatting method, which resulted in Java-style `-Infinity` and `Infinity` string literals.
+They are now detected and replaced with PMML-style `-INF` and `INF` (case insensitive) string literals, respectively.
+
+* Ensured compatibility with CHAID 5.4.1.
+
+
 # 0.104.1 #
 
 ## Breaking changes
@@ -335,10 +436,10 @@ It is there for information purposes only. Its presence or absence does not affe
 
 * Fixed the `Domain.transform(X)` method to preserve the `X` argument unchanged.
 
-If the decorator needs to modify the dataset in any way (eg. performing missing or invalid value replacement), then it will create a copy of the argument dataset before modifying it.
+If the domain decorator needs to modify the dataset in any way (eg. performing missing or invalid value replacement), then it will create a copy of the argument dataset before modifying it.
 Otherwise, the argument dataset is passed through as-is.
 
-This aligns decorators with Scikit-Learn API guidelines that transformers and transformer-likes should not tamper with the original dataset.
+This aligns domain decorators with Scikit-Learn API guidelines that transformers and transformer-likes should not tamper with the original dataset.
 
 * Added support for One-Model-Per-Target (OMPT)-style multi-target XGBoost estimators.
 
@@ -401,7 +502,7 @@ See [SkLearn2PMML-402](https://github.com/jpmml/sklearn2pmml/issues/402)
 
 * Added support for multi-column mode to the `DiscreteDomain` class and its subclasses (`CategoricalDomain` and `OrdinalDomain`).
 
-This brings discrete decorators to functional parity with continuous decorators, which have been supporting both single-column and multi-column mode for years.
+This brings discrete domain decorators to functional parity with continuous domain decorators, which have been supporting both single-column and multi-column mode for years.
 
 Before:
 
@@ -461,9 +562,9 @@ If the `CastTransformer.dtype` parameter value is "category" (ie. a string liter
 The subsequent transform method invocations are now guaranteed to exhibit stable transformation behaviour.
 Previously, each method call was computing its own set of valid category values.
 
-* Added the `Decorator` class to the `sklearn.base.OneToOneFeatureMixin` class hierarchy.
+* Added the `Domain` class to the `sklearn.base.OneToOneFeatureMixin` class hierarchy.
 
-This makes decorators compatible with Scikit-Learn's `set_output` API.
+This makes domain decorators compatible with Scikit-Learn's `set_output` API.
 
 Choosing a data container for transformation results:
 
