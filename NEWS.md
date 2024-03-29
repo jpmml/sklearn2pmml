@@ -1,3 +1,121 @@
+# 0.105.1 #
+
+## Breaking changes
+
+None
+
+## New features
+
+* Added support for [`sklearn.preprocessing.TargetEncoder`](https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.TargetEncoder.html) class.
+
+* Added support for [`sklearn.preprocessing.SplineTransformer`](https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.SplineTransformer.html) class.
+
+The `SplineTransformer` class computes a B-spline for a feature, which is then used to expand the feature into new features that correspond to B-spline basis elements.
+
+This class is not suitable for simple feature and prediction scaling purposes (eg. calibration of computer probabilities).
+Consider using the `sklearn2pmml.preprocessing.BSplineTransformer` class in such a situation.
+
+* Added support for [`statsmodels.api.QuantReg`](https://www.statsmodels.org/dev/generated/statsmodels.regression.quantile_regression.QuantReg.html) class.
+
+* Added `input_float` conversion option.
+
+Scikit-Learn tree and tree ensemble models prepare their inputs by first casting them to `(numpy.)float32`, and then to `(numpy.)float64` (exactly so, even if the input value already happened to be of `(numpy.)float64` data type).
+
+PMML does not provide effective means for implementing "chained casts"; the chain must be broken down into elementary cast operations, each of which is represented using a standalone `DerivedField` element.
+For example, preparing the "Sepal.Length" field of the iris dataset:
+
+``` xml
+<PMML>
+  <DataDictionary>
+    <DataField name="Sepal.Length" optype="continuous" dataType="double">
+      <Interval closure="closedClosed" leftMargin="4.3" rightMargin="7.9"/>
+    </DataField>
+  </DataDictionary>
+  <TransformationDictionary>
+    <DerivedField name="float(Sepal.Length)" optype="continuous" dataType="float">
+      <FieldRef field="Sepal.Length"/>
+    </DerivedField>
+    <DerivedField name="double(float(Sepal.Length))" optype="continuous" dataType="double">
+      <FieldRef field="float(Sepal.Length)"/>
+    </DerivedField>
+  </TransformationDictionary>
+</PMML>
+```
+
+Activating the `input_float` conversion option:
+
+``` python
+pipeline = PMMLPipeline([
+  ("classifier", DecisionTreeClassifier())
+])
+pipeline.fit(iris_X, iris_y)
+
+# Default mode
+pipeline.configure(input_float = False)
+sklearn2pmml("DecisionTree-default.pmml")
+
+# "Input float" mode
+pipeline.configure(input_float = True)
+sklearn2pmml("DecisionTree-input_float.pmml")
+```
+
+This conversion option updates the data type of the "Sepal.Length" data field from `double` to `float`, thereby eliminating the need for the first `DerivedField` element of the two:
+
+``` xml
+<PMML>
+  <DataDictionary>
+    <DataField name="Sepal.Length" optype="continuous" dataType="float">
+      <Interval closure="closedClosed" leftMargin="4.300000190734863" rightMargin="7.900000095367432"/>
+    </DataField>
+  </DataDictionary>
+  <TransformationDictionary>
+    <DerivedField name="double(Sepal.Length)" optype="continuous" dataType="double">
+      <FieldRef field="Sepal.Length"/>
+    </DerivedField>
+  </TransformationDictionary>
+</PMML>
+```
+
+Changing the data type of a field may have side effects if the field contributes to more than one feature.
+The effectiveness and safety of configuration options should be verified by integration testing.
+
+* Added `H2OEstimator.pmml_classes_` attribute.
+
+This attribute allows customizing target category levels.
+It comes in handly when working with ordinal targets, where the H2O.ai framework requires that target category levels are encoded from their original representation to integer index representation.
+
+A fitted H2O.ai ordinal classifier predicts integer indices, which must be manually decoded in the application layer.
+The JPMML-SkLearn library is able to "erase" this encode-decode helper step from the workflow, resulting in a clean and efficient PMML document:
+
+``` python
+ordinal_classifier = H2OGeneralizedLinearEstimator(family = "ordinal")
+ordinal_classifier.fit(...)
+
+# Customize target category levels
+# Note that the default lexicographic ordering of labels is different from their intended ordering
+ordinal_classifier.pmml_classes_ = ["bad", "poor", "fair", "good", "excellent"]
+
+sklearn2pmml(ordinal_classifier, "OrdinalClassifier.pmml")
+```
+
+## Minor improvements and fixes
+
+* Fixed the categorical encoding of missing values.
+
+This bug manifested itself when the input column was mixing different data type values.
+For example, a sparse string column, where non-missing values are strings, and missing values are floating-point `numpy.NaN` values.
+
+Scikit-Learn documentation warns against mixing string and numeric values within a single column, but it can happen inadvertently when reading a sparse dataset into a Pandas' DataFrame using standard library functions (eg. the [`pandas.read_csv()`](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.read_csv.html) function).
+
+* Added Pandas to package dependencies.
+
+See [SkLearn2PMML-418](https://github.com/jpmml/sklearn2pmml/issues/418)
+
+* Ensured compatibility with H2O.ai 3.46.0.1.
+
+* Ensured compatibility with BorutaPy 0.3.post0 (92e4b4e).
+
+
 # 0.105.0 #
 
 ## Breaking changes
