@@ -1,16 +1,14 @@
 from scipy.special import expit, softmax
 from sklearn.preprocessing import normalize
 from sklearn.base import BaseEstimator, ClassifierMixin, RegressorMixin
-from sklearn2pmml.util import eval_rows, to_expr_func, Expression
+from sklearn2pmml.util import check_expression, eval_rows, to_expr_func
 
 import numpy
 
 class ExpressionRegressor(BaseEstimator, RegressorMixin):
 
 	def __init__(self, expr, normalization_method):
-		if not isinstance(expr, Expression):
-			raise TypeError()
-		self.expr = expr
+		self.expr = check_expression(expr)
 		normalization_methods = ["none", "exp"]
 		if normalization_method not in normalization_methods:
 			raise ValueError("Normalization method {0} not in {1}".format(normalization_method, normalization_methods))
@@ -42,8 +40,7 @@ class ExpressionClassifier(BaseEstimator, ClassifierMixin):
 		for k, v in class_exprs.items():
 			if k is None:
 				raise ValueError()
-			if not isinstance(v, Expression):
-				raise TypeError()
+			check_expression(v)
 		self.class_exprs = class_exprs
 		normalization_methods = ["none", "logit", "simplemax", "softmax"]
 		if normalization_method not in normalization_methods:

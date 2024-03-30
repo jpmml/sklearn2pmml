@@ -17,7 +17,7 @@ except ImportError:
 from sklearn.exceptions import NotFittedError
 from sklearn.pipeline import Pipeline
 from sklearn2pmml import _is_pandas_categorical, _is_proto_pandas_categorical
-from sklearn2pmml.util import cast, dt_transform, ensure_def, eval_rows, is_1d, to_1d, to_expr_func, to_numpy, Expression, Predicate, Reshaper
+from sklearn2pmml.util import cast, check_expression, check_predicate, dt_transform, ensure_def, eval_rows, is_1d, to_1d, to_expr_func, to_numpy, Reshaper
 
 import numpy
 import pandas
@@ -237,9 +237,7 @@ class ExpressionTransformer(BaseEstimator, TransformerMixin):
 	"""
 
 	def __init__(self, expr, map_missing_to = None, default_value = None, invalid_value_treatment = None, dtype = None):
-		if not isinstance(expr, (str, Expression)):
-			raise TypeError()
-		self.expr = expr
+		self.expr = check_expression(expr)
 		self.map_missing_to = map_missing_to
 		self.default_value = default_value
 		invalid_value_treatments = ["return_invalid", "as_missing"]
@@ -705,8 +703,7 @@ class SelectFirstTransformer(BaseEstimator, TransformerMixin):
 			if len(step) != 3:
 				raise TypeError("Step is not a three-element (name, transformer, predicate) tuple")
 			name, transformer, predicate = step
-			if not isinstance(predicate, (str, Predicate)):
-				raise TypeError()
+			check_predicate(predicate)
 		self.steps = steps
 		if controller:
 			if not hasattr(controller, "transform"):

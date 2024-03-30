@@ -1,5 +1,5 @@
 from sklearn.base import BaseEstimator, ClassifierMixin
-from sklearn2pmml.util import eval_rows, to_expr_func, Predicate
+from sklearn2pmml.util import check_predicate, eval_rows, to_expr_func
 
 class RuleSetClassifier(BaseEstimator, ClassifierMixin):
 
@@ -10,8 +10,7 @@ class RuleSetClassifier(BaseEstimator, ClassifierMixin):
 			if len(rule) != 2:
 				raise TypeError("Rule is not a two-element (predicate, score) tuple")
 			predicate, score = rule
-			if not isinstance(predicate, (str, Predicate)):
-				raise TypeError()
+			check_predicate(predicate)
 		self.rules = rules
 		self.default_score = default_score
 

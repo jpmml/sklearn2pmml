@@ -74,7 +74,7 @@ class ExpressionClassifierTest(TestCase):
 		self.assertEqual([[0.0, 1.0], [1.0, 0.0], [0.0, 1.0]], pred_proba.tolist())
 
 		class_exprs = {
-			"yes" : Expression("X[0] ** X[1] + X[2]")
+			"yes" : "X[0] ** X[1] + X[2]"
 		}
 		classifier = ExpressionClassifier(class_exprs, normalization_method = "logit")
 		X = numpy.asarray([[2, 1/2, 0], [2, 1, 0], [2, 2, -6]])
@@ -91,7 +91,7 @@ class ExpressionClassifierTest(TestCase):
 		self.assertAlmostEqual(3, numpy.sum(pred_proba))
 		self.assertEqual([expit(numpy.sqrt(2)), expit(2), expit(-2)], pred_proba[:, 1].tolist())
 
-		class_exprs["no"] = Expression("1.0")
+		class_exprs["no"] = "1.0"
 		classifier = ExpressionClassifier(class_exprs, normalization_method = "softmax")
 		classifier.fit(X, y)
 		self.assertEqual(["no", "yes"], classifier.classes_.tolist())
@@ -107,8 +107,8 @@ class ExpressionClassifierTest(TestCase):
 
 	def test_multiclass_fit_predict(self):
 		class_exprs = {
-			"0" : Expression("X[0]"),
-			"1" : Expression("X[1]"),
+			"0" : "X[0]",
+			"1" : "X[1]",
 		}
 		classifier = ExpressionClassifier(class_exprs, normalization_method = "none")
 		X = numpy.asarray([[0.6, 0.3], [0.2, 0.2], [0.1, 0.7]])

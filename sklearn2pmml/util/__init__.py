@@ -149,6 +149,16 @@ class Predicate(Evaluatable):
 	def __init__(self, expr, function_defs = []):
 		super(Predicate, self).__init__(expr = expr, function_defs = function_defs)
 
+def check_expression(expression):
+	if not isinstance(expression, (str, Expression)):
+		raise TypeError("The expression object is not a string nor an instance of {0}".format(Expression.__name__))
+	return expression
+
+def check_predicate(predicate):
+	if not isinstance(predicate, (str, Predicate)):
+		raise TypeError("The predicate object is not a string nor an instance of {0}".format(Predicate.__name__))
+	return predicate
+
 def to_expr(expr):
 	if isinstance(expr, str):
 		return expr

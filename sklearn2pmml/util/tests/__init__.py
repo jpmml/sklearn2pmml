@@ -1,5 +1,5 @@
 from pandas import DataFrame
-from sklearn2pmml.util import sizeof, deep_sizeof, to_expr, to_expr_func, fqn, Evaluatable, Slicer, Reshaper
+from sklearn2pmml.util import check_expression, check_predicate, fqn, sizeof, deep_sizeof, to_expr, to_expr_func, Evaluatable, Expression, Predicate, Slicer, Reshaper
 from unittest import TestCase
 
 import inspect
@@ -55,19 +55,33 @@ def _signum(X):
 	else:
 		return 0
 
-def _is_negative(x):
-	return (_trunc(x) < 0)
-
-def _is_positive(x):
-	return (_trunc(x) > 0)
-
-def _trunc(x):
-	return math.trunc(x)
-
 class Dummy:
 	pass
 
 class FunctionTest(TestCase):
+
+	def test_check_expression(self):
+		self.assertIsNotNone(check_expression("1.0"))
+		self.assertIsNotNone(check_expression(Expression("1.0")))
+		with self.assertRaises(TypeError):
+			check_expression(Predicate(str(True)))
+
+	def test_check_predicate(self):
+		self.assertIsNotNone(check_predicate(str(True)))
+		self.assertIsNotNone(check_predicate(str(True)))
+		with self.assertRaises(TypeError):
+			check_predicate(Expression("1.0"))
+
+	def test_fqn(self):
+		obj = ""
+		self.assertEqual("builtins.str", fqn(str))
+		self.assertEqual("builtins.type", fqn(str.__class__))
+		self.assertEqual("builtins.str", fqn(obj))
+
+		obj = Dummy()
+		self.assertEqual("sklearn2pmml.util.tests.Dummy", fqn(Dummy))
+		self.assertEqual("builtins.type", fqn(Dummy.__class__))
+		self.assertEqual("sklearn2pmml.util.tests.Dummy", fqn(obj))
 
 	def test_inline_expr(self):
 		expr = "pandas.isnull(X[0])"
@@ -105,6 +119,17 @@ class FunctionTest(TestCase):
 		self.assertEqual(0, expr_func([0]))
 		self.assertEqual(1, expr_func([1.5]))
 
+def _is_negative(x):
+	return (_trunc(x) < 0)
+
+def _is_positive(x):
+	return (_trunc(x) > 0)
+
+def _trunc(x):
+	return math.trunc(x)
+
+class EvaluatableTest(TestCase):
+
 	def test_evaluatable_expr(self):
 		expr = Evaluatable("_is_negative(X[0])")
 		expr = to_expr(expr)
@@ -131,17 +156,6 @@ class FunctionTest(TestCase):
 		self.assertEqual(-1, expr_func([-1.5]))
 		self.assertEqual(0, expr_func([0]))
 		self.assertEqual(1, expr_func([1.5]))
-
-	def test_fqn(self):
-		obj = ""
-		self.assertEqual("builtins.str", fqn(str))
-		self.assertEqual("builtins.type", fqn(str.__class__))
-		self.assertEqual("builtins.str", fqn(obj))
-
-		obj = Dummy()
-		self.assertEqual("sklearn2pmml.util.tests.Dummy", fqn(Dummy))
-		self.assertEqual("builtins.type", fqn(Dummy.__class__))
-		self.assertEqual("sklearn2pmml.util.tests.Dummy", fqn(obj))
 
 class ReshaperTest(TestCase):
 
