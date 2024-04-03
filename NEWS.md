@@ -1,3 +1,47 @@
+# 0.105.2 #
+
+## Breaking changes
+
+None
+
+## New features
+
+None
+
+## Minor improvements and fixes
+
+* Improved support for categorical encoding over mixed datatype column sets.
+
+Scikit-Learn transformers such as `OneHotEncoder`, `OrdinalEncoder` and `TargetEncoder` can be applied to several columns in one go.
+Previously it was assumed that all columns shared the same data type. If that was assumption was violated in practice, they were all force cast to the `string` data type.
+
+The JPMML-SkLearn library now detects and maintains the data type on a single column basis.
+
+* Made Category-Encoders classes directly exportable to PMML.
+
+For example, training and exporting a `BaseNEncoder` transformer into a PMML document for manual analysis and interpretation purposes:
+
+``` python
+from category_encoders import BaseNEncoder
+from sklearn2pmml import sklearn2pmml
+
+transformer = BaseNEncoder(base = 3)
+transformer.fit(X, y = None)
+
+sklearn2pmml(transformer, "Base3Encoder.pmml")
+```
+
+* Fixed support for `(category_encoders.utils.)BaseEncoder.feature_names_in_` attribute.
+
+According to [SLEP007](https://scikit-learn-enhancement-proposals.readthedocs.io/en/latest/slep007/proposal.html), the value of a `feature_names_in_` attribute should be an array of strings.
+
+Category-Encoders transformers are using a list of strings instead.
+
+* Refactored `ExpressionClassifier` and `ExpressionRegressor` constructors.
+
+The evaluatable object can now also be a string literal.
+
+
 # 0.105.1 #
 
 ## Breaking changes
