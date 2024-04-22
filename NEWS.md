@@ -1,3 +1,25 @@
+# 0.106.0 #
+
+## Breaking changes
+
+* Upgraded JPMML-SkLearn library from 1.7(.56) to 1.8(.0).
+
+This is a major API upgrade.
+The 1.8.X development branch is already source and binary incompatible with earlier 1.5.X through 1.7.X development branches, with more breaking changes to follow suit.
+
+Custom SkLearn2PMML plugins would need to be upgraded and rebuilt.
+
+## New features
+
+None
+
+## Minor improvements and fixes
+
+* Ensured compatibility with Python 3.12.
+
+* Ensured compatibility with Dill 0.3.8.
+
+
 # 0.105.2 #
 
 ## Breaking changes
