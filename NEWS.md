@@ -1,3 +1,24 @@
+# 0.107.0 #
+
+## Breaking changes
+
+None
+
+## New features
+
+* Added support for [`sktree.ensemble.ExtendedIsolationForest`](https://docs.neurodata.io/scikit-tree/dev/generated/sktree.ExtendedIsolationForest.html) class.
+
+See [SKTree-255](https://github.com/neurodata/scikit-tree/issues/255)
+
+* Added support for [`sktree.ensemble.ObliqueRandomForestClassifier`](https://docs.neurodata.io/scikit-tree/dev/generated/sktree.ObliqueRandomForestClassifier.html) and [`sktree.ensemble.ObliqueRandomForestRegressor`](https://docs.neurodata.io/scikit-tree/dev/generated/sktree.ObliqueRandomForestRegressor.html) classes.
+
+* Added support for [`sktree.tree.ObliqueDecisionTreeClassifier`](https://docs.neurodata.io/scikit-tree/dev/generated/sktree.tree.ObliqueDecisionTreeClassifier.html) and [`sktree.tree.ObliqueDecisionTreeRegressor`](https://docs.neurodata.io/scikit-tree/dev/generated/sktree.tree.ObliqueDecisionTreeRegressor.html) classes.
+
+## Minor improvements and fixes
+
+None
+
+
 # 0.106.0 #
 
 ## Breaking changes
