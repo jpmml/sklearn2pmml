@@ -2,11 +2,26 @@
 
 ## Breaking changes
 
-None
+None.
 
 ## New features
 
 * Added support for [`sktree.ensemble.ExtendedIsolationForest`](https://docs.neurodata.io/scikit-tree/dev/generated/sktree.ExtendedIsolationForest.html) class.
+
+For example, training and exporting an `ExtendedIsolationForest` outlier detector into a PMML document:
+
+``` python
+from sklearn.datasets import load_iris
+from sktree.ensemble import ExtendedIsolationForest
+from sklearn2pmml import sklearn2pmml
+
+iris_X, iris_y = load_iris(return_X_y = True, as_frame = True)
+
+eif = ExtendedIsolationForest(n_estimators = 13)
+eif.fit(iris_X)
+
+sklearn2pmml(eif, "ExtendedIsolationForestIris.pmml")
+```
 
 See [SKTree-255](https://github.com/neurodata/scikit-tree/issues/255)
 
@@ -16,7 +31,7 @@ See [SKTree-255](https://github.com/neurodata/scikit-tree/issues/255)
 
 ## Minor improvements and fixes
 
-None
+None.
 
 
 # 0.106.0 #
@@ -32,7 +47,7 @@ Custom SkLearn2PMML plugins would need to be upgraded and rebuilt.
 
 ## New features
 
-None
+None.
 
 ## Minor improvements and fixes
 
@@ -45,11 +60,11 @@ None
 
 ## Breaking changes
 
-None
+None.
 
 ## New features
 
-None
+None.
 
 ## Minor improvements and fixes
 
@@ -89,7 +104,7 @@ The evaluatable object can now also be a string literal.
 
 ## Breaking changes
 
-None
+None.
 
 ## New features
 
@@ -207,7 +222,7 @@ See [SkLearn2PMML-418](https://github.com/jpmml/sklearn2pmml/issues/418)
 
 ## Breaking changes
 
-None
+None.
 
 ## New features
 
