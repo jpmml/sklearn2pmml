@@ -228,6 +228,11 @@ def _joblib_dump(obj, prefix):
 	return path
 
 def _is_supported(estimator):
+	clazz = estimator.__class__
+	# LightGBM and XGBoost Booster objects
+	if clazz.__module__.split(".")[0] in ["lightgbm", "xgboost"] and clazz.__name__ == "Booster":
+		return True
+	# H2O Estimator objects
 	if hasattr(estimator, "download_mojo"):
 		return True
 	return isinstance(estimator, BaseEstimator)
