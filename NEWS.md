@@ -1,3 +1,24 @@
+# 0.108.0 #
+
+## Breaking changes
+
+None.
+
+## New features
+
+* Added support for [`interpret.glassbox.ClassificationTree`](https://interpret.ml/docs/python/api/ClassificationTree.html) and [`interpret.glassbox.RegressionTree`](https://interpret.ml/docs/python/api/RegressionTree.html) classes.
+
+* Added support for [`interpret.glassbox.LinearRegression`](https://interpret.ml/docs/python/api/LinearRegression.html) and [`interpret.glassbox.LogisticRegression`](https://interpret.ml/docs/python/api/LogisticRegression.html) classes.
+
+* Added support for [`interpret.glassbox.ExplainableBoostingClassifier`](https://interpret.ml/docs/python/api/ExplainableBoostingClassifier.html) and [`interpret.glassbox.ExplainableBoostingRegressor`](https://interpret.ml/docs/python/api/ExplainableBoostingRegressor.html) classes.
+
+See [InterpretML-536](https://github.com/interpretml/interpret/issues/536)
+
+## Minor improvements and fixes
+
+* Ensured compatibility with Scikit-Learn 1.4.2.
+
+
 # 0.107.1 #
 
 ## Breaking changes
