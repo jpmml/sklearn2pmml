@@ -1,3 +1,75 @@
+# 0.107.1 #
+
+## Breaking changes
+
+None.
+
+## New features
+
+* Added support for [`H2OExtendedIsolationForestEstimator`](https://docs.h2o.ai/h2o/latest-stable/h2o-py/docs/modeling.html#h2oextendedisolationforestestimator) class.
+
+This class implements the isolation forest algorithm using oblique tree models.
+It is claimed to outperform the [`H2OIsolationForestEstimator`](https://docs.h2o.ai/h2o/latest-stable/h2o-py/docs/modeling.html#h2oisolationforestestimator) class, which does the same using plain (ie. non-oblique) tree models.
+
+* Made `lightgbm.Booster` class directly exportable to PMML.
+
+The SkLearn2PMML package now supports both LightGBM [Training API](https://lightgbm.readthedocs.io/en/latest/Python-API.html#training-api) and [Scikit-Learn API](https://lightgbm.readthedocs.io/en/latest/Python-API.html#scikit-learn-api):
+
+``` python
+from lightgbm import train, Dataset
+from sklearn2pmml import sklearn2pmml
+
+ds = Dataset(data = X, label = y)
+
+booster = train(params = {...}, train_set = ds)
+
+sklearn2pmml(booster, "LightGBM.pmml")
+```
+
+* Made `xgboost.Booster` class directly exportable to PMML.
+
+The SkLearn2PMML package now supports both XGBoost [Learning API](https://xgboost.readthedocs.io/en/latest/python/python_api.html#module-xgboost.training) and [Scikit-Learn API](https://xgboost.readthedocs.io/en/latest/python/python_api.html#module-xgboost.sklearn):
+
+``` python
+from xgboost import train, DMatrix
+from sklearn2pmml import sklearn2pmml
+
+dmatrix = DMatrix(data = X, label = y)
+
+booster = train(params = {...}, dtrain = dmatrix)
+
+sklearn2pmml(booster, "XGBoost.pmml")
+```
+
+* Added `xgboost.Booster.fmap` attribute.
+
+This attribute allows overriding the embedded feature map with a user-defined feature map.
+
+The main use case is refining the category levels of categorical levels.
+
+A suitable feature map object can be generated from the training dataset using the `sklearn2pmml.xgboost.make_feature_map(X)` utility function:
+
+``` python
+from xgboost import train, DMatrix
+from sklearn2pmml.xgboost import make_feature_map
+
+# Enable categorical features
+dmatrix = DMatrix(X, label = y, enable_categorical = True)
+
+# Generate a feature map with detailed description of all continuous and categorical features in the dataset
+fmap = make_feature_map(X)
+
+booster = train(params = {...}, dtrain = dmatrix)
+booster.fmap = fmap
+```
+
+* Added `input_float` conversion option for XGBoost models.
+
+## Minor improvements and fixes
+
+None.
+
+
 # 0.107.0 #
 
 ## Breaking changes
@@ -695,7 +767,7 @@ regressor.fit(X, ynd)
 
 See [JPMML-XGBoost v1.8.2](https://github.com/jpmml/jpmml-xgboost/blob/master/NEWS.md#182)
 
-Earlier SkLearn2PMML package versions may accept and convert XGBoost 2.0 without errors, but the resulting PMML document may contain an ensemble model with a wrong selection and/or wrong number of member decision tree models in it.
+Earlier SkLearn2PMML package versions may accept and convert XGBoost 2.0 without errors, but the resulting PMML document may contain an ensemble model with a wrong selection and/or wrong number of member tree models in it.
 These kind of conversion issues can be easily detected by embedding the model verification dataset into the model.
 
 ## Minor improvements and fixes
