@@ -129,6 +129,14 @@ class Evaluatable:
 
 		self.function_defs = [to_source(function_def) for function_def in function_defs]
 
+	def uses(self, module):
+		if (module + ".") in self.expr:
+			return True
+		for function_def in self.function_defs:
+			if (module + ".") in function_def:
+				return True
+		return False
+
 	def setup(self, env):
 		for function_def in self.function_defs:
 			ensure_def(function_def, env)
@@ -173,14 +181,14 @@ def to_expr(expr):
 	else:
 		raise TypeError()
 
-def to_expr_func(expr, modules = ["math", "numpy", "pandas"]):
+def to_expr_func(expr, modules = ["math", "re", "pcre", "numpy", "pandas", "scipy"]):
 	env = dict()
 
-	# Import modules
-	for module in modules:
-		exec("import {}".format(module), env)
-
 	if isinstance(expr, str):
+		for module in modules:
+			if (module + ".") in expr:
+				exec("import {}".format(module), env)
+
 		if "\n" not in expr:
 
 			def evaluate(x):
@@ -192,6 +200,10 @@ def to_expr_func(expr, modules = ["math", "numpy", "pandas"]):
 			func = ensure_def(expr, env)
 			return lambda x: func(x)
 	elif isinstance(expr, Evaluatable):
+		for module in modules:
+			if expr.uses(module):
+				exec("import {}".format(module), env)
+
 		expr.setup(env = env)
 		return lambda x: expr.evaluate(x, env)
 	else:

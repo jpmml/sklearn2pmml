@@ -84,6 +84,20 @@ class FunctionTest(TestCase):
 		self.assertEqual("sklearn2pmml.util.tests.Dummy", fqn(obj))
 
 	def test_inline_expr(self):
+		expr = "-1 if (X[0] < 0) else (1 if (X[0] > 0) else 0)"
+		expr = to_expr(expr)
+		expr_func = to_expr_func(expr, modules = [])
+		self.assertEqual(-1, expr_func([-1.5]))
+		self.assertEqual(0, expr_func([0]))
+		self.assertEqual(1, expr_func([1.5]))
+
+		expr = "re.search(X[0], X[1])"
+		expr = to_expr(expr)
+		expr_func = to_expr_func(expr)
+		self.assertTrue(expr_func(["ar?y", "February"]))
+		self.assertFalse(expr_func(["ar?y", "March"]))
+		self.assertTrue(expr_func(["ar?y", "May"]))
+
 		expr = "pandas.isnull(X[0])"
 		expr = to_expr(expr)
 		expr_func = to_expr_func(expr, modules = [])
@@ -93,12 +107,11 @@ class FunctionTest(TestCase):
 		self.assertFalse(expr_func([1.5]))
 		self.assertTrue(expr_func([numpy.NaN]))
 
-		expr = "-1 if (X[0] < 0) else (1 if (X[0] > 0) else 0)"
+		expr = "mymodule.myfunc(X[0])"
 		expr = to_expr(expr)
-		expr_func = to_expr_func(expr, modules = [])
-		self.assertEqual(-1, expr_func([-1.5]))
-		self.assertEqual(0, expr_func([0]))
-		self.assertEqual(1, expr_func([1.5]))
+		expr_func = to_expr_func(expr)
+		with self.assertRaises(NameError):
+			expr_func([0])
 
 	def test_inline_def_expr(self):
 		expr = _is_missing
@@ -139,11 +152,15 @@ class EvaluatableTest(TestCase):
 			expr_func([-1.5])
 		expr = Evaluatable("_is_negative(X[0])", function_defs = [_is_negative])
 		expr = to_expr(expr)
+		self.assertFalse(expr.uses("math"))
+		self.assertFalse(expr.uses("numpy"))
 		expr_func = to_expr_func(expr)
 		with self.assertRaises(NameError):
 			expr_func([-1.5])
 		expr = Evaluatable("_is_negative(X[0])", function_defs = [_is_negative, _trunc])
 		expr = to_expr(expr)
+		self.assertTrue(expr.uses("math"))
+		self.assertFalse(expr.uses("numpy"))
 		expr_func = to_expr_func(expr)
 		self.assertTrue(expr_func([-1.5]))
 		self.assertFalse(expr_func([0]))
