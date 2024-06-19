@@ -33,8 +33,8 @@
 	</issueManagement>
 
 	<properties>
-		<jpmml-sklearn.version>1.8.3</jpmml-sklearn.version>
-		<project.build.outputTimestamp>2024-05-20T07:25:00Z</project.build.outputTimestamp>
+		<jpmml-sklearn.version>1.8.4</jpmml-sklearn.version>
+		<project.build.outputTimestamp>2024-06-19T19:15:00Z</project.build.outputTimestamp>
 	</properties>
 
 	<dependencies>
