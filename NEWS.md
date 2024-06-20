@@ -1,3 +1,33 @@
+# 0.109.0 #
+
+## Breaking changes
+
+None.
+
+## New features
+
+* Added support for Scikit-Learn 1.5.X.
+
+* Added support for `yeo-johnson` power transform method in [`PowerTransformer`](https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.PowerTransformer.html) class.
+
+This method is the default for this transformer.
+
+## Minor improvements and fixes
+
+* Fixed the initialization of Python expression evaluation environments.
+
+The environment is "pre-loaded" with a small number of Python built-in (`math`, `re`) and third-party (`numpy`, `pandas`, `scipy` and optionally `pcre`) module imports.
+
+All imports use canonical module names (eg. `import numpy`). There is **no** module name aliasing taking place (eg. `import numpy as np`).
+Therefore, the evaluatable Python expressions must also spell out canonical module names.
+
+See [SkLearn2PMML-421](https://github.com/jpmml/sklearn2pmml/issues/421)
+
+* Added support for `log` link function in `ExplainableBoostingRegressor` class.
+
+See [SkLearn2PMML-422](https://github.com/jpmml/sklearn2pmml/issues/422)
+
+
 # 0.108.0 #
 
 ## Breaking changes
