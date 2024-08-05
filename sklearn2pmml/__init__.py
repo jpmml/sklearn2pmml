@@ -237,7 +237,7 @@ def _is_supported(estimator):
 		return True
 	return isinstance(estimator, BaseEstimator)
 
-def sklearn2pmml(estimator, pmml_path, with_repr = False, java_home = None, java_opts = None, user_classpath = [], dump_flavour = "joblib", debug = False):
+def sklearn2pmml(estimator, pmml_path, with_repr = False, pmml_schema = None, java_home = None, java_opts = None, user_classpath = [], dump_flavour = "joblib", debug = False):
 	"""Converts a fitted estimator or pipeline object to PMML.
 
 	Parameters:
@@ -250,6 +250,9 @@ def sklearn2pmml(estimator, pmml_path, with_repr = False, java_home = None, java
 
 	with_repr: boolean, optional
 		If true, insert a string containing a printable representation of the estimator object into the PMML document.
+
+	pmml_schema: string
+		The PMML schema version for the PMML document.
 
 	java_home: string, optional
 		The path to Java installation directory.
@@ -313,6 +316,8 @@ def sklearn2pmml(estimator, pmml_path, with_repr = False, java_home = None, java
 		java_args.extend(["--pkl-input", pkl_path])
 		dumps.append(pkl_path)
 		java_args.extend(["--pmml-output", pmml_path])
+		if pmml_schema:
+			java_args.extend(["--pmml-schema", pmml_schema])
 		cmd = _make_java_command(java_home = java_home, java_opts = java_opts, java_args = java_args)
 		if debug:
 			print("Executing command:\n{0}".format(" ".join(cmd)))
