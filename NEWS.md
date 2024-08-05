@@ -1,3 +1,37 @@
+# 0.110.0 #
+
+## Breaking changes
+
+None.
+
+## New features
+
+* Added `pmml_schema` parameter to the `sklearn2pmml.sklearn2pmml(estimator, pmml_path)` utility function.
+
+This parameter allows downgrading PMML schema version from the default 4.4 version to any 3.X or 4.X version.
+However, the downgrade is "soft", meaning that it only succeeds if the in-memory PMML document is naturally compatible with the requested PMML schema version.
+The downgrade fails if there are structural changes needed.
+
+Exprting a pipeline into a PMML schema version 4.3 document:
+
+``` python
+from sklearn2pmml import sklearn2pmml
+
+pipeline = Pipeline([...])
+pipeline.fit(X, y)
+
+sklearn2pmml(pipeline, "Pipeline-v43.pmml", pmml_schema = "4.3")
+```
+
+See [SkLearn2PMML-423](https://github.com/jpmml/sklearn2pmml/issues/423#issuecomment-2264552688)
+
+Complex downgrades will be implemented based on customer needs.
+
+## Minor improvements and fixes
+
+None.
+
+
 # 0.109.0 #
 
 ## Breaking changes
