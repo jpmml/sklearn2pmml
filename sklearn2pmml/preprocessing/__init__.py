@@ -17,21 +17,12 @@ except ImportError:
 from sklearn.exceptions import NotFittedError
 from sklearn.pipeline import Pipeline
 from sklearn2pmml import _is_pandas_categorical, _is_proto_pandas_categorical
+from sklearn2pmml.preprocessing.regex import make_regex_engine
 from sklearn2pmml.util import cast, check_expression, check_predicate, dt_transform, ensure_def, eval_rows, is_1d, to_1d, to_expr_func, to_numpy, Reshaper
 
 import numpy
 import pandas
 import types
-import warnings
-
-def _regex_engine(pattern):
-	try:
-		import pcre
-		return pcre.compile(pattern)
-	except ImportError:
-		warnings.warn("Perl Compatible Regular Expressions (PCRE) library is not available, falling back to built-in Regular Expressions (RE) library. Transformation results might not be reproducible between Python and PMML environments when using more complex patterns", Warning)
-		import re
-		return re.compile(pattern)
 
 def _unique(X):
 	nonmissing_mask = pandas.notnull(X)
@@ -592,8 +583,8 @@ class MatchesTransformer(BaseEstimator, TransformerMixin):
 
 	def transform(self, X):
 		X1d = to_1d(X)
-		engine = _regex_engine(self.pattern)
-		func = lambda x: bool(engine.search(x))
+		regex_engine = make_regex_engine(self.pattern)
+		func = lambda x: bool(regex_engine.search(x))
 		Xt = eval_rows(X1d, func, shape = X.shape)
 		return Xt
 
@@ -610,8 +601,8 @@ class ReplaceTransformer(BaseEstimator, TransformerMixin):
 
 	def transform(self, X):
 		X1d = to_1d(X)
-		engine = _regex_engine(self.pattern)
-		func = lambda x: engine.sub(self.replacement, x)
+		regex_engine = make_regex_engine(self.pattern)
+		func = lambda x: regex_engine.sub(self.replacement, x)
 		Xt = eval_rows(X1d, func, shape = X.shape)
 		return Xt
 
