@@ -665,8 +665,11 @@ class SubstringTransformer(BaseEstimator, TransformerMixin):
 
 	def transform(self, X):
 		X1d = to_1d(X)
-		func = lambda x: x[self.begin:self.end]
-		Xt = eval_rows(X1d, func, shape = X.shape)
+		if hasattr(X1d, "str"):
+			Xt = X1d.str.slice(self.begin, self.end)
+		else:
+			func = lambda x: x[self.begin:self.end]
+			Xt = eval_rows(X1d, func, shape = X.shape)
 		return Xt
 
 class WordCountTransformer(BaseEstimator, TransformerMixin):

@@ -687,9 +687,9 @@ class StringNormalizerTest(TestCase):
 class SubstringTransformerTest(TestCase):
 
 	def test_transform(self):
-		X = numpy.asarray(["", "a", "aB", "aBc", "aBc9", "aBc9x"])
+		X = Series(["", "a", "aB", "aBc", "aBc9", "aBc9x"])
 		transformer = SubstringTransformer(1, 4)
-		self.assertEqual(["", "", "B", "Bc", "Bc9", "Bc9"], transformer.transform(X).tolist())
+		self.assertEqual(["", "", "B", "Bc", "Bc9", "Bc9"], _string_transform(self, transformer, X).tolist())
 
 class WordCountTransformerTest(TestCase):
 
