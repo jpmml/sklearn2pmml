@@ -648,14 +648,14 @@ class MatchesTransformerTest(TestCase):
 
 	def test_transform(self):
 		X = numpy.asarray(["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"])
-		transformer = MatchesTransformer("ar?y")
+		transformer = MatchesTransformer("ar?y", re_flavour = "re")
 		self.assertEqual([True, True, False, False, True, False, False, False, False, False, False, False], transformer.transform(X).tolist())
 
 class ReplaceTransformerTest(TestCase):
 
 	def test_transform(self):
 		X = numpy.asarray(["A", "B", "BA", "BB", "BAB", "ABBA", "BBBB"])
-		transformer = ReplaceTransformer("B+", "c")
+		transformer = ReplaceTransformer("B+", "c", re_flavour = "re")
 		self.assertEqual(["A", "c", "cA", "c", "cAc", "AcA", "c"], transformer.transform(X).tolist())
 		vectorizer = CountVectorizer()
 		pipeline = make_pipeline(transformer, vectorizer)

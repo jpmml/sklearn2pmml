@@ -574,8 +574,9 @@ class ConcatTransformer(BaseEstimator, TransformerMixin):
 class MatchesTransformer(BaseEstimator, TransformerMixin):
 	"""Match RE pattern."""
 
-	def __init__(self, pattern):
+	def __init__(self, pattern, re_flavour = None):
 		self.pattern = pattern
+		self.re_flavour = re_flavour
 
 	def fit(self, X, y = None):
 		to_1d(X)
@@ -583,7 +584,7 @@ class MatchesTransformer(BaseEstimator, TransformerMixin):
 
 	def transform(self, X):
 		X1d = to_1d(X)
-		regex_engine = make_regex_engine(self.pattern)
+		regex_engine = make_regex_engine(self.pattern, self.re_flavour)
 		func = lambda x: bool(regex_engine.matches(x))
 		Xt = eval_rows(X1d, func, shape = X.shape)
 		return Xt
@@ -591,9 +592,10 @@ class MatchesTransformer(BaseEstimator, TransformerMixin):
 class ReplaceTransformer(BaseEstimator, TransformerMixin):
 	"""Replace all RE pattern matches."""
 
-	def __init__(self, pattern, replacement):
+	def __init__(self, pattern, replacement, re_flavour = None):
 		self.pattern = pattern
 		self.replacement = replacement
+		self.re_flavour = re_flavour
 
 	def fit(self, X, y = None):
 		to_1d(X)
@@ -601,7 +603,7 @@ class ReplaceTransformer(BaseEstimator, TransformerMixin):
 
 	def transform(self, X):
 		X1d = to_1d(X)
-		regex_engine = make_regex_engine(self.pattern)
+		regex_engine = make_regex_engine(self.pattern, self.re_flavour)
 		func = lambda x: regex_engine.replace(self.replacement, x)
 		Xt = eval_rows(X1d, func, shape = X.shape)
 		return Xt
