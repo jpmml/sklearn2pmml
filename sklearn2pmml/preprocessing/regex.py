@@ -39,6 +39,25 @@ class PCREEngine(RegExEngine):
 	def replace(self, replacement, x):
 		return self.pattern_.sub(replacement, x)
 
+class PCRE2Engine(RegExEngine):
+
+	def __init__(self, pattern):
+		import pcre2
+
+		super(PCRE2Engine, self).__init__(pattern)
+		self.pattern_ = pcre2.compile(pattern)
+
+	def matches(self, x):
+		scanner = self.pattern_.scan(x)
+		try:
+			scanner.__next__()
+			return True
+		except StopIteration:
+			return False
+
+	def replace(self, replacement, x):
+		return self.pattern_.substitute(replacement, x)
+
 def make_regex_engine(pattern):
 	try:
 		return PCREEngine(pattern)
