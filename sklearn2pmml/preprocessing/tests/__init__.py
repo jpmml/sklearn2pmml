@@ -662,18 +662,27 @@ class ReplaceTransformerTest(TestCase):
 		Xt = pipeline.fit_transform(X)
 		self.assertEqual((7, 3), Xt.shape)
 
+def _string_transform(testcase, transformer, X):
+	testcase.assertIsInstance(X, Series)
+	X_ndarray = X.values
+	testcase.assertIsInstance(X_ndarray, numpy.ndarray)
+	Xt = transformer.transform(X)
+	Xt_ndarray = transformer.transform(X.values)
+	testcase.assertIsInstance(Xt, Series)
+	testcase.assertIsInstance(Xt_ndarray, numpy.ndarray)
+	testcase.assertEqual(Xt.tolist(), Xt_ndarray.tolist())
+	return Xt
+
 class StringNormalizerTest(TestCase):
 
 	def test_transform(self):
-		X = numpy.asarray([" One", " two ", "THRee "])
+		X = Series([" One", " two ", "THRee "])
 		normalizer = StringNormalizer(function = None)
-		self.assertEqual(["One", "two", "THRee"], normalizer.transform(X).tolist())
+		self.assertEqual(["One", "two", "THRee"], _string_transform(self, normalizer, X).tolist())
 		normalizer = StringNormalizer(function = "uppercase", trim_blanks = False)
-		self.assertEqual([" ONE", " TWO ", "THREE "], normalizer.transform(X).tolist())
+		self.assertEqual([" ONE", " TWO ", "THREE "], _string_transform(self, normalizer, X).tolist())
 		normalizer = StringNormalizer(function = "lowercase")
-		self.assertEqual(["one", "two", "three"], normalizer.transform(X).tolist())
-		X = X.reshape((3, 1))
-		self.assertEqual([["one"], ["two"], ["three"]], normalizer.transform(X).tolist())
+		self.assertEqual(["one", "two", "three"], _string_transform(self, normalizer, X).tolist())
 
 class SubstringTransformerTest(TestCase):
 

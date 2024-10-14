@@ -619,22 +619,33 @@ class StringNormalizer(BaseEstimator, TransformerMixin):
 		self.trim_blanks = trim_blanks
 
 	def fit(self, X, y = None):
+		to_1d(X)
 		return self
 
 	def transform(self, X):
-		Xt = cast(X, "U")
+		X1d = to_1d(X)
+		Xt = cast(X1d, "U")
 		# Transform
 		if self.function is None:
 			pass
 		elif self.function == "lower" or self.function == "lowercase":
-			Xt = numpy.char.lower(Xt)
+			if hasattr(Xt, "str"):
+				Xt = Xt.str.lower()
+			else:
+				Xt = numpy.char.lower(Xt)
 		elif self.function == "upper" or self.function == "uppercase":
-			Xt = numpy.char.upper(Xt)
+			if hasattr(Xt, "str"):
+				Xt = Xt.str.upper()
+			else:
+				Xt = numpy.char.upper(Xt)
 		else:
 			raise ValueError(self.function)
 		# Trim blanks
 		if self.trim_blanks:
-			Xt = numpy.char.strip(Xt)
+			if hasattr(Xt, "str"):
+				Xt = Xt.str.strip()
+			else:
+				Xt = numpy.char.strip(Xt)
 		return Xt
 
 class SubstringTransformer(BaseEstimator, TransformerMixin):
