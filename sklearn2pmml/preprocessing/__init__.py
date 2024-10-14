@@ -584,7 +584,7 @@ class MatchesTransformer(BaseEstimator, TransformerMixin):
 	def transform(self, X):
 		X1d = to_1d(X)
 		regex_engine = make_regex_engine(self.pattern)
-		func = lambda x: bool(regex_engine.search(x))
+		func = lambda x: bool(regex_engine.matches(x))
 		Xt = eval_rows(X1d, func, shape = X.shape)
 		return Xt
 
@@ -602,7 +602,7 @@ class ReplaceTransformer(BaseEstimator, TransformerMixin):
 	def transform(self, X):
 		X1d = to_1d(X)
 		regex_engine = make_regex_engine(self.pattern)
-		func = lambda x: regex_engine.sub(self.replacement, x)
+		func = lambda x: regex_engine.replace(self.replacement, x)
 		Xt = eval_rows(X1d, func, shape = X.shape)
 		return Xt
 
