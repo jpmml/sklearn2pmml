@@ -571,59 +571,75 @@ class ConcatTransformer(BaseEstimator, TransformerMixin):
 		Xt = eval_rows(X, func, to_numpy = True)
 		return Xt.reshape((-1, 1))
 
-class MatchesTransformer(BaseEstimator, TransformerMixin):
+class RegExTransformer(BaseEstimator, TransformerMixin):
+
+	def __init__(self, pattern, re_flavour):
+		super(RegExTransformer, self).__init__()
+		self.pattern = pattern
+		self.re_flavour = re_flavour
+
+	def _regex_func(self, regex_engine):
+		raise NotImplementedError()
+
+	def fit(self, X, y = None):
+		to_1d(X)
+		return self
+
+	def transform(self, X):
+		X1d = to_1d(X)
+		regex_engine = make_regex_engine(self.pattern, self.re_flavour)
+		func = self._regex_func(regex_engine)
+		Xt = eval_rows(X1d, func, shape = X.shape)
+		return Xt
+
+class MatchesTransformer(RegExTransformer):
 	"""Match RE pattern."""
 
 	def __init__(self, pattern, re_flavour = None):
-		self.pattern = pattern
-		self.re_flavour = re_flavour
+		super(MatchesTransformer, self).__init__(pattern = pattern, re_flavour = re_flavour)
 
-	def fit(self, X, y = None):
-		to_1d(X)
-		return self
+	def _regex_func(self, regex_engine):
+		def matches(x):
+			return bool(regex_engine.matches(x))
 
-	def transform(self, X):
-		X1d = to_1d(X)
-		regex_engine = make_regex_engine(self.pattern, self.re_flavour)
-		func = lambda x: bool(regex_engine.matches(x))
-		Xt = eval_rows(X1d, func, shape = X.shape)
-		return Xt
+		return matches
 
-class ReplaceTransformer(BaseEstimator, TransformerMixin):
+class ReplaceTransformer(RegExTransformer):
 	"""Replace all RE pattern matches."""
 
 	def __init__(self, pattern, replacement, re_flavour = None):
-		self.pattern = pattern
+		super(ReplaceTransformer, self).__init__(pattern = pattern, re_flavour = re_flavour)
 		self.replacement = replacement
-		self.re_flavour = re_flavour
+
+	def _regex_func(self, regex_engine):
+		def replace(x):
+			return regex_engine.replace(self.replacement, x)
+
+		return replace
+
+class StringTransformer(BaseEstimator, TransformerMixin):
+
+	def __init__(self):
+		pass
 
 	def fit(self, X, y = None):
 		to_1d(X)
 		return self
 
-	def transform(self, X):
-		X1d = to_1d(X)
-		regex_engine = make_regex_engine(self.pattern, self.re_flavour)
-		func = lambda x: regex_engine.replace(self.replacement, x)
-		Xt = eval_rows(X1d, func, shape = X.shape)
-		return Xt
-
-class StringNormalizer(BaseEstimator, TransformerMixin):
+class StringNormalizer(StringTransformer):
 	"""Normalize the case and surrounding whitespace."""
 
 	def __init__(self, function = None, trim_blanks = True):
+		super(StringNormalizer, self).__init__()
 		functions = ["lower", "lowercase", "upper", "uppercase"]
 		if (function is not None) and (function not in functions):
 			raise ValueError("Function {0} not in {1}".format(function, functions))
 		self.function = function
 		self.trim_blanks = trim_blanks
 
-	def fit(self, X, y = None):
-		to_1d(X)
-		return self
-
 	def transform(self, X):
 		X1d = to_1d(X)
+		# Convert from any data type to Unicode string data type
 		Xt = cast(X1d, "U")
 		# Transform
 		if self.function is None:
@@ -648,10 +664,11 @@ class StringNormalizer(BaseEstimator, TransformerMixin):
 				Xt = numpy.char.strip(Xt)
 		return Xt
 
-class SubstringTransformer(BaseEstimator, TransformerMixin):
+class SubstringTransformer(StringNormalizer):
 	"""Extract substring."""
 
 	def __init__(self, begin, end):
+		super(SubstringTransformer, self).__init__()
 		if begin < 0:
 			raise ValueError("Begin position {0} is negative".format(begin))
 		if end < begin:
@@ -659,23 +676,22 @@ class SubstringTransformer(BaseEstimator, TransformerMixin):
 		self.begin = begin
 		self.end = end
 
-	def fit(self, X, y = None):
-		to_1d(X)
-		return self
-
 	def transform(self, X):
 		X1d = to_1d(X)
-		if hasattr(X1d, "str"):
-			Xt = X1d.str.slice(self.begin, self.end)
+		# Convert from any data type to Unicode string data type
+		Xt = cast(X1d, "U")
+		if hasattr(Xt, "str"):
+			Xt = Xt.str.slice(self.begin, self.end)
 		else:
 			func = lambda x: x[self.begin:self.end]
-			Xt = eval_rows(X1d, func, shape = X.shape)
+			Xt = eval_rows(Xt, func, shape = X.shape)
 		return Xt
 
-class WordCountTransformer(BaseEstimator, TransformerMixin):
+class WordCountTransformer(StringTransformer):
 	"""Count tokens."""
 
 	def __init__(self, word_pattern = "\w+", non_word_pattern = "\W+"):
+		super(WordCountTransformer, self).__init__()
 		self.word_pattern = word_pattern
 		self.non_word_pattern = non_word_pattern
 		self.pipeline_ = Pipeline([
@@ -683,10 +699,6 @@ class WordCountTransformer(BaseEstimator, TransformerMixin):
 			("non_word_replacer", ReplaceTransformer(pattern = "({0})".format(non_word_pattern), replacement = "")),
 			("counter", ExpressionTransformer("len(X[0])", dtype = int))
 		])
-
-	def fit(self, X, y = None):
-		to_1d(X)
-		return self
 
 	def transform(self, X):
 		X1d = to_1d(X)

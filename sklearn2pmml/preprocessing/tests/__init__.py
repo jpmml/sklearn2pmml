@@ -27,6 +27,19 @@ def _list_equal(left, right):
 	right = DataFrame(right, dtype = object)
 	return left.equals(right)
 
+class TransformerTest(TestCase):
+
+	def _transform1d(self, transformer, X):
+		self.assertIsInstance(X, Series)
+		X_ndarray = X.values
+		self.assertIsInstance(X_ndarray, numpy.ndarray)
+		Xt = transformer.transform(X)
+		Xt_ndarray = transformer.transform(X.values)
+		self.assertIsInstance(Xt, Series)
+		self.assertIsInstance(Xt_ndarray, numpy.ndarray)
+		self.assertEqual(Xt.tolist(), Xt_ndarray.tolist())
+		return Xt
+
 class AggregatorTest(TestCase): 
 
 	def test_init(self):
@@ -644,60 +657,57 @@ class ConcatTransformerTest(TestCase):
 		transformer = ConcatTransformer("/")
 		self.assertEqual([["L/-1"], ["R/1"]], transformer.transform(X).tolist())
 
-class MatchesTransformerTest(TestCase):
+class MatchesTransformerTest(TransformerTest):
 
 	def test_transform(self):
-		X = numpy.asarray(["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"])
+		X = Series(["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"])
 		transformer = MatchesTransformer("ar?y", re_flavour = "re")
-		self.assertEqual([True, True, False, False, True, False, False, False, False, False, False, False], transformer.transform(X).tolist())
+		self.assertEqual([True, True, False, False, True, False, False, False, False, False, False, False], self._transform1d(transformer, X).tolist())
 
-class ReplaceTransformerTest(TestCase):
+class ReplaceTransformerTest(TransformerTest):
 
 	def test_transform(self):
-		X = numpy.asarray(["A", "B", "BA", "BB", "BAB", "ABBA", "BBBB"])
+		X = Series(["A", "B", "BA", "BB", "BAB", "ABBA", "BBBB"])
 		transformer = ReplaceTransformer("B+", "c", re_flavour = "re")
-		self.assertEqual(["A", "c", "cA", "c", "cAc", "AcA", "c"], transformer.transform(X).tolist())
-		vectorizer = CountVectorizer()
+		self.assertEqual(["A", "c", "cA", "c", "cAc", "AcA", "c"], self._transform1d(transformer, X).tolist())
+		vectorizer = CountVectorizer(token_pattern = r"\w+")
 		pipeline = make_pipeline(transformer, vectorizer)
 		Xt = pipeline.fit_transform(X)
-		self.assertEqual((7, 3), Xt.shape)
+		self.assertEqual((7, 5), Xt.shape)
 
-def _string_transform(testcase, transformer, X):
-	testcase.assertIsInstance(X, Series)
-	X_ndarray = X.values
-	testcase.assertIsInstance(X_ndarray, numpy.ndarray)
-	Xt = transformer.transform(X)
-	Xt_ndarray = transformer.transform(X.values)
-	testcase.assertIsInstance(Xt, Series)
-	testcase.assertIsInstance(Xt_ndarray, numpy.ndarray)
-	testcase.assertEqual(Xt.tolist(), Xt_ndarray.tolist())
-	return Xt
-
-class StringNormalizerTest(TestCase):
+class StringNormalizerTest(TransformerTest):
 
 	def test_transform(self):
 		X = Series([" One", " two ", "THRee "])
-		normalizer = StringNormalizer(function = None)
-		self.assertEqual(["One", "two", "THRee"], _string_transform(self, normalizer, X).tolist())
-		normalizer = StringNormalizer(function = "uppercase", trim_blanks = False)
-		self.assertEqual([" ONE", " TWO ", "THREE "], _string_transform(self, normalizer, X).tolist())
-		normalizer = StringNormalizer(function = "lowercase")
-		self.assertEqual(["one", "two", "three"], _string_transform(self, normalizer, X).tolist())
+		transformer = StringNormalizer(function = None)
+		self.assertEqual(["One", "two", "THRee"], self._transform1d(transformer, X).tolist())
+		transformer = StringNormalizer(function = "uppercase", trim_blanks = False)
+		self.assertEqual([" ONE", " TWO ", "THREE "], self._transform1d(transformer, X).tolist())
+		transformer = StringNormalizer(function = "lowercase")
+		self.assertEqual(["one", "two", "three"], self._transform1d(transformer, X).tolist())
+		vectorizer = CountVectorizer()
+		pipeline = make_pipeline(transformer, vectorizer)
+		Xt = pipeline.fit_transform(X)
+		self.assertEqual((3, 3), Xt.shape)
 
-class SubstringTransformerTest(TestCase):
+class SubstringTransformerTest(TransformerTest):
 
 	def test_transform(self):
 		X = Series(["", "a", "aB", "aBc", "aBc9", "aBc9x"])
 		transformer = SubstringTransformer(1, 4)
-		self.assertEqual(["", "", "B", "Bc", "Bc9", "Bc9"], _string_transform(self, transformer, X).tolist())
+		self.assertEqual(["", "", "B", "Bc", "Bc9", "Bc9"], self._transform1d(transformer, X).tolist())
+		vectorizer = CountVectorizer(token_pattern = r"\w+")
+		pipeline = make_pipeline(transformer, vectorizer)
+		Xt = pipeline.fit_transform(X)
+		self.assertEqual((6, 3), Xt.shape)
 
-class WordCountTransformerTest(TestCase):
+class WordCountTransformerTest(TransformerTest):
 
 	def test_transform(self):
-		transformer = WordCountTransformer()
 		X = Series(["", "Hellow World", "Happy New Year", "!?"])
+		transformer = WordCountTransformer()
 		self.assertEqual([[0], [2], [3], [0]], transformer.transform(X).tolist())
-		X = numpy.asarray([[""], ["Hello World"], ["Happy New Year"], ["!?"]])
+		X = X.values
 		self.assertEqual([[0], [2], [3], [0]], transformer.transform(X).tolist())
 
 class SelectFirstTransformerTest(TestCase):
