@@ -657,14 +657,14 @@ class MatchesTransformerTest(TransformerTest):
 
 	def test_transform(self):
 		X = Series(["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"])
-		transformer = MatchesTransformer("ar?y", re_flavour = "re")
+		transformer = MatchesTransformer("ar?y")
 		self.assertEqual([True, True, False, False, True, False, False, False, False, False, False, False], self._transform1d(transformer, X).tolist())
 
 class ReplaceTransformerTest(TransformerTest):
 
 	def test_transform(self):
 		X = Series(["A", "B", "BA", "BB", "BAB", "ABBA", "BBBB"])
-		transformer = ReplaceTransformer("B+", "c", re_flavour = "re")
+		transformer = ReplaceTransformer("B+", "c")
 		self.assertEqual(["A", "c", "cA", "c", "cAc", "AcA", "c"], self._transform1d(transformer, X).tolist())
 		vectorizer = CountVectorizer(token_pattern = r"\w+")
 		pipeline = make_pipeline(transformer, vectorizer)

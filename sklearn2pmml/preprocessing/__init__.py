@@ -573,6 +573,9 @@ class RegExTransformer(BaseEstimator, TransformerMixin):
 	def __init__(self, pattern, re_flavour):
 		super(RegExTransformer, self).__init__()
 		self.pattern = pattern
+		re_flavours = ["pcre", "pcre2", "re"]
+		if re_flavour not in re_flavours:
+			raise ValueError("Regular Expressions flavour {0} not in {1}".format(re_flavour, re_flavours))
 		self.re_flavour = re_flavour
 
 	def _regex_func(self, regex_engine):
@@ -592,7 +595,7 @@ class RegExTransformer(BaseEstimator, TransformerMixin):
 class MatchesTransformer(RegExTransformer):
 	"""Match RE pattern."""
 
-	def __init__(self, pattern, re_flavour = None):
+	def __init__(self, pattern, re_flavour = "re"):
 		super(MatchesTransformer, self).__init__(pattern = pattern, re_flavour = re_flavour)
 
 	def _regex_func(self, regex_engine):
@@ -604,7 +607,7 @@ class MatchesTransformer(RegExTransformer):
 class ReplaceTransformer(RegExTransformer):
 	"""Replace all RE pattern matches."""
 
-	def __init__(self, pattern, replacement, re_flavour = None):
+	def __init__(self, pattern, replacement, re_flavour = "re"):
 		super(ReplaceTransformer, self).__init__(pattern = pattern, re_flavour = re_flavour)
 		self.replacement = replacement
 
