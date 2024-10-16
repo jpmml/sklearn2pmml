@@ -443,9 +443,6 @@ class FilterLookupTransformer(LookupTransformer):
 	def _transform_dict(self):
 		return self.mapping
 
-	def fit(self, X, y = None):
-		return self
-
 	def transform(self, X):
 		X1d = to_1d(X)
 		transform_dict = self._transform_dict()

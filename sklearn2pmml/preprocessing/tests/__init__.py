@@ -413,21 +413,7 @@ class ExpressionTransformerTest(TestCase):
 		Xt = mapper.fit_transform(X)
 		self.assertEqual([[1], [1], [1]], Xt.tolist())
 
-class NumberFormatterTest(TestCase):
-
-	def test_transform(self):
-		transformer = NumberFormatter(pattern = "%3d")
-		self.assertTrue(hasattr(transformer, "pattern"))
-		X = Series([-1, 0, 1.5])
-		Xt = transformer.fit_transform(X)
-		self.assertIsInstance(Xt, Series)
-		self.assertEqual([" -1", "  0", "  1"], Xt.tolist())
-		X = numpy.asarray([[-1], [0], [1.5]])
-		Xt = transformer.fit_transform(X)
-		self.assertIsInstance(Xt, numpy.ndarray)
-		self.assertEqual([[" -1"], ["  0"], ["  1"]], Xt.tolist())
-
-class DateTimeFormatterTest(TestCase):
+class DateTimeFormatterTest(TransformerTest):
 
 	def test_transform(self):
 		transformer = DateTimeFormatter(pattern = "%m/%d/%y")
@@ -439,6 +425,18 @@ class DateTimeFormatterTest(TestCase):
 		Xt = mapper.fit_transform(X)
 		self.assertEqual([["08/20/04"], ["08/21/04"]], Xt.tolist())
 
+class NumberFormatterTest(TransformerTest):
+
+	def test_transform(self):
+		transformer = NumberFormatter(pattern = "%3d")
+		self.assertTrue(hasattr(transformer, "pattern"))
+		X = Series([-1, 0, 1.5])
+		self.assertEqual([" -1", "  0", "  1"], self._transform1d(transformer, X).tolist())
+		X = numpy.asarray([[-1], [0], [1.5]])
+		Xt = transformer.fit_transform(X)
+		self.assertIsInstance(Xt, numpy.ndarray)
+		self.assertEqual([[" -1"], ["  0"], ["  1"]], Xt.tolist())
+
 class IdentityTransformerTest(TestCase):
 
 	def test_transform(self):
@@ -448,7 +446,7 @@ class IdentityTransformerTest(TestCase):
 		self.assertIsInstance(Xt, DataFrame)
 		self.assertEqual([["A"], ["B"], ["C"]], Xt.values.tolist())
 
-class LookupTransformerTest(TestCase):
+class LookupTransformerTest(TransformerTest):
 
 	def test_transform_float(self):
 		mapping = {
@@ -467,9 +465,7 @@ class LookupTransformerTest(TestCase):
 			LookupTransformer(mapping, int(0))
 		transformer = LookupTransformer(mapping, float("NaN"))
 		X = Series([0.0, 45.0, 90.0])
-		self.assertEqual([math.cos(0.0), math.cos(45.0), math.cos(90.0)], transformer.transform(X).tolist())
-		X = numpy.array([[0.0], [90.0]])
-		self.assertEqual([[math.cos(0.0)], [math.cos(90.0)]], transformer.transform(X).tolist())
+		self.assertEqual([math.cos(0.0), math.cos(45.0), math.cos(90.0)], self._transform1d(transformer, X).tolist())
 		X = numpy.array([float("NaN"), 180.0])
 		self.assertTrue(_list_equal([[float("NaN")], [float("NaN")]], transformer.transform(X).tolist()))
 		transformer = LookupTransformer(mapping, -999.0)
@@ -487,13 +483,13 @@ class LookupTransformerTest(TestCase):
 		mapping.pop(None)
 		transformer = LookupTransformer(mapping, None)
 		X = Series(["one", "two", "three"])
-		self.assertEqual(["ein", "zwei", "drei"], transformer.transform(X).tolist())
+		self.assertEqual(["ein", "zwei", "drei"], self._transform1d(transformer, X).tolist())
 		X = numpy.array([[None], ["zero"]])
 		self.assertEqual([[None], [None]], transformer.transform(X).tolist())
 		transformer = LookupTransformer(mapping, "(other)")
 		self.assertEqual([[None], ["(other)"]], transformer.transform(X).tolist())
 
-class FilterLookupTransformerTest(TestCase):
+class FilterLookupTransformerTest(TransformerTest):
 
 	def test_transform_int(self):
 		mapping = {
@@ -505,8 +501,8 @@ class FilterLookupTransformerTest(TestCase):
 			FilterLookupTransformer(mapping)
 		mapping.pop(1)
 		transformer = FilterLookupTransformer(mapping)
-		X = numpy.array([[0], [-1], [3], [2]])
-		self.assertEqual([[1], [-1], [3], [1]], transformer.transform(X).tolist())
+		X = Series([0, -1, 3, 2])
+		self.assertEqual([1, -1, 3, 1], self._transform1d(transformer, X).tolist())
 
 	def test_transform_string(self):
 		mapping = {
@@ -517,8 +513,8 @@ class FilterLookupTransformerTest(TestCase):
 			FilterLookupTransformer(mapping)
 		mapping["blue"] = "green"
 		transformer = FilterLookupTransformer(mapping)
-		X = numpy.array([["red"], ["orange"], [None], ["green"], ["blue"]])
-		self.assertEqual([["red"], ["yellow"], [None], ["green"], ["green"]], transformer.transform(X).tolist())
+		X = Series(["red", "orange", None, "green", "blue"])
+		self.assertEqual(["red", "yellow", None, "green", "green"], self._transform1d(transformer, X).tolist())
 
 class MultiLookupTransformerTest(TestCase):
 
