@@ -19,6 +19,8 @@ class REEngine(RegExEngine):
 		super(REEngine, self).__init__(pattern)
 		self.pattern_ = re.compile(pattern)
 
+		warnings.warn("Using Python's built-in Regular Expressions (RE) engine instead of Perl Compatible Regular Expressions (PCRE) engine. Transformation results might not be reproducible between Python and PMML environments when using more complex patterns", Warning)
+
 	def matches(self, x):
 		return self.pattern_.search(x)
 
