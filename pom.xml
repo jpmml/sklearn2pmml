@@ -33,8 +33,8 @@
 	</issueManagement>
 
 	<properties>
-		<jpmml-sklearn.version>1.8.4</jpmml-sklearn.version>
-		<project.build.outputTimestamp>2024-08-05T17:25:00Z</project.build.outputTimestamp>
+		<jpmml-sklearn.version>1.8.5</jpmml-sklearn.version>
+		<project.build.outputTimestamp>2024-10-21T04:15:00Z</project.build.outputTimestamp>
 	</properties>
 
 	<dependencies>
@@ -73,6 +73,10 @@
 				<exclusion>
 					<groupId>org.jpmml</groupId>
 					<artifactId>pmml-converter-testing</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.google.errorprone</groupId>
+					<artifactId>error_prone_annotations</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
