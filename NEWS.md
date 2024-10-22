@@ -1,3 +1,58 @@
+# 0.111.0 #
+
+## Breaking changes
+
+* Assume `re` as the default regular expression (RE) flavour.
+
+* Removed support for multi-column mode from `StrngNormalizer` class.
+String transformations are unique and rare enough, so that they should be specified on a column-by-column basis.
+
+## New features
+
+* Added `MatchesTransformer.re_flavour` and `ReplaceTransformer.re_flavour` attributes.
+The Python environment allows to choose between different RE engines, which vary by RE syntax to a material degree.
+Unambiguous identification of the RE engine improves the portability of RE transformers between applications (train vs. deployment) and environments.
+
+Supported RE flavours:
+
+| RE flavour | Implementation |
+|---|---|
+| `pcre` | [PCRE](https://pypi.org/project/python-pcre/) package |
+| `pcre2`| [PCRE2](https://pypi.org/project/pcre2/) package |
+| `re` | Built-in `re` module |
+
+PMML only supports Perl Compatible Regular Expression (PCRE) syntax.
+
+It is recommended to use some PCRE-based RE engine on Python side as well to minimize the chance of "communication errors" between Python and PMML environments.
+
+* Added `sklearn2pmml.preprocessing.regex.make_regex_engine(pattern, re_flavour)` utility function.
+
+This utility function pre-compiles and wraps the specified RE pattern into a `sklearn2pmml.preprocessing.regex.RegExEngine` object.
+
+The `RegExEngine` class provides `matches(x)` and `replace(replacement, x)` methods, which correspond to PMML's [`matches`](https://dmg.org/pmml/v4-4-1/BuiltinFunctions.html#matches) and [`replace`](https://dmg.org/pmml/v4-4-1/BuiltinFunctions.html#replace) built-in functions, respectively.
+
+For example, unit testing a RE engine:
+
+``` python
+from sklearn2pmml.preprocessing.regex import make_regex_engine
+
+regex_engine = make_regex_engine("B+", re_flavour = "pcre2")
+
+assert regex_engine.matches("ABBA") == True
+assert regex_engine.replace("c", "ABBA") == "AcA"
+```
+
+See [SkLearn2PMML-228](https://github.com/jpmml/sklearn2pmml/issues/228)
+
+* Refactored `StringNormalizer.transform(X)` and `SubstringTransformer.transform(X)` methods to support Pandas' Series input and output.
+
+See [SkLearn2PMML-434](https://github.com/jpmml/sklearn2pmml/issues/434)
+
+## Minor improvements and fixes
+
+* Ensured compatibility wth Scikit-Learn 1.5.1 and 1.5.2.
+
+
 # 0.110.0 #
 
 ## Breaking changes
