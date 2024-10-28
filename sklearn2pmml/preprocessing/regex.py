@@ -11,22 +11,6 @@ class RegExEngine(object):
 	def replace(self, replacement, x):
 		raise NotImplementedError()
 
-class REEngine(RegExEngine):
-
-	def __init__(self, pattern):
-		import re
-
-		super(REEngine, self).__init__(pattern)
-		self.pattern_ = re.compile(pattern)
-
-		warnings.warn("Using Python's built-in Regular Expressions (RE) engine instead of Perl Compatible Regular Expressions (PCRE) engine. Transformation results might not be reproducible between Python and PMML environments when using more complex patterns", Warning)
-
-	def matches(self, x):
-		return self.pattern_.search(x)
-
-	def replace(self, replacement, x):
-		return self.pattern_.sub(replacement, x)
-
 class PCREEngine(RegExEngine):
 
 	def __init__(self, pattern):
@@ -59,6 +43,22 @@ class PCRE2Engine(RegExEngine):
 
 	def replace(self, replacement, x):
 		return self.pattern_.substitute(replacement, x)
+
+class REEngine(RegExEngine):
+
+	def __init__(self, pattern):
+		import re
+
+		super(REEngine, self).__init__(pattern)
+		self.pattern_ = re.compile(pattern)
+
+		warnings.warn("Using Python's built-in Regular Expressions (RE) engine instead of Perl Compatible Regular Expressions (PCRE) engine. Transformation results might not be reproducible between Python and PMML environments when using more complex patterns", Warning)
+
+	def matches(self, x):
+		return self.pattern_.search(x)
+
+	def replace(self, replacement, x):
+		return self.pattern_.sub(replacement, x)
 
 def make_regex_engine(pattern, re_flavour):
 	if re_flavour == "pcre":
