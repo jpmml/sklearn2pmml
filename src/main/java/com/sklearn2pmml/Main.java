@@ -19,33 +19,32 @@
 package com.sklearn2pmml;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.InputStream;
 import java.io.OutputStream;
-
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.sax.SAXTransformerFactory;
-import javax.xml.transform.sax.TransformerHandler;
-import javax.xml.transform.stream.StreamResult;
+import java.util.Collection;
+import java.util.List;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import com.google.common.collect.LinkedHashMultiset;
+import com.google.common.collect.Multiset;
+import com.sun.istack.logging.Logger;
 import org.dmg.pmml.PMML;
 import org.dmg.pmml.Version;
 import org.jpmml.converter.Application;
-import org.jpmml.model.SAXUtil;
+import org.jpmml.converter.SAXTransformerUtil;
+import org.jpmml.converter.VersionConverter;
+import org.jpmml.converter.visitors.VersionStandardizer;
+import org.jpmml.model.MarkupException;
 import org.jpmml.model.filters.ExportFilter;
 import org.jpmml.model.metro.MetroJAXBUtil;
-import org.jpmml.model.visitors.VersionInspector;
+import org.jpmml.model.visitors.VersionChecker;
 import org.jpmml.python.PickleUtil;
 import org.jpmml.python.Storage;
 import org.jpmml.python.StorageUtil;
 import org.jpmml.sklearn.Encodable;
 import org.jpmml.sklearn.EncodableUtil;
-import org.jpmml.sklearn.SkLearnException;
 import org.jpmml.sklearn.SkLearnUtil;
-import org.xml.sax.InputSource;
 
 public class Main extends Application {
 
@@ -98,21 +97,6 @@ public class Main extends Application {
 
 		PMML pmml = encodable.encodePMML();
 
-		if(this.version != null && this.version.compareTo(Version.PMML_4_4) < 0){
-			VersionInspector versionInspector = new VersionInspector();
-			versionInspector.applyTo(pmml);
-
-			Version minVersion = versionInspector.getMinimum();
-			if(minVersion.compareTo(this.version) > 0){
-				throw new SkLearnException("The generated markup requires PMML schema version " + minVersion.getVersion() + " or newer");
-			}
-
-			Version maxVersion = versionInspector.getMaximum();
-			if(maxVersion.compareTo(this.version) < 0){
-				throw new SkLearnException("The generated markup requires PMML schema version " + maxVersion.getVersion() + " or older");
-			}
-		} // End if
-
 		if(!this.outputFile.exists()){
 			File absoluteOutputFile = this.outputFile.getAbsoluteFile();
 
@@ -120,28 +104,38 @@ public class Main extends Application {
 			if(!outputDir.exists()){
 				outputDir.mkdirs();
 			}
-		}
+		} // End if
 
 		if(this.version != null && this.version.compareTo(Version.PMML_4_4) < 0){
+			VersionStandardizer versionStandardizer = new VersionStandardizer();
+			versionStandardizer.applyTo(pmml);
+
+			VersionChecker versionChecker = new VersionChecker(this.version);
+			versionChecker.applyTo(pmml);
+
+			List<MarkupException> exceptions = versionChecker.getExceptions();
+			if(!exceptions.isEmpty()){
+				Main.logger.severe("The PMML object has " + exceptions.size() + " incompatibilities with the requested PMML schema version:");
+
+				Multiset<String> groupedMessages = LinkedHashMultiset.create();
+
+				for(MarkupException exception : exceptions){
+					groupedMessages.add(exception.getMessage());
+				}
+
+				Collection<Multiset.Entry<String>> entries = groupedMessages.entrySet();
+				for(Multiset.Entry<String> entry : entries){
+					Main.logger.warning(entry.getElement() + (entry.getCount() > 1 ? " (" + entry.getCount() + " cases)": ""));
+				}
+			}
+
 			File tempFile = File.createTempFile("sklearn2pmml-", ".pmml");
 
 			try(OutputStream os = new FileOutputStream(tempFile)){
 				MetroJAXBUtil.marshalPMML(pmml, os);
 			}
 
-			SAXTransformerFactory transformerFactory = (SAXTransformerFactory)TransformerFactory.newInstance();
-
-			try(OutputStream os = new FileOutputStream(this.outputFile)){
-				TransformerHandler transformerHandler = transformerFactory.newTransformerHandler();
-				transformerHandler.setResult(new StreamResult(os));
-
-				ExportFilter exportFilter = new ExportFilter(SAXUtil.createXMLReader(), this.version);
-				exportFilter.setContentHandler(transformerHandler);
-
-				try(InputStream is = new FileInputStream(tempFile)){
-					exportFilter.parse(new InputSource(is));
-				}
-			}
+			SAXTransformerUtil.transform(tempFile, this.outputFile, new ExportFilter(this.version));
 
 			tempFile.delete();
 		} else
@@ -152,6 +146,8 @@ public class Main extends Application {
 			}
 		}
 	}
+
+	private static final Logger logger = Logger.getLogger(Main.class);
 
 	static {
 		SkLearnUtil.initOnce();
