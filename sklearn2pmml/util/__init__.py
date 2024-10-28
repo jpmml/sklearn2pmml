@@ -181,7 +181,7 @@ def to_expr(expr):
 	else:
 		raise TypeError()
 
-def to_expr_func(expr, modules = ["math", "re", "pcre", "numpy", "pandas", "scipy"]):
+def to_expr_func(expr, modules = ["math", "re", "pcre", "pcre2", "numpy", "pandas", "scipy"]):
 	env = dict()
 
 	if isinstance(expr, str):

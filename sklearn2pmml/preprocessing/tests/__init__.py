@@ -405,6 +405,13 @@ class ExpressionTransformerTest(TestCase):
 		X = numpy.array([[1.5], [0.0], [-3.0]])
 		self.assertEqual([[1], [0], [-1]], transformer.fit_transform(X).tolist())
 
+	def test_regex_transform(self):
+		transformer = ExpressionTransformer("pcre2.substitute(r'B+', r'c', X[0])")
+		X = numpy.array([["ABBA"]])
+		self.assertEqual([["AcA"]], transformer.fit_transform(X).tolist())
+		transformer = ExpressionTransformer("re.sub(r'B+', r'c', X[0])")
+		self.assertEqual([["AcA"]], transformer.fit_transform(X).tolist())
+
 	def test_sequence_transform(self):
 		X = DataFrame([[None], [1], [None]], columns = ["a"])
 		mapper = DataFrameMapper([
