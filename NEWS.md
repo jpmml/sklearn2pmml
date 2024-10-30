@@ -1,3 +1,40 @@
+# 0.111.1 #
+
+## Breaking changes
+
+* Refactored the downgrading of PMML schema versions.
+
+Previously, the downgrade failed if the generated PMML document was not strictly compatible with the requested PMML schema version. Also, the downgrade failed if there were any vendor extension attributes or elements around (ie. attributes prefixed with `x-` or elements prefixed with `X-`).
+
+The new behaviour is to allow the downgrade to run to completion, and display a grave warning (together with the full list of incompatibilities) in the end.
+
+See [SkLearn2PMML-433](https://github.com/jpmml/sklearn2pmml/issues/433#issuecomment-2442652934)
+
+* Updated logging configuration.
+
+The Java backend used to employ SLF4J's default logging configuration, which prints two lines per logging event - the first line being metadata, and the second line being the actual data.
+
+The new logging configuration prints one line per logging event.
+The decision was to drop the leading metadata line in order to de-clutter the console.
+
+## New features
+
+* Added support for using `pcre2` module functions in expressions and predicates.
+
+For example, performing text replacement operation on a string column:
+
+``` python
+from sklearn2pmml.preprocessing import ExpressionTransformer
+
+# Replace sequences of one or more 'B' characters with a single 'c' character
+transformer = ExpressionTransformer("pcre2.substitute('B+', 'c', X[0])")
+```
+
+## Minor improvements and fixes
+
+* Added support for single-quoted multiline strings in expressions and predictions.
+
+
 # 0.111.0 #
 
 ## Breaking changes
