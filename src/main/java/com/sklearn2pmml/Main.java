@@ -108,7 +108,7 @@ public class Main extends Application {
 			}
 		} // End if
 
-		if(this.version != null && this.version.compareTo(Version.PMML_4_4) < 0){
+		if(this.version != null && this.version.compareTo(Version.XPMML) < 0){
 			VersionStandardizer versionStandardizer = new VersionStandardizer();
 			versionStandardizer.applyTo(pmml);
 
