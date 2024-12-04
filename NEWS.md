@@ -1,3 +1,20 @@
+# 0.111.2 #
+
+## Breaking changes
+
+None.
+
+## New features
+
+* Separated version transformation into two parts - version standardization (from vendor-extended PMML 4.4 to standard PMML 4.4) and version downgrade (from PMML 4.4 to any earlier PMML version).
+
+## Minor improvements and fixes
+
+* Eliminated the use of temporary file(s) during version transformation.
+
+* Improved version downgrade.
+
+
 # 0.111.1 #
 
 ## Breaking changes
