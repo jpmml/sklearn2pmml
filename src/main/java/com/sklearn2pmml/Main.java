@@ -34,13 +34,13 @@ import com.sun.istack.logging.Logger;
 import org.dmg.pmml.PMML;
 import org.dmg.pmml.Version;
 import org.jpmml.converter.Application;
-import org.jpmml.converter.SAXTransformerUtil;
 import org.jpmml.converter.VersionConverter;
-import org.jpmml.converter.visitors.VersionStandardizer;
 import org.jpmml.model.MarkupException;
-import org.jpmml.model.filters.ExportFilter;
+import org.jpmml.model.PMMLOutputStream;
 import org.jpmml.model.metro.MetroJAXBUtil;
 import org.jpmml.model.visitors.VersionChecker;
+import org.jpmml.model.visitors.VersionDowngrader;
+import org.jpmml.model.visitors.VersionStandardizer;
 import org.jpmml.python.PickleUtil;
 import org.jpmml.python.Storage;
 import org.jpmml.python.StorageUtil;
@@ -112,6 +112,9 @@ public class Main extends Application {
 			VersionStandardizer versionStandardizer = new VersionStandardizer();
 			versionStandardizer.applyTo(pmml);
 
+			VersionDowngrader versionDowngrader = new VersionDowngrader(this.version);
+			versionDowngrader.applyTo(pmml);
+
 			VersionChecker versionChecker = new VersionChecker(this.version);
 			versionChecker.applyTo(pmml);
 
@@ -131,15 +134,9 @@ public class Main extends Application {
 				}
 			}
 
-			File tempFile = File.createTempFile("sklearn2pmml-", ".pmml");
-
-			try(OutputStream os = new FileOutputStream(tempFile)){
+			try(OutputStream os = new PMMLOutputStream(new FileOutputStream(this.outputFile), this.version)){
 				MetroJAXBUtil.marshalPMML(pmml, os);
 			}
-
-			SAXTransformerUtil.transform(tempFile, this.outputFile, new ExportFilter(this.version));
-
-			tempFile.delete();
 		} else
 
 		{
