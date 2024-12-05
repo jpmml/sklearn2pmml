@@ -1,4 +1,4 @@
-from distutils.core import setup
+from setuptools import find_packages, setup
 
 exec(open("sklearn2pmml/metadata.py").read())
 
@@ -20,27 +20,12 @@ setup(
 		"Topic :: Software Development",
 		"Topic :: Scientific/Engineering"
 	],
-	packages = [
-		"sklearn2pmml",
-		"sklearn2pmml.cross_reference",
-		"sklearn2pmml.decoration",
-		"sklearn2pmml.ensemble",
-		"sklearn2pmml.expression",
-		"sklearn2pmml.feature_extraction",
-		"sklearn2pmml.feature_extraction.text",
-		"sklearn2pmml.feature_selection",
-		"sklearn2pmml.metrics",
-		"sklearn2pmml.neural_network",
-		"sklearn2pmml.pipeline",
-		"sklearn2pmml.postprocessing",
-		"sklearn2pmml.preprocessing",
-		"sklearn2pmml.resources",
-		"sklearn2pmml.ruleset",
-		"sklearn2pmml.tree",
-		"sklearn2pmml.util"
-	],
+	packages = find_packages(exclude = ["*.tests"]),
 	package_data = {
 		"sklearn2pmml.resources" : ["classpath.txt", "*.jar"]
+	},
+	exclude_package_data = {
+		"" : ["README.md"],
 	},
 	install_requires = [
 		"dill>=0.3.4",
