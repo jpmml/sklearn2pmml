@@ -20,7 +20,7 @@ See the [NEWS.md](https://github.com/jpmml/sklearn2pmml/blob/master/NEWS.md#0111
 # Prerequisites #
 
 * Java 1.8 or newer. The Java executable must be available on system path.
-* Python 2.7, 3.4 or newer.
+* Python 3.9 or newer.
 
 # Installation #
 

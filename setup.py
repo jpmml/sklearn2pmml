@@ -27,6 +27,7 @@ setup(
 	exclude_package_data = {
 		"" : ["README.md"],
 	},
+	python_requires = ">=3.9",
 	install_requires = [
 		"dill>=0.3.4",
 		"joblib>=0.13.0",
