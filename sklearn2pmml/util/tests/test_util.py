@@ -79,9 +79,9 @@ class FunctionTest(TestCase):
 		self.assertEqual("builtins.str", fqn(obj))
 
 		obj = Dummy()
-		self.assertEqual("sklearn2pmml.util.tests.Dummy", fqn(Dummy))
+		self.assertEqual("test_util.Dummy", fqn(Dummy))
 		self.assertEqual("builtins.type", fqn(Dummy.__class__))
-		self.assertEqual("sklearn2pmml.util.tests.Dummy", fqn(obj))
+		self.assertEqual("test_util.Dummy", fqn(obj))
 
 	def test_inline_expr(self):
 		expr = "-1 if (X[0] < 0) else (1 if (X[0] > 0) else 0)"
