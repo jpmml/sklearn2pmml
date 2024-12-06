@@ -87,7 +87,7 @@ class StatsModelsOrdinalClassifierTest(TestCase):
 		self.assertTrue(hasattr(classifier, "results_"))
 		self.assertEqual(["c1", "c2", "c3", "c4", "c5"], classifier.classes_.tolist())
 		self.assertEqual((10, ), classifier.coef_.shape)
-		self.assertEquals(0, classifier.intercept_)
+		self.assertEqual(0, classifier.intercept_)
 		self.assertEqual((4, ), classifier.threshold_.shape)
 		classifier.remove_data()
 		pred = classifier.predict(diabetes_X)
