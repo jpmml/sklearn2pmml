@@ -1,7 +1,12 @@
-import pkg_resources
+from importlib.resources import path
 
 def _package_classpath():
 	jars = []
-	with open(pkg_resources.resource_filename("sklearn2pmml.resources", "classpath.txt")) as classpath:
-		jars = [pkg_resources.resource_filename("sklearn2pmml.resources", jar_name.strip()) for jar_name in classpath.readlines()]
+	with path("sklearn2pmml.resources", "classpath.txt") as classpath_file:
+		resources_dir = classpath_file.parent
+		with open(str(classpath_file), "r") as classpath:
+			jar_names = [line.strip("\n") for line in classpath.readlines()]
+			for jar_name in jar_names:
+				jar_file = resources_dir / jar_name
+				jars.append(str(jar_file))
 	return jars
