@@ -22,18 +22,18 @@ class MatcherTest(TestCase):
 		self.assertEqual(("one", ), matcher("one++"))
 		self.assertEqual(("one", "two", "three"), matcher("one two three"))
 		self.assertEqual(("one", "_t", "w", "o_", "three"), matcher(",one _t,w.o_ three."))
-		matcher = Matcher("\w{2,}")
+		matcher = Matcher(r"\w{2,}")
 		self.assertEqual(("one", "two", "three"), matcher("one two three"))
 		self.assertEqual(("one", "_t", "o_", "three"), matcher(",one _t,w.o_ three."))
-		matcher = Matcher("\w{4,}")
+		matcher = Matcher(r"\w{4,}")
 		self.assertEqual(("three", ), matcher("one two three"))
 		self.assertEqual(("three", ), matcher(",one _t,w.o_ three."))
 
 	def test_pickle(self):
-		matcher = Matcher("\S+")
-		self.assertEqual("\S+", matcher.word_re)
+		matcher = Matcher(r"\S+")
+		self.assertEqual(r"\S+", matcher.word_re)
 		matcher_clone = _clone(matcher)
-		self.assertEqual("\S+", matcher_clone.word_re)
+		self.assertEqual(r"\S+", matcher_clone.word_re)
 
 class SplitterTest(TestCase):
 
@@ -50,7 +50,7 @@ class SplitterTest(TestCase):
 		self.assertEqual(("one", "t,w.o", "three"), splitter(",one _t,w.o_ three."))
 
 	def test_pickle(self):
-		splitter = Splitter("\W")
-		self.assertEqual("\W", splitter.word_separator_re)
+		splitter = Splitter(r"\W")
+		self.assertEqual(r"\W", splitter.word_separator_re)
 		splitter_clone = _clone(splitter)
-		self.assertEqual("\W", splitter_clone.word_separator_re)
+		self.assertEqual(r"\W", splitter_clone.word_separator_re)

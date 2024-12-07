@@ -690,7 +690,7 @@ class SubstringTransformer(StringNormalizer):
 class WordCountTransformer(StringTransformer):
 	"""Count tokens."""
 
-	def __init__(self, word_pattern = "\w+", non_word_pattern = "\W+"):
+	def __init__(self, word_pattern = r"\w+", non_word_pattern = r"\W+"):
 		super(WordCountTransformer, self).__init__()
 		self.word_pattern = word_pattern
 		self.non_word_pattern = non_word_pattern
