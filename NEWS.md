@@ -1,3 +1,53 @@
+# 0.112.0 #
+
+## Breaking changes
+
+* Required Python 3.8 or newer.
+
+This requirement stems from underlying package requirements, most notably that of the NumPy package (`numpy>=1.24`).
+
+Portions of the SkLearn2PMML package may be usable with earlier Python versions.
+For example, the `sklearn2pmml.sklearn2pmml(estimator, pmml_path)` utlity function should work with any Python 2.7, 3.4 or newer version.
+
+* Migrated setup from `distutils` to `setuptools`.
+
+* Migrated unit tests from `nose` to `pytest`.
+
+Testing the (source checkout of-) package:
+
+```
+python -m pytest .
+```
+
+## New features
+
+* Added command-line interface to the `sklern2pmml.sklearn2pmml()` utility function.
+
+Sample usage:
+
+```
+python -m sklearn2pmml --input pipeline.pkl --output pipeline.pmml
+```
+
+Getting help:
+
+```
+python -m sklearn2pmml --help
+```
+
+* Added `sklearn2pmml` command-line application.
+
+Sample usage:
+
+```
+sklearn2pmml -i pipeline.pkl -o pipeline.pmml
+```
+
+## Minor improvements and fixes
+
+None.
+
+
 # 0.111.2 #
 
 ## Breaking changes

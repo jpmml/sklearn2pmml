@@ -9,13 +9,13 @@ This package is a thin Python wrapper around the [JPMML-SkLearn](https://github.
 
 # News and Updates #
 
-The current version is **0.111.2** (4 December, 2024):
+The current version is **0.112.0** (8 December, 2024):
 
 ```
-pip install sklearn2pmml==0.111.2
+pip install sklearn2pmml==0.112.0
 ```
 
-See the [NEWS.md](https://github.com/jpmml/sklearn2pmml/blob/master/NEWS.md#01112) file.
+See the [NEWS.md](https://github.com/jpmml/sklearn2pmml/blob/master/NEWS.md#01120) file.
 
 # Prerequisites #
 
@@ -38,14 +38,37 @@ pip install --upgrade git+https://github.com/jpmml/sklearn2pmml.git
 
 # Usage #
 
+## Command-line application ##
+
+The `sklearn2pmml` module is executable.
+The main application loads the estimator object from the Pickle file (`-i` or `--input`; supports `joblib`, `pickle` or `dill` variants), performs the conversion, and saves the result to a PMML file (`-o` or `--output`):
+
+```
+python -m sklearn2pmml --input pipeline.pkl --output pipeline.pmml
+```
+
+Getting help:
+
+```
+python -m sklearn2pmml --help
+```
+
+On some platforms, the [Pip](https://pypi.org/project/pip/) package installer additionally makes the main application available as a top-level command:
+
+```
+sklearn2pmml --input pipeline.pkl --output pipeline.pmml
+```
+
+## Library ##
+
 A typical workflow can be summarized as follows:
 
-1. Create a `PMMLPipeline` object, and populate it with pipeline steps as usual. Class `sklearn2pmml.pipeline.PMMLPipeline` extends class `sklearn.pipeline.Pipeline` with the following functionality:
+1. Create a `PMMLPipeline` object, and populate it with pipeline steps as usual. The `sklearn2pmml.pipeline.PMMLPipeline` class extends the `sklearn.pipeline.Pipeline` class with the following functionality:
   * If the `PMMLPipeline.fit(X, y)` method is invoked with `pandas.DataFrame` or `pandas.Series` object as an `X` argument, then its column names are used as feature names. Otherwise, feature names default to "x1", "x2", .., "x{number_of_features}".
   * If the `PMMLPipeline.fit(X, y)` method is invoked with `pandas.Series` object as an `y` argument, then its name is used as the target name (for supervised models). Otherwise, the target name defaults to "y".
 2. Fit and validate the pipeline as usual.
 3. Optionally, compute and embed verification data into the `PMMLPipeline` object by invoking `PMMLPipeline.verify(X)` method with a small but representative subset of training data.
-4. Convert the `PMMLPipeline` object to a PMML file in local filesystem by invoking utility method `sklearn2pmml.sklearn2pmml(pipeline, pmml_destination_path)`.
+4. Convert the `PMMLPipeline` object to a PMML file in local filesystem by invoking the `sklearn2pmml.sklearn2pmml(estimator, pmml_path)` utility method.
 
 Developing a simple decision tree model for the classification of iris species:
 
