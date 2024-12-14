@@ -1,8 +1,6 @@
 from argparse import ArgumentParser
 from sklearn2pmml import __version__, sklearn2pmml
 
-import joblib
-
 def main():
 	version = "SkLearn2PMML {}".format(__version__)
 
@@ -14,6 +12,4 @@ def main():
 
 	args = parser.parse_args()
 
-	estimator = joblib.load(args.input)
-
-	sklearn2pmml(estimator, pmml_path = args.output, pmml_schema = args.schema)
+	sklearn2pmml(args.input, pmml_path = args.output, pmml_schema = args.schema)
