@@ -1,3 +1,38 @@
+# 0.112.1 #
+
+## Breaking changes
+
+None.
+
+## New features
+
+* Added support for in-place file conversion.
+
+If the `estimator` parameter to the `sklearn2pmml.sklearn2pmml(estimator, pmml_path)` utility function is a path-like object (eg. `pathlib.Path` or string), then the Pytho side of the SkLearn2PMML package shall pass it forward to the Java side (without making any efforts to load or modify anything about it).
+
+This opens the door for the safe conversion of legacy and/or potentially harmful Pickle files.
+
+For example, attempting to convert an unknown origin and composition estimator file to a PMML document:
+
+```python
+from sklearn2pmml import sklearn2pmml
+
+sklearn2pmml("/path/to/estimator.pkl", "estimator.pmml")
+```
+
+## Minor improvements and fixes
+
+* Added `--version` command-line option.
+
+Checking the version of the currently installed command-line application:
+
+```
+sklearn2pmml --version
+```
+
+* Fixed the version standardization transformation.
+
+
 # 0.112.0 #
 
 ## Breaking changes
@@ -6,7 +41,7 @@
 
 This requirement stems from underlying package requirements, most notably that of the NumPy package (`numpy>=1.24`).
 
-Portions of the SkLearn2PMML package may be usable with earlier Python versions.
+Portions of the SkLearn2PMML package are still usable with earlier Python versions.
 For example, the `sklearn2pmml.sklearn2pmml(estimator, pmml_path)` utlity function should work with any Python 2.7, 3.4 or newer version.
 
 * Migrated setup from `distutils` to `setuptools`.
