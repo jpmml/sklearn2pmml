@@ -33,17 +33,11 @@
 	</issueManagement>
 
 	<properties>
-		<jpmml-sklearn.version>1.8.8</jpmml-sklearn.version>
+		<jpmml-sklearn.version>1.8.9</jpmml-sklearn.version>
 		<project.build.outputTimestamp>2024-12-15T12:45:00Z</project.build.outputTimestamp>
 	</properties>
 
 	<dependencies>
-		<dependency>
-			<groupId>org.jpmml</groupId>
-			<artifactId>pmml-converter</artifactId>
-			<version>1.5.10</version>
-		</dependency>
-
 		<dependency>
 			<groupId>org.jpmml</groupId>
 			<artifactId>pmml-sklearn</artifactId>
