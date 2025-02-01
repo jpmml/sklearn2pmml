@@ -1,4 +1,4 @@
-SkLearn2PMML [![Build Status](https://github.com/jpmml/sklearn2pmml/workflows/python/badge.svg)](https://github.com/jpmml/sklearn2pmml/actions?query=workflow%3A%22python%22)
+SkLearn2PMML [![Build Status](https://github.com/jpmml/sklearn2pmml/workflows/pytest/badge.svg)](https://github.com/jpmml/sklearn2pmml/actions?query=workflow%3A%22pytest%22)
 ============
 
 Python package for converting [Scikit-Learn](https://scikit-learn.org/) pipelines to PMML.
