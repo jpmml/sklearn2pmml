@@ -1,3 +1,3 @@
 __copyright__ = "Copyright (c) 2015 Villu Ruusmann"
 __license__ = "GNU Affero General Public License (AGPL) version 3.0"
-__version__ = "0.112.1.post1"
+__version__ = "0.113.0"
