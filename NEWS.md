@@ -1,3 +1,18 @@
+# 0.113.0 #
+
+## Breaking changes
+
+None.
+
+## New features
+
+None.
+
+## Minor improvements and fixes
+
+* Updated Java libraries.
+
+
 # 0.112.1 #
 
 ## Breaking changes

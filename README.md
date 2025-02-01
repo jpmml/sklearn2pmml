@@ -9,13 +9,13 @@ This package is a thin Python wrapper around the [JPMML-SkLearn](https://github.
 
 # News and Updates #
 
-The current version is **0.112.1** (14 December, 2024):
+The current version is **0.113.0** (1 February, 2025):
 
 ```
-pip install sklearn2pmml==0.112.1
+pip install sklearn2pmml==0.113.0
 ```
 
-See the [NEWS.md](https://github.com/jpmml/sklearn2pmml/blob/master/NEWS.md#01121) file.
+See the [NEWS.md](https://github.com/jpmml/sklearn2pmml/blob/master/NEWS.md#01130) file.
 
 # Prerequisites #
 
