@@ -1,4 +1,4 @@
-sklearn2pmml-1.0-SNAPSHOT.jar
+sklearn2pmml-1.1-SNAPSHOT.jar
 gson-2.11.0.jar
 guava-33.4.0-jre.jar
 h2o-genmodel-3.46.0.6.jar
