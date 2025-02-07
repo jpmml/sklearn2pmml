@@ -10,7 +10,7 @@ jakarta.activation-api-2.1.3.jar
 jakarta.xml.bind-api-4.0.2.jar
 jaxb-core-4.0.5.jar
 jaxb-runtime-4.0.5.jar
-jcommander-1.72.jar
+jcommander-1.82.jar
 pickle-1.5.jar
 pmml-converter-1.6.0.jar
 pmml-h2o-1.3.0.jar

@@ -53,19 +53,22 @@ public class Main extends Application {
 
 	@Parameter (
 		names = {"--pkl-pipeline-input", "--pkl-input"},
-		required = true
+		required = true,
+		order = 1
 	)
 	private File inputFile = null;
 
 	@Parameter (
 		names = {"--pmml-output"},
-		required = true
+		required = true,
+		order = 2
 	)
 	private File outputFile = null;
 
 	@Parameter (
 		names = {"--pmml-schema", "--schema"},
-		converter = VersionConverter.class
+		converter = VersionConverter.class,
+		order = 3
 	)
 	private Version version = null;
 
