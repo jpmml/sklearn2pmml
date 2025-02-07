@@ -35,9 +35,10 @@ import org.dmg.pmml.PMML;
 import org.dmg.pmml.Version;
 import org.jpmml.converter.Application;
 import org.jpmml.converter.VersionConverter;
+import org.jpmml.model.JAXBSerializer;
 import org.jpmml.model.MarkupException;
 import org.jpmml.model.PMMLOutputStream;
-import org.jpmml.model.metro.MetroJAXBUtil;
+import org.jpmml.model.metro.MetroJAXBSerializer;
 import org.jpmml.model.visitors.VersionChecker;
 import org.jpmml.model.visitors.VersionDowngrader;
 import org.jpmml.model.visitors.VersionStandardizer;
@@ -134,14 +135,18 @@ public class Main extends Application {
 				}
 			}
 
+			JAXBSerializer jaxbSerializer = new MetroJAXBSerializer();
+
 			try(OutputStream os = new PMMLOutputStream(new FileOutputStream(this.outputFile), this.version)){
-				MetroJAXBUtil.marshalPMML(pmml, os);
+				jaxbSerializer.serializePretty(pmml, os);
 			}
 		} else
 
 		{
+			JAXBSerializer jaxbSerializer = new MetroJAXBSerializer();
+
 			try(OutputStream os = new FileOutputStream(this.outputFile)){
-				MetroJAXBUtil.marshalPMML(pmml, os);
+				jaxbSerializer.serializePretty(pmml, os);
 			}
 		}
 	}
