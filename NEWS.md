@@ -1,3 +1,18 @@
+# 0.114.0 #
+
+## Breaking changes
+
+* Required Java 11 or newer.
+
+## New features
+
+None.
+
+## Minor improvements and fixes
+
+None.
+
+
 # 0.113.0 #
 
 ## Breaking changes
