@@ -105,7 +105,7 @@ class FunctionTest(TestCase):
 			expr_func([1.5])
 		expr_func = to_expr_func(expr, modules = ["pandas"])
 		self.assertFalse(expr_func([1.5]))
-		self.assertTrue(expr_func([numpy.NaN]))
+		self.assertTrue(expr_func([numpy.nan]))
 
 		expr = "mymodule.myfunc(X[0])"
 		expr = to_expr(expr)
@@ -122,7 +122,7 @@ class FunctionTest(TestCase):
 			expr_func([1.5])
 		expr_func = to_expr_func(expr, modules = ["pandas"])
 		self.assertFalse(expr_func([1.5]))
-		self.assertTrue(expr_func([numpy.NaN]))
+		self.assertTrue(expr_func([numpy.nan]))
 
 		expr = inspect.getsource(_signum)
 		expr = to_expr(expr)

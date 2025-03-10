@@ -199,7 +199,7 @@ class CategoricalDomainTest(TestCase):
 		self.assertIsInstance(Xt, numpy.ndarray)
 		self.assertFalse(hasattr(domain, "n_features_in_"))
 		self.assertEqual([-1, 1, 2], domain.data_values_.tolist())
-		self.assertEqual([-1, None, 1, 2, -1], Xt.tolist())
+		self.assertTrue(_list_equal([-1, float("NaN"), 1, 2, -1], Xt.tolist()))
 
 	def test_fit_string(self):
 		domain = clone(CategoricalDomain(with_data = False, with_statistics = False))

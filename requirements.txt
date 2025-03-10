@@ -5,10 +5,12 @@ joblib==1.4.2
 lightgbm==4.3.0
 lxml==5.3.1
 numpy==1.24.4; python_version == '3.8'
-numpy==1.26.4; python_version >= '3.9'
+numpy==2.0.2; python_version == '3.9'
+numpy==2.2.3; python_version >= '3.10'
 optbinning==0.19.0
 pcre2==0.4.0
-pandas==1.5.3
+pandas==2.0.3; python_version == '3.8'
+pandas==2.2.3; python_version >= '3.9'
 scikit-learn
 scikit-lego==0.7.4
 scikit-tree==0.7.2; python_version >= '3.9'
