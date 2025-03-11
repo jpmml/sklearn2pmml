@@ -34,15 +34,25 @@ class PCRE2Engine(RegExEngine):
 		self.pattern_ = pcre2.compile(pattern)
 
 	def matches(self, x):
-		scanner = self.pattern_.scan(x)
-		try:
-			scanner.__next__()
-			return True
-		except StopIteration:
-			return False
+		# PCRE2 0.4.0
+		if not hasattr(self.pattern_, "search"):
+			scanner = self.pattern_.scan(x)
+			try:
+				scanner.__next__()
+				return True
+			except StopIteration:
+				return False
+		# PCRE2 0.5.0+
+		else:
+			return self.pattern_.search(x)
 
 	def replace(self, replacement, x):
-		return self.pattern_.substitute(replacement, x)
+		# PCRE2 0.4.0
+		if not hasattr(self.pattern_, "sub"):
+			return self.pattern_.substitute(replacement, x)
+		# PCRE2 0.5.0+
+		else:
+			return self.pattern_.sub(replacement, x)
 
 class REEngine(RegExEngine):
 

@@ -20,6 +20,7 @@ import inspect
 import math
 import numpy
 import pandas
+import pcre2
 import scipy
 
 def _list_equal(left, right):
@@ -406,7 +407,13 @@ class ExpressionTransformerTest(TestCase):
 		self.assertEqual([[1], [0], [-1]], transformer.fit_transform(X).tolist())
 
 	def test_regex_transform(self):
-		transformer = ExpressionTransformer("pcre2.substitute(r'B+', r'c', X[0])")
+		from packaging.version import parse
+		# PCRE2 0.4.0
+		if parse(pcre2.__version__) == parse("0.4.0"):
+			transformer = ExpressionTransformer("pcre2.substitute(r'B+', r'c', X[0])")
+		# PCRE2 0.5.0+
+		else:
+			transformer = ExpressionTransformer("pcre2.sub(r'B+', r'c', X[0])")
 		X = numpy.array([["ABBA"]])
 		self.assertEqual([["AcA"]], transformer.fit_transform(X).tolist())
 		transformer = ExpressionTransformer("re.sub(r'B+', r'c', X[0])")
