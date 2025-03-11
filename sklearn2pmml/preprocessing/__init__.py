@@ -664,7 +664,7 @@ class StringNormalizer(StringTransformer):
 				Xt = numpy.char.strip(Xt)
 		return Xt
 
-class SubstringTransformer(StringNormalizer):
+class SubstringTransformer(StringTransformer):
 	"""Extract substring."""
 
 	def __init__(self, begin, end):
