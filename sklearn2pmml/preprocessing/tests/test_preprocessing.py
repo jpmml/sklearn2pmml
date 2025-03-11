@@ -7,7 +7,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import make_pipeline
 from sklearn.pipeline import FeatureUnion, Pipeline
-from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder
 from sklearn2pmml.decoration import Alias, DateDomain, DateTimeDomain
 from sklearn2pmml.preprocessing import Aggregator, CastTransformer, ConcatTransformer, CutTransformer, DataFrameConstructor, DateTimeFormatter, DaysSinceYearTransformer, ExpressionTransformer, FilterLookupTransformer, IdentityTransformer, LookupTransformer, MatchesTransformer, MultiLookupTransformer, NumberFormatter, PMMLLabelBinarizer, PMMLLabelEncoder, PowerFunctionTransformer, ReplaceTransformer, SecondsSinceMidnightTransformer, SecondsSinceYearTransformer, SelectFirstTransformer, SeriesConstructor, StringNormalizer, SubstringTransformer, WordCountTransformer
 from sklearn2pmml.preprocessing.h2o import H2OFrameConstructor, H2OFrameCreator
@@ -684,6 +684,9 @@ class ReplaceTransformerTest(TransformerTest):
 		pipeline = make_pipeline(transformer, vectorizer)
 		Xt = pipeline.fit_transform(X)
 		self.assertEqual((7, 5), Xt.shape)
+		X = X.values
+		Xt = pipeline.fit_transform(X)
+		self.assertEqual((7, 5), Xt.shape)
 
 class StringNormalizerTest(TransformerTest):
 
@@ -699,6 +702,14 @@ class StringNormalizerTest(TransformerTest):
 		pipeline = make_pipeline(transformer, vectorizer)
 		Xt = pipeline.fit_transform(X)
 		self.assertEqual((3, 3), Xt.shape)
+		X = X.values
+		Xt = pipeline.fit_transform(X)
+		self.assertEqual((3, 3), Xt.shape)
+
+		X = X.reshape((3, 1))
+		pipeline = make_pipeline(StringNormalizer(), OrdinalEncoder())
+		Xt = pipeline.fit_transform(X)
+		self.assertEqual((3, 1), Xt.shape)
 
 class SubstringTransformerTest(TransformerTest):
 
@@ -708,6 +719,9 @@ class SubstringTransformerTest(TransformerTest):
 		self.assertEqual(["", "", "B", "Bc", "Bc9", "Bc9"], self._transform1d(transformer, X).tolist())
 		vectorizer = CountVectorizer(token_pattern = r"\w+")
 		pipeline = make_pipeline(transformer, vectorizer)
+		Xt = pipeline.fit_transform(X)
+		self.assertEqual((6, 3), Xt.shape)
+		X = X.values
 		Xt = pipeline.fit_transform(X)
 		self.assertEqual((6, 3), Xt.shape)
 

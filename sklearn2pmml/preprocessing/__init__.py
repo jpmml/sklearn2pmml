@@ -662,7 +662,10 @@ class StringNormalizer(StringTransformer):
 				Xt = Xt.str.strip()
 			else:
 				Xt = numpy.char.strip(Xt)
-		return Xt
+		if hasattr(Xt, "str"):
+			return Xt
+		else:
+			return Xt.reshape(X.shape)
 
 class SubstringTransformer(StringTransformer):
 	"""Extract substring."""
