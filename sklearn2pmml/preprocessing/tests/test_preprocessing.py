@@ -9,7 +9,7 @@ from sklearn.pipeline import make_pipeline
 from sklearn.pipeline import FeatureUnion, Pipeline
 from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder
 from sklearn2pmml.decoration import Alias, DateDomain, DateTimeDomain
-from sklearn2pmml.preprocessing import Aggregator, CastTransformer, ConcatTransformer, CutTransformer, DataFrameConstructor, DateTimeFormatter, DaysSinceYearTransformer, ExpressionTransformer, FilterLookupTransformer, IdentityTransformer, LookupTransformer, MatchesTransformer, MultiLookupTransformer, NumberFormatter, PMMLLabelBinarizer, PMMLLabelEncoder, PowerFunctionTransformer, ReplaceTransformer, SecondsSinceMidnightTransformer, SecondsSinceYearTransformer, SelectFirstTransformer, SeriesConstructor, StringNormalizer, SubstringTransformer, WordCountTransformer
+from sklearn2pmml.preprocessing import Aggregator, CastTransformer, ConcatTransformer, CutTransformer, DataFrameConstructor, DateTimeFormatter, DaysSinceYearTransformer, ExpressionTransformer, FilterLookupTransformer, IdentityTransformer, LookupTransformer, MatchesTransformer, MultiLookupTransformer, NumberFormatter, PMMLLabelBinarizer, PMMLLabelEncoder, PowerFunctionTransformer, ReplaceTransformer, SecondsSinceMidnightTransformer, SecondsSinceYearTransformer, SelectFirstTransformer, SeriesConstructor, StringLengthTransformer, StringNormalizer, SubstringTransformer, WordCountTransformer
 from sklearn2pmml.preprocessing.h2o import H2OFrameConstructor, H2OFrameCreator
 from sklearn2pmml.preprocessing.lightgbm import make_lightgbm_column_transformer, make_lightgbm_dataframe_mapper
 from sklearn2pmml.preprocessing.xgboost import make_xgboost_column_transformer, make_xgboost_dataframe_mapper
@@ -687,6 +687,13 @@ class ReplaceTransformerTest(TransformerTest):
 		X = X.values
 		Xt = pipeline.fit_transform(X)
 		self.assertEqual((7, 5), Xt.shape)
+
+class StringLengthTransformerTest(TransformerTest):
+
+	def test_transform(self):
+		X = Series(["one", "two", "three", "four", "five"])
+		transformer = StringLengthTransformer()
+		self.assertEqual([3, 3, 5, 4, 4], self._transform1d(transformer, X).tolist())
 
 class StringNormalizerTest(TransformerTest):
 

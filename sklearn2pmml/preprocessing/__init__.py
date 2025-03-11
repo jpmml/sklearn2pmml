@@ -626,6 +626,21 @@ class StringTransformer(BaseEstimator, TransformerMixin):
 		to_1d(X)
 		return self
 
+class StringLengthTransformer(StringTransformer):
+
+	def __init__(self):
+		super(StringLengthTransformer, self).__init__()
+
+	def transform(self, X):
+		X1d = to_1d(X)
+		Xt = cast(X1d, "U")
+		if hasattr(Xt, "str"):
+			Xt = Xt.str.len()
+			return Xt
+		else:
+			Xt = numpy.char.str_len(Xt)
+			return Xt.reshape(X.shape)
+
 class StringNormalizer(StringTransformer):
 	"""Normalize the case and surrounding whitespace."""
 
@@ -700,7 +715,7 @@ class WordCountTransformer(StringTransformer):
 		self.pipeline_ = Pipeline([
 			("word_replacer", ReplaceTransformer(pattern = "({0})".format(word_pattern), replacement = "1")),
 			("non_word_replacer", ReplaceTransformer(pattern = "({0})".format(non_word_pattern), replacement = "")),
-			("counter", ExpressionTransformer("len(X[0])", dtype = int))
+			("counter", StringLengthTransformer())
 		])
 
 	def transform(self, X):
