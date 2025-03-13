@@ -1,3 +1,25 @@
+# 0.115.0 #
+
+## Breaking changes
+
+None.
+
+## New features
+
+* Added support for `sklearn2pmml.preprocessing.StringLengthTransformer` class.
+
+## Minor improvements and fixes
+
+* Fixed the `StringNormalizer.transform(X)` method to preserve the original data container shape.
+
+See [SkLearn2PMML-443](https://github.com/jpmml/sklearn2pmml/issues/443)
+
+* Ensured compatibility with PCRE2 0.5.0.
+
+The 0.5.X development branch underwent breaking changes, with the goal of migrating from proprietary API to Python RE-compatible API. For example, the compiler pattern object now provides both `search(x)` and `sub(replacement, x)` conveniene methods.
+
+* Ensured compatibility with BorutaPy 0.4.3, Category-Encoders 2.6.4, CHAID 5.4.2, Hyperopt-sklearn 1.0.3, Imbalanced-Learn 0.13.0, InterpretML 0.6.9, OptBinning 0.20.1, PyCaret 3.3.2, Scikit-Lego 0.9.4, Scikit-Tree 0.8.0 and TPOT 0.12.2.
+
 # 0.114.0 #
 
 ## Breaking changes
