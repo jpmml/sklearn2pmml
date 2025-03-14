@@ -6,6 +6,7 @@ except ImportError:
 from datetime import datetime
 from io import StringIO
 from pandas import CategoricalDtype, DataFrame, Series
+from pandas.core.window.rolling import Rolling
 from scipy.interpolate import BSpline
 from scipy.sparse import lil_matrix
 from sklearn.base import BaseEstimator, TransformerMixin
@@ -576,6 +577,47 @@ class LagTransformer(BaseEstimator, TransformerMixin):
 			Xt = numpy.roll(X, shift = self.n, axis = 0)
 			Xt[:self.n, :] = numpy.nan
 			return Xt
+
+class RollingFunctionTransformer(BaseEstimator, TransformerMixin):
+
+	def __init__(self, n):
+		if not isinstance(n, int):
+			raise TypeError("Window size {} is not an integer".format(n))
+		if n < 1:
+			raise ValueError("Window size {} is not a positive integer".format(n))
+		self.n = n
+
+	def _apply(self, X):
+		raise NotImplementedError()
+
+	def fit(self, X, y = None):
+		return self
+
+	def transform(self, X):
+		if hasattr(X, "rolling"):
+			return self._apply(X.rolling(window = self.n, min_periods = 1, closed = "left"))
+		else:
+			X = numpy.asarray(X)
+			if len(X.shape) != 2:
+				raise ValueError("Expected a 2D array, got {}D array".format(len(X.shape)))
+			Xt = numpy.full_like(X, fill_value = numpy.nan, dtype = float)
+			for i in range(0, X.shape[0]):
+				X_window = X[max(0, i - self.n):i]
+				if X_window.size == 0:
+					continue
+				Xt[i] = self._apply(X_window)
+			return Xt
+
+class RollingSumTransformer(RollingFunctionTransformer):
+
+	def __init__(self, n):
+		super(RollingSumTransformer, self).__init__(n = n)
+
+	def _apply(self, X):
+		if isinstance(X, Rolling):
+			return X.apply(numpy.nansum, raw = True)
+		else:
+			return numpy.nansum(X, axis = 0)
 
 class ConcatTransformer(BaseEstimator, TransformerMixin):
 	"""Concat data to string."""
