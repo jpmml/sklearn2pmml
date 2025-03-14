@@ -9,7 +9,7 @@ from sklearn.pipeline import make_pipeline
 from sklearn.pipeline import FeatureUnion, Pipeline
 from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder
 from sklearn2pmml.decoration import Alias, DateDomain, DateTimeDomain
-from sklearn2pmml.preprocessing import Aggregator, CastTransformer, ConcatTransformer, CutTransformer, DataFrameConstructor, DateTimeFormatter, DaysSinceYearTransformer, ExpressionTransformer, FilterLookupTransformer, IdentityTransformer, LookupTransformer, MatchesTransformer, MultiLookupTransformer, NumberFormatter, PMMLLabelBinarizer, PMMLLabelEncoder, PowerFunctionTransformer, ReplaceTransformer, SecondsSinceMidnightTransformer, SecondsSinceYearTransformer, SelectFirstTransformer, SeriesConstructor, StringLengthTransformer, StringNormalizer, SubstringTransformer, WordCountTransformer
+from sklearn2pmml.preprocessing import Aggregator, CastTransformer, ConcatTransformer, CutTransformer, DataFrameConstructor, DateTimeFormatter, DaysSinceYearTransformer, ExpressionTransformer, FilterLookupTransformer, IdentityTransformer, LagTransformer, LookupTransformer, MatchesTransformer, MultiLookupTransformer, NumberFormatter, PMMLLabelBinarizer, PMMLLabelEncoder, PowerFunctionTransformer, ReplaceTransformer, SecondsSinceMidnightTransformer, SecondsSinceYearTransformer, SelectFirstTransformer, SeriesConstructor, StringLengthTransformer, StringNormalizer, SubstringTransformer, WordCountTransformer
 from sklearn2pmml.preprocessing.h2o import H2OFrameConstructor, H2OFrameCreator
 from sklearn2pmml.preprocessing.lightgbm import make_lightgbm_column_transformer, make_lightgbm_dataframe_mapper
 from sklearn2pmml.preprocessing.xgboost import make_xgboost_column_transformer, make_xgboost_dataframe_mapper
@@ -656,6 +656,39 @@ class PowerFunctionTransformerTest(TestCase):
 		self.assertEqual([4, 1, 0, 1, 4], transformer.transform(X).tolist())
 		transformer = PowerFunctionTransformer(power = 3)
 		self.assertEqual([-8, -1, 0, 1, 8], transformer.transform(X).tolist())
+
+class LagTransformerTest(TestCase):
+
+	def test_transform(self):
+		X = Series([-1, 0, 1, 2, 3])
+		transformer = LagTransformer(n = 2)
+		Xt = transformer.transform(X)
+		self.assertIsInstance(Xt, Series)
+		self.assertNotEqual(X.dtype, Xt.dtype)
+		self.assertTrue(_list_equal([float("NaN"), float("NaN"), -1.0, 0.0, 1.0], Xt.tolist()))
+		X = Series(["-1", "0", "1", "2", "3"])
+		Xt = transformer.transform(X)
+		self.assertIsInstance(Xt, Series)
+		self.assertEqual(X.dtype, Xt.dtype)
+		self.assertEqual([None, None, "-1", "0", "1"], Xt.tolist())
+
+		X = DataFrame([[-1.0, -1, False, "-1"], [0.0, 0, False, "0"], [1.0, 1, True, "1"], [2.0, 2, True, "2"], [3.0, 3, True, "3"]], columns = ["float", "int", "bool", "str"])
+		Xt = transformer.transform(X)
+		self.assertIsInstance(Xt, DataFrame)
+		self.assertEqual(X.shape, Xt.shape)
+		self.assertTrue(_list_equal([float("NaN"), float("NaN"), -1.0, 0.0, 1.0], Xt["float"].tolist()))
+		self.assertTrue(_list_equal([float("NaN"), float("NaN"), -1.0, 0.0, 1.0], Xt["int"].tolist()))
+		self.assertTrue(_list_equal([float("NaN"), float("NaN"), False, False, True], Xt["bool"].tolist()))
+		self.assertTrue(_list_equal([float("NaN"), float("NaN"), "-1", "0", "1"], Xt["str"].tolist()))
+		X = X.values
+		Xt = transformer.transform(X)
+		self.assertIsInstance(Xt, numpy.ndarray)
+		self.assertEqual(X.shape, Xt.shape)
+		self.assertTrue(_list_equal([float("NaN"), float("NaN"), float("NaN"), float("NaN")], Xt[0, :].tolist()))
+		self.assertTrue(_list_equal([float("NaN"), float("NaN"), float("NaN"), float("NaN")], Xt[1, :].tolist()))
+		self.assertEqual([-1.0, -1, False, "-1"], Xt[2, :].tolist())
+		self.assertEqual([0.0, 0, False, "0"], Xt[3, :].tolist())
+		self.assertEqual([1.0, 1, True, "1"], Xt[4, :].tolist())
 
 class ConcatTransformerTest(TestCase):
 

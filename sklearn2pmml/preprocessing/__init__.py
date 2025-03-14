@@ -554,6 +554,29 @@ class PowerFunctionTransformer(BaseEstimator, TransformerMixin):
 	def transform(self, X):
 		return numpy.power(X, self.power)
 
+class LagTransformer(BaseEstimator, TransformerMixin):
+
+	def __init__(self, n):
+		if not isinstance(n, int):
+			raise TypeError("Shift {} is not an integer".format(n))
+		if n < 1:
+			raise ValueError("Shift {} is not a positive integer".format(n))
+		self.n = n
+
+	def fit(self, X, y = None):
+		return self
+
+	def transform(self, X):
+		if hasattr(X, "shift"):
+			return X.shift(self.n)
+		else:
+			X = numpy.asarray(X)
+			if len(X.shape) != 2:
+				raise ValueError("Expected a 2D array, got {}D array".format(len(X.shape)))
+			Xt = numpy.roll(X, shift = self.n, axis = 0)
+			Xt[:self.n, :] = numpy.nan
+			return Xt
+
 class ConcatTransformer(BaseEstimator, TransformerMixin):
 	"""Concat data to string."""
 
