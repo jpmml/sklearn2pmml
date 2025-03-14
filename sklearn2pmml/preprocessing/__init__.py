@@ -608,6 +608,17 @@ class RollingFunctionTransformer(BaseEstimator, TransformerMixin):
 				Xt[i] = self._apply(X_window)
 			return Xt
 
+class RollingAverageTransformer(RollingFunctionTransformer):
+
+	def __init__(self, n):
+		super(RollingAverageTransformer, self).__init__(n = n)
+
+	def _apply(self, X):
+		if isinstance(X, Rolling):
+			return X.apply(numpy.nanmean, raw = True)
+		else:
+			return numpy.nanmean(X, axis = 0)
+
 class RollingSumTransformer(RollingFunctionTransformer):
 
 	def __init__(self, n):
