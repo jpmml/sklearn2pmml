@@ -35,7 +35,7 @@ class TransformerTest(TestCase):
 		X_ndarray = X.values
 		self.assertIsInstance(X_ndarray, numpy.ndarray)
 		Xt = transformer.transform(X)
-		Xt_ndarray = transformer.transform(X.values)
+		Xt_ndarray = transformer.transform(X_ndarray)
 		self.assertIsInstance(Xt, Series)
 		self.assertIsInstance(Xt_ndarray, numpy.ndarray)
 		self.assertEqual(Xt.tolist(), Xt_ndarray.tolist())
@@ -690,69 +690,77 @@ class LagTransformerTest(TestCase):
 		self.assertEqual([0.0, 0, False, "0"], Xt[3, :].tolist())
 		self.assertEqual([1.0, 1, True, "1"], Xt[4, :].tolist())
 
-class RollingAverageTransformerTest(TestCase):
+class RollingFunctionTransformerTest(TestCase):
+
+	def _transform1d(self, transformer, X):
+		self.assertIsInstance(X, Series)
+		X_ndarray = X.values.reshape(-1, 1)
+		self.assertIsInstance(X_ndarray, numpy.ndarray)
+		Xt = transformer.transform(X)
+		Xt_ndarray = transformer.transform(X_ndarray).ravel()
+		self.assertIsInstance(Xt, Series)
+		self.assertIsInstance(Xt_ndarray, numpy.ndarray)
+		self.assertTrue(_list_equal(Xt.tolist(), Xt_ndarray.tolist()))
+		return Xt
+
+	def _transform2d(self, transformer, X):
+		self.assertIsInstance(X, DataFrame)
+		X_ndarray = X.values
+		self.assertIsInstance(X_ndarray, numpy.ndarray)
+		Xt = transformer.transform(X)
+		Xt_ndarray = transformer.transform(X_ndarray)
+		self.assertIsInstance(Xt, DataFrame)
+		self.assertIsInstance(Xt_ndarray, numpy.ndarray)
+		self.assertTrue(_list_equal(Xt.values.tolist(), Xt_ndarray.tolist()))
+		return Xt
+
+class RollingAverageTransformerTest(RollingFunctionTransformerTest):
 
 	def test_transform(self):
 		X = Series([1, 2, 3, 4, 5])
 		transformer = RollingAverageTransformer(n = 2)
-		Xt = transformer.transform(X)
-		self.assertIsInstance(Xt, Series)
+		Xt = self._transform1d(transformer, X)
 		self.assertTrue(_list_equal([float("NaN"), 1.0, 1.5, 2.5, 3.5], Xt.tolist()))
 
 		X = DataFrame([[1, -1], [2, numpy.nan], [3, 1], [4, 2], [5, 3]])
-		Xt = transformer.transform(X)
-		self.assertIsInstance(Xt, DataFrame)
-		self.assertTrue(_list_equal([None, 1.0, 1.5, 2.5, 3.5], Xt.iloc[:, 0].tolist()))
-		self.assertTrue(_list_equal([None, -1, -1, 1, 1.5], Xt.iloc[:, 1].tolist()))
-		X = X.values
-		Xt = transformer.transform(X)
-		self.assertIsInstance(Xt, numpy.ndarray)
-		self.assertTrue(_list_equal([[None, None], [1, -1], [1.5, -1], [2.5, 1], [3.5, 1.5]], Xt.tolist()))
+		Xt = self._transform2d(transformer, X)
+		self.assertTrue(_list_equal([[None, None], [1, -1], [1.5, -1], [2.5, 1], [3.5, 1.5]], Xt.values.tolist()))
 
-class RollingMaxTransformerTest(TestCase):
+class RollingMaxTransformerTest(RollingFunctionTransformerTest):
 
 	def test_transform(self):
 		X = Series([1, 2, 3, 4, 5])
 		transformer = RollingMaxTransformer(n = 3)
-		Xt = transformer.transform(X)
-		self.assertIsInstance(Xt, Series)
-		self.assertTrue(_list_equal([float("NaN"), 1, 2, 3, 4], Xt.tolist()))
-		X = X.values.reshape(-1, 1)
-		Xt = transformer.transform(X)
-		self.assertIsInstance(Xt, numpy.ndarray)
+		Xt = self._transform1d(transformer, X)
 		self.assertTrue(_list_equal([float("NaN"), 1, 2, 3, 4], Xt.tolist()))
 
-class RollingMinTransformerTest(TestCase):
+		X = DataFrame([[1, -1], [2, numpy.nan], [3, 1], [4, 2], [5, 3]])
+		Xt = self._transform2d(transformer, X)
+		self.assertTrue(_list_equal([[None, None], [1, -1], [2, -1], [3, 1], [4, 2]], Xt.values.tolist()))
+
+class RollingMinTransformerTest(RollingFunctionTransformerTest):
 
 	def test_transform(self):
 		X = Series([1, 2, 3, 4, 5])
 		transformer = RollingMinTransformer(n = 3)
-		Xt = transformer.transform(X)
-		self.assertIsInstance(Xt, Series)
-		self.assertTrue(_list_equal([float("NaN"), 1, 1, 1, 2], Xt.tolist()))
-		X = X.values.reshape(-1, 1)
-		Xt = transformer.transform(X)
-		self.assertIsInstance(Xt, numpy.ndarray)
+		Xt = self._transform1d(transformer, X)
 		self.assertTrue(_list_equal([float("NaN"), 1, 1, 1, 2], Xt.tolist()))
 
-class RollingSumTransformerTest(TestCase):
+		X = DataFrame([[1, -1], [2, numpy.nan], [3, 1], [4, 2], [5, 3]])
+		Xt = self._transform2d(transformer, X)
+		self.assertTrue(_list_equal([[None, None], [1, -1], [1, -1], [1, -1], [2, 1]], Xt.values.tolist()))
+
+class RollingSumTransformerTest(RollingFunctionTransformerTest):
 
 	def test_transform(self):
 		X = Series([1, 2, 3, 4, 5])
 		transformer = RollingSumTransformer(n = 3)
-		Xt = transformer.transform(X)
-		self.assertIsInstance(Xt, Series)
+		Xt = self._transform1d(transformer, X)
 		self.assertTrue(_list_equal([float("NaN"), 1.0, 3.0, 6.0, 9.0], Xt.tolist()))
 
 		X = DataFrame([[1, -1], [2, numpy.nan], [3, 1], [4, 2], [5, 3]])
-		Xt = transformer.transform(X)
-		self.assertIsInstance(Xt, DataFrame)
-		self.assertTrue(_list_equal([None, 1, 3, 6, 9], Xt.iloc[:, 0].tolist()))
-		self.assertTrue(_list_equal([None, -1, -1, 0, 3], Xt.iloc[:, 1].tolist()))
-		X = X.values
-		Xt = transformer.transform(X)
-		self.assertIsInstance(Xt, numpy.ndarray)
-		self.assertTrue(_list_equal([[float("NaN"), float("NaN")], [1, -1], [3, -1], [6, 0], [9, 3]], Xt.tolist()))
+		Xt = self._transform2d(transformer, X)
+		self.assertTrue(_list_equal([[float("NaN"), float("NaN")], [1, -1], [3, -1], [6, 0], [9, 3]], Xt.values.tolist()))
 
 class ConcatTransformerTest(TestCase):
 
