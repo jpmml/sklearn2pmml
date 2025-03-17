@@ -28,11 +28,25 @@ def _unique(X):
 	nonmissing_mask = pandas.notnull(X)
 	return numpy.unique(X[nonmissing_mask])
 
+def _aggregate_fun(function):
+	if function == "avg" or function == "mean":
+		return numpy.nanmean
+	elif function == "max":
+		return numpy.nanmax
+	elif function == "min":
+		return numpy.nanmin
+	elif function == "product" or function == "prod":
+		return numpy.nanprod
+	elif function == "sum":
+		return numpy.nansum
+	else:
+		raise ValueError(function)
+
 class Aggregator(BaseEstimator, TransformerMixin):
 	"""Aggregate continuous data."""
 
 	def __init__(self, function):
-		functions = ["min", "max", "sum", "prod", "product", "mean", "avg"]
+		functions = ["avg", "min", "max", "mean", "prod", "product", "sum"]
 		if function not in functions:
 			raise ValueError("Function {0} not in {1}".format(function, functions))
 		self.function = function
@@ -41,18 +55,8 @@ class Aggregator(BaseEstimator, TransformerMixin):
 		return self
 
 	def transform(self, X):
-		if self.function == "min":
-			Xt = numpy.nanmin(X, axis = 1) 
-		elif self.function == "max":
-			Xt = numpy.nanmax(X, axis = 1)
-		elif self.function == "sum":
-			Xt = numpy.nansum(X, axis = 1)
-		elif self.function == "prod" or self.function == "product":
-			Xt = numpy.nanprod(X, axis = 1)
-		elif self.function == "mean" or self.function == "avg":
-			Xt = numpy.nanmean(X, axis = 1)
-		else:
-			raise ValueError(self.function)
+		fun = _aggregate_fun(self.function)
+		Xt = fun(X, axis = 1)
 		return Xt.reshape((-1, 1))
 
 class BSplineTransformer(BaseEstimator, TransformerMixin):
@@ -579,21 +583,22 @@ class LagTransformer(BaseEstimator, TransformerMixin):
 
 class RollingFunctionTransformer(BaseEstimator, TransformerMixin):
 
-	def __init__(self, n):
+	def __init__(self, function, n):
+		functions = ["avg", "min", "max", "mean", "prod", "product", "sum"]
+		if function not in functions:
+			raise ValueError("Function {0} not in {1}".format(function, functions))
+		self.function = function
 		if not isinstance(n, int):
 			raise TypeError("Window size {} is not an integer".format(n))
 		if n < 1:
 			raise ValueError("Window size {} is not a positive integer".format(n))
 		self.n = n
 
-	def _fun(self):
-		raise NotImplementedError()
-
 	def fit(self, X, y = None):
 		return self
 
 	def transform(self, X):
-		fun = self._fun()
+		fun = _aggregate_fun(self.function)
 		if hasattr(X, "rolling"):
 			X_windows = X.rolling(window = self.n, min_periods = 1, closed = "left")
 			return X_windows.apply(fun, raw = True)
@@ -608,46 +613,6 @@ class RollingFunctionTransformer(BaseEstimator, TransformerMixin):
 					continue
 				Xt[i] = fun(X_window, axis = 0)
 			return Xt
-
-class RollingAverageTransformer(RollingFunctionTransformer):
-
-	def __init__(self, n):
-		super(RollingAverageTransformer, self).__init__(n = n)
-
-	def _fun(self):
-		return numpy.nanmean
-
-class RollingMaxTransformer(RollingFunctionTransformer):
-
-	def __init__(self, n):
-		super(RollingMaxTransformer, self).__init__(n = n)
-
-	def _fun(self):
-		return numpy.nanmax
-
-class RollingMinTransformer(RollingFunctionTransformer):
-
-	def __init__(self, n):
-		super(RollingMinTransformer, self).__init__(n = n)
-
-	def _fun(self):
-		return numpy.nanmin
-
-class RollingProductTransformer(RollingFunctionTransformer):
-
-	def __init__(self, n):
-		super(RollingProductTransformer, self).__init__(n = n)
-
-	def _fun(self):
-		return numpy.nanprod
-
-class RollingSumTransformer(RollingFunctionTransformer):
-
-	def __init__(self, n):
-		super(RollingSumTransformer, self).__init__(n = n)
-
-	def _fun(self):
-		return numpy.nansum
 
 class ConcatTransformer(BaseEstimator, TransformerMixin):
 	"""Concat data to string."""

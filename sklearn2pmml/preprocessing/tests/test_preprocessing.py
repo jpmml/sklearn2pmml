@@ -9,7 +9,7 @@ from sklearn.pipeline import make_pipeline
 from sklearn.pipeline import FeatureUnion, Pipeline
 from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder
 from sklearn2pmml.decoration import Alias, DateDomain, DateTimeDomain
-from sklearn2pmml.preprocessing import Aggregator, CastTransformer, ConcatTransformer, CutTransformer, DataFrameConstructor, DateTimeFormatter, DaysSinceYearTransformer, ExpressionTransformer, FilterLookupTransformer, IdentityTransformer, LagTransformer, LookupTransformer, MatchesTransformer, MultiLookupTransformer, NumberFormatter, PMMLLabelBinarizer, PMMLLabelEncoder, PowerFunctionTransformer, ReplaceTransformer, RollingAverageTransformer, RollingMaxTransformer, RollingMinTransformer, RollingProductTransformer, RollingSumTransformer, SecondsSinceMidnightTransformer, SecondsSinceYearTransformer, SelectFirstTransformer, SeriesConstructor, StringLengthTransformer, StringNormalizer, SubstringTransformer, WordCountTransformer
+from sklearn2pmml.preprocessing import Aggregator, CastTransformer, ConcatTransformer, CutTransformer, DataFrameConstructor, DateTimeFormatter, DaysSinceYearTransformer, ExpressionTransformer, FilterLookupTransformer, IdentityTransformer, LagTransformer, LookupTransformer, MatchesTransformer, MultiLookupTransformer, NumberFormatter, PMMLLabelBinarizer, PMMLLabelEncoder, PowerFunctionTransformer, ReplaceTransformer, RollingFunctionTransformer, SecondsSinceMidnightTransformer, SecondsSinceYearTransformer, SelectFirstTransformer, SeriesConstructor, StringLengthTransformer, StringNormalizer, SubstringTransformer, WordCountTransformer
 from sklearn2pmml.preprocessing.h2o import H2OFrameConstructor, H2OFrameCreator
 from sklearn2pmml.preprocessing.lightgbm import make_lightgbm_column_transformer, make_lightgbm_dataframe_mapper
 from sklearn2pmml.preprocessing.xgboost import make_xgboost_column_transformer, make_xgboost_dataframe_mapper
@@ -47,6 +47,12 @@ class AggregatorTest(TestCase):
 		with self.assertRaises(ValueError):
 			Aggregator(None)
 
+	def test_avg_float(self):
+		X = numpy.asarray([1.0, float("NaN"), 2.0])
+		aggregator = Aggregator(function = "avg")
+		X = X.reshape((-1, 3))
+		self.assertEqual(1.5, aggregator.transform(X))
+
 	def test_min_int(self):
 		X = numpy.asarray([1, 0, 2, 3])
 		aggregator = Aggregator(function = "min")
@@ -69,6 +75,14 @@ class AggregatorTest(TestCase):
 		X = X.reshape((6, -1))
 		self.assertTrue(_list_equal([[1.0], [0.5], [2.0], [3.0], [float("NaN")], [1.5]], aggregator.transform(X).tolist()))
 
+	def test_product_float(self):
+		X = numpy.asarray([1.0, float("NaN"), 2.0, 4.0])
+		aggregator = Aggregator(function = "product")
+		X = X.reshape((-1, 4))
+		self.assertEqual(8.0, aggregator.transform(X))
+		X = X.reshape((2, 2))
+		self.assertEqual([[1.0], [8.0]], aggregator.transform(X).tolist())
+
 	def test_sum_float(self):
 		X = numpy.asarray([1.0, float("NaN"), 2.0, 1.0])
 		aggregator = Aggregator(function = "sum")
@@ -76,20 +90,6 @@ class AggregatorTest(TestCase):
 		self.assertEqual(4.0, aggregator.transform(X))
 		X = X.reshape((2, 2))
 		self.assertEqual([[1.0], [3.0]], aggregator.transform(X).tolist())
-
-	def test_prod_float(self):
-		X = numpy.asarray([1.0, float("NaN"), 2.0, 4.0])
-		aggregator = Aggregator(function = "prod")
-		X = X.reshape((-1, 4))
-		self.assertEqual(8.0, aggregator.transform(X))
-		X = X.reshape((2, 2))
-		self.assertEqual([[1.0], [8.0]], aggregator.transform(X).tolist())
-
-	def test_mean_float(self):
-		X = numpy.asarray([1.0, float("NaN"), 2.0])
-		aggregator = Aggregator(function = "mean")
-		X = X.reshape((-1, 3))
-		self.assertEqual(1.5, aggregator.transform(X))
 
 class CastTransformerTest(TestCase):
 
@@ -714,11 +714,9 @@ class RollingFunctionTransformerTest(TestCase):
 		self.assertTrue(_list_equal(Xt.values.tolist(), Xt_ndarray.tolist()))
 		return Xt
 
-class RollingAverageTransformerTest(RollingFunctionTransformerTest):
-
-	def test_transform(self):
+	def test_avg(self):
 		X = Series([1, 2, 3, 4, 5])
-		transformer = RollingAverageTransformer(n = 2)
+		transformer = RollingFunctionTransformer(function = "avg", n = 2)
 		Xt = self._transform1d(transformer, X)
 		self.assertTrue(_list_equal([float("NaN"), 1.0, 1.5, 2.5, 3.5], Xt.tolist()))
 
@@ -726,11 +724,9 @@ class RollingAverageTransformerTest(RollingFunctionTransformerTest):
 		Xt = self._transform2d(transformer, X)
 		self.assertTrue(_list_equal([[None, None], [1, -1], [1.5, -1], [2.5, 1], [3.5, 1.5]], Xt.values.tolist()))
 
-class RollingMaxTransformerTest(RollingFunctionTransformerTest):
-
-	def test_transform(self):
+	def test_max(self):
 		X = Series([1, 2, 3, 4, 5])
-		transformer = RollingMaxTransformer(n = 3)
+		transformer = RollingFunctionTransformer(function = "max", n = 3)
 		Xt = self._transform1d(transformer, X)
 		self.assertTrue(_list_equal([float("NaN"), 1, 2, 3, 4], Xt.tolist()))
 
@@ -738,11 +734,9 @@ class RollingMaxTransformerTest(RollingFunctionTransformerTest):
 		Xt = self._transform2d(transformer, X)
 		self.assertTrue(_list_equal([[None, None], [1, -1], [2, -1], [3, 1], [4, 2]], Xt.values.tolist()))
 
-class RollingMinTransformerTest(RollingFunctionTransformerTest):
-
-	def test_transform(self):
+	def test_min(self):
 		X = Series([1, 2, 3, 4, 5])
-		transformer = RollingMinTransformer(n = 3)
+		transformer = RollingFunctionTransformer(function = "min", n = 3)
 		Xt = self._transform1d(transformer, X)
 		self.assertTrue(_list_equal([float("NaN"), 1, 1, 1, 2], Xt.tolist()))
 
@@ -750,11 +744,9 @@ class RollingMinTransformerTest(RollingFunctionTransformerTest):
 		Xt = self._transform2d(transformer, X)
 		self.assertTrue(_list_equal([[None, None], [1, -1], [1, -1], [1, -1], [2, 1]], Xt.values.tolist()))
 
-class RollingProductTransformerTest(RollingFunctionTransformerTest):
-
-	def test_transform(self):
+	def test_product(self):
 		X = Series([1, 2, 3, 4, 5])
-		transformer = RollingProductTransformer(n = 3)
+		transformer = RollingFunctionTransformer(function = "product", n = 3)
 		Xt = self._transform1d(transformer, X)
 		self.assertTrue(_list_equal([float("NaN"), 1, 2, 6, 24], Xt.tolist()))
 
@@ -762,12 +754,9 @@ class RollingProductTransformerTest(RollingFunctionTransformerTest):
 		Xt = self._transform2d(transformer, X)
 		self.assertTrue(_list_equal([[float("NaN"), float("NaN")], [1, -1], [2, -1], [6, -1], [24, 2]], Xt.values.tolist()))
 
-
-class RollingSumTransformerTest(RollingFunctionTransformerTest):
-
-	def test_transform(self):
+	def test_sum(self):
 		X = Series([1, 2, 3, 4, 5])
-		transformer = RollingSumTransformer(n = 3)
+		transformer = RollingFunctionTransformer(function = "sum", n = 3)
 		Xt = self._transform1d(transformer, X)
 		self.assertTrue(_list_equal([float("NaN"), 1.0, 3.0, 6.0, 9.0], Xt.tolist()))
 
