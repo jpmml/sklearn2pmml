@@ -581,7 +581,7 @@ class LagTransformer(BaseEstimator, TransformerMixin):
 			Xt[:self.n, :] = numpy.nan
 			return Xt
 
-class RollingFunctionTransformer(BaseEstimator, TransformerMixin):
+class RollingAggregateTransformer(BaseEstimator, TransformerMixin):
 
 	def __init__(self, function, n):
 		functions = ["avg", "min", "max", "mean", "prod", "product", "sum"]
