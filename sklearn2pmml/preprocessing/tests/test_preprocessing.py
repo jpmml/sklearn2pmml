@@ -9,7 +9,7 @@ from sklearn.pipeline import make_pipeline
 from sklearn.pipeline import FeatureUnion, Pipeline
 from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder
 from sklearn2pmml.decoration import Alias, DateDomain, DateTimeDomain
-from sklearn2pmml.preprocessing import Aggregator, CastTransformer, ConcatTransformer, CutTransformer, DataFrameConstructor, DateTimeFormatter, DaysSinceYearTransformer, ExpressionTransformer, FilterLookupTransformer, IdentityTransformer, LagTransformer, LookupTransformer, MatchesTransformer, MultiLookupTransformer, NumberFormatter, PMMLLabelBinarizer, PMMLLabelEncoder, PowerFunctionTransformer, ReplaceTransformer, RollingAverageTransformer, RollingMaxTransformer, RollingMinTransformer, RollingSumTransformer, SecondsSinceMidnightTransformer, SecondsSinceYearTransformer, SelectFirstTransformer, SeriesConstructor, StringLengthTransformer, StringNormalizer, SubstringTransformer, WordCountTransformer
+from sklearn2pmml.preprocessing import Aggregator, CastTransformer, ConcatTransformer, CutTransformer, DataFrameConstructor, DateTimeFormatter, DaysSinceYearTransformer, ExpressionTransformer, FilterLookupTransformer, IdentityTransformer, LagTransformer, LookupTransformer, MatchesTransformer, MultiLookupTransformer, NumberFormatter, PMMLLabelBinarizer, PMMLLabelEncoder, PowerFunctionTransformer, ReplaceTransformer, RollingAverageTransformer, RollingMaxTransformer, RollingMinTransformer, RollingProductTransformer, RollingSumTransformer, SecondsSinceMidnightTransformer, SecondsSinceYearTransformer, SelectFirstTransformer, SeriesConstructor, StringLengthTransformer, StringNormalizer, SubstringTransformer, WordCountTransformer
 from sklearn2pmml.preprocessing.h2o import H2OFrameConstructor, H2OFrameCreator
 from sklearn2pmml.preprocessing.lightgbm import make_lightgbm_column_transformer, make_lightgbm_dataframe_mapper
 from sklearn2pmml.preprocessing.xgboost import make_xgboost_column_transformer, make_xgboost_dataframe_mapper
@@ -749,6 +749,19 @@ class RollingMinTransformerTest(RollingFunctionTransformerTest):
 		X = DataFrame([[1, -1], [2, numpy.nan], [3, 1], [4, 2], [5, 3]])
 		Xt = self._transform2d(transformer, X)
 		self.assertTrue(_list_equal([[None, None], [1, -1], [1, -1], [1, -1], [2, 1]], Xt.values.tolist()))
+
+class RollingProductTransformerTest(RollingFunctionTransformerTest):
+
+	def test_transform(self):
+		X = Series([1, 2, 3, 4, 5])
+		transformer = RollingProductTransformer(n = 3)
+		Xt = self._transform1d(transformer, X)
+		self.assertTrue(_list_equal([float("NaN"), 1, 2, 6, 24], Xt.tolist()))
+
+		X = DataFrame([[1, -1], [2, numpy.nan], [3, 1], [4, 2], [5, 3]])
+		Xt = self._transform2d(transformer, X)
+		self.assertTrue(_list_equal([[float("NaN"), float("NaN")], [1, -1], [2, -1], [6, -1], [24, 2]], Xt.values.tolist()))
+
 
 class RollingSumTransformerTest(RollingFunctionTransformerTest):
 

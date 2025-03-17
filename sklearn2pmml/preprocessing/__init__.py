@@ -641,6 +641,17 @@ class RollingMinTransformer(RollingFunctionTransformer):
 		else:
 			return numpy.nanmin(X, axis = 0)
 
+class RollingProductTransformer(RollingFunctionTransformer):
+
+	def __init__(self, n):
+		super(RollingProductTransformer, self).__init__(n = n)
+
+	def _apply(self, X):
+		if isinstance(X, Rolling):
+			return X.apply(numpy.nanprod, raw = True)
+		else:
+			return numpy.nanprod(X, axis = 0)
+
 class RollingSumTransformer(RollingFunctionTransformer):
 
 	def __init__(self, n):
