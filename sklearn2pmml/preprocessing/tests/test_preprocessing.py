@@ -9,7 +9,7 @@ from sklearn.pipeline import make_pipeline
 from sklearn.pipeline import FeatureUnion, Pipeline
 from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder
 from sklearn2pmml.decoration import Alias, DateDomain, DateTimeDomain
-from sklearn2pmml.preprocessing import Aggregator, CastTransformer, ConcatTransformer, CutTransformer, DataFrameConstructor, DateTimeFormatter, DaysSinceYearTransformer, ExpressionTransformer, FilterLookupTransformer, IdentityTransformer, LagTransformer, LookupTransformer, MatchesTransformer, MultiLookupTransformer, NumberFormatter, PMMLLabelBinarizer, PMMLLabelEncoder, PowerFunctionTransformer, ReplaceTransformer, RollingAggregateTransformer, SecondsSinceMidnightTransformer, SecondsSinceYearTransformer, SelectFirstTransformer, SeriesConstructor, StringLengthTransformer, StringNormalizer, SubstringTransformer, WordCountTransformer
+from sklearn2pmml.preprocessing import AggregateTransformer, CastTransformer, ConcatTransformer, CutTransformer, DataFrameConstructor, DateTimeFormatter, DaysSinceYearTransformer, ExpressionTransformer, FilterLookupTransformer, IdentityTransformer, LagTransformer, LookupTransformer, MatchesTransformer, MultiLookupTransformer, NumberFormatter, PMMLLabelBinarizer, PMMLLabelEncoder, PowerFunctionTransformer, ReplaceTransformer, RollingAggregateTransformer, SecondsSinceMidnightTransformer, SecondsSinceYearTransformer, SelectFirstTransformer, SeriesConstructor, StringLengthTransformer, StringNormalizer, SubstringTransformer, WordCountTransformer
 from sklearn2pmml.preprocessing.h2o import H2OFrameConstructor, H2OFrameCreator
 from sklearn2pmml.preprocessing.lightgbm import make_lightgbm_column_transformer, make_lightgbm_dataframe_mapper
 from sklearn2pmml.preprocessing.xgboost import make_xgboost_column_transformer, make_xgboost_dataframe_mapper
@@ -41,55 +41,55 @@ class TransformerTest(TestCase):
 		self.assertEqual(Xt.tolist(), Xt_ndarray.tolist())
 		return Xt
 
-class AggregatorTest(TestCase): 
+class AggregateTransformerTest(TestCase): 
 
 	def test_init(self):
 		with self.assertRaises(ValueError):
-			Aggregator(None)
+			AggregateTransformer(None)
 
 	def test_avg_float(self):
 		X = numpy.asarray([1.0, float("NaN"), 2.0])
-		aggregator = Aggregator(function = "avg")
+		transformer = AggregateTransformer(function = "avg")
 		X = X.reshape((-1, 3))
-		self.assertEqual(1.5, aggregator.transform(X))
+		self.assertEqual(1.5, transformer.transform(X))
 
 	def test_min_int(self):
 		X = numpy.asarray([1, 0, 2, 3])
-		aggregator = Aggregator(function = "min")
+		transformer = AggregateTransformer(function = "min")
 		X = X.reshape((-1, 4))
-		self.assertEqual(0, aggregator.transform(X))
+		self.assertEqual(0, transformer.transform(X))
 		X = X.reshape((2, 2))
-		self.assertEqual([[0], [2]], aggregator.transform(X).tolist())
+		self.assertEqual([[0], [2]], transformer.transform(X).tolist())
 		X = X.reshape((4, -1))
-		self.assertEqual([[1], [0], [2], [3]], aggregator.transform(X).tolist())
+		self.assertEqual([[1], [0], [2], [3]], transformer.transform(X).tolist())
 
 	def test_min_float(self):
 		X = numpy.asarray([1.0, 0.5, 2.0, 3.0, float("NaN"), 1.5])
-		aggregator = Aggregator(function = "min")
+		transformer = AggregateTransformer(function = "min")
 		X = X.reshape((-1, 6))
-		self.assertEqual(0.5, aggregator.transform(X))
+		self.assertEqual(0.5, transformer.transform(X))
 		X = X.reshape((3, 2))
-		self.assertEqual([[0.5], [2.0], [1.5]], aggregator.transform(X).tolist())
+		self.assertEqual([[0.5], [2.0], [1.5]], transformer.transform(X).tolist())
 		X = X.reshape((2, 3))
-		self.assertEqual([[0.5], [1.5]], aggregator.transform(X).tolist())
+		self.assertEqual([[0.5], [1.5]], transformer.transform(X).tolist())
 		X = X.reshape((6, -1))
-		self.assertTrue(_list_equal([[1.0], [0.5], [2.0], [3.0], [float("NaN")], [1.5]], aggregator.transform(X).tolist()))
+		self.assertTrue(_list_equal([[1.0], [0.5], [2.0], [3.0], [float("NaN")], [1.5]], transformer.transform(X).tolist()))
 
 	def test_product_float(self):
 		X = numpy.asarray([1.0, float("NaN"), 2.0, 4.0])
-		aggregator = Aggregator(function = "product")
+		transformer = AggregateTransformer(function = "product")
 		X = X.reshape((-1, 4))
-		self.assertEqual(8.0, aggregator.transform(X))
+		self.assertEqual(8.0, transformer.transform(X))
 		X = X.reshape((2, 2))
-		self.assertEqual([[1.0], [8.0]], aggregator.transform(X).tolist())
+		self.assertEqual([[1.0], [8.0]], transformer.transform(X).tolist())
 
 	def test_sum_float(self):
 		X = numpy.asarray([1.0, float("NaN"), 2.0, 1.0])
-		aggregator = Aggregator(function = "sum")
+		transformer = AggregateTransformer(function = "sum")
 		X = X.reshape((-1, 4))
-		self.assertEqual(4.0, aggregator.transform(X))
+		self.assertEqual(4.0, transformer.transform(X))
 		X = X.reshape((2, 2))
-		self.assertEqual([[1.0], [3.0]], aggregator.transform(X).tolist())
+		self.assertEqual([[1.0], [3.0]], transformer.transform(X).tolist())
 
 class CastTransformerTest(TestCase):
 

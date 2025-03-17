@@ -42,7 +42,7 @@ def _aggregate_fun(function):
 	else:
 		raise ValueError(function)
 
-class Aggregator(BaseEstimator, TransformerMixin):
+class AggregateTransformer(BaseEstimator, TransformerMixin):
 	"""Aggregate continuous data."""
 
 	def __init__(self, function):
