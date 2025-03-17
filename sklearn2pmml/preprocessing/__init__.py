@@ -6,7 +6,6 @@ except ImportError:
 from datetime import datetime
 from io import StringIO
 from pandas import CategoricalDtype, DataFrame, Series
-from pandas.core.window.rolling import Rolling
 from scipy.interpolate import BSpline
 from scipy.sparse import lil_matrix
 from sklearn.base import BaseEstimator, TransformerMixin
@@ -587,15 +586,17 @@ class RollingFunctionTransformer(BaseEstimator, TransformerMixin):
 			raise ValueError("Window size {} is not a positive integer".format(n))
 		self.n = n
 
-	def _apply(self, X):
+	def _fun(self):
 		raise NotImplementedError()
 
 	def fit(self, X, y = None):
 		return self
 
 	def transform(self, X):
+		fun = self._fun()
 		if hasattr(X, "rolling"):
-			return self._apply(X.rolling(window = self.n, min_periods = 1, closed = "left"))
+			X_windows = X.rolling(window = self.n, min_periods = 1, closed = "left")
+			return X_windows.apply(fun, raw = True)
 		else:
 			X = numpy.asarray(X)
 			if len(X.shape) != 2:
@@ -605,7 +606,7 @@ class RollingFunctionTransformer(BaseEstimator, TransformerMixin):
 				X_window = X[max(0, i - self.n):i]
 				if X_window.size == 0:
 					continue
-				Xt[i] = self._apply(X_window)
+				Xt[i] = fun(X_window, axis = 0)
 			return Xt
 
 class RollingAverageTransformer(RollingFunctionTransformer):
@@ -613,55 +614,40 @@ class RollingAverageTransformer(RollingFunctionTransformer):
 	def __init__(self, n):
 		super(RollingAverageTransformer, self).__init__(n = n)
 
-	def _apply(self, X):
-		if isinstance(X, Rolling):
-			return X.apply(numpy.nanmean, raw = True)
-		else:
-			return numpy.nanmean(X, axis = 0)
+	def _fun(self):
+		return numpy.nanmean
 
 class RollingMaxTransformer(RollingFunctionTransformer):
 
 	def __init__(self, n):
 		super(RollingMaxTransformer, self).__init__(n = n)
 
-	def _apply(self, X):
-		if isinstance(X, Rolling):
-			return X.apply(numpy.nanmax, raw = True)
-		else:
-			return numpy.nanmax(X, axis = 0)
+	def _fun(self):
+		return numpy.nanmax
 
 class RollingMinTransformer(RollingFunctionTransformer):
 
 	def __init__(self, n):
 		super(RollingMinTransformer, self).__init__(n = n)
 
-	def _apply(self, X):
-		if isinstance(X, Rolling):
-			return X.apply(numpy.nanmin, raw = True)
-		else:
-			return numpy.nanmin(X, axis = 0)
+	def _fun(self):
+		return numpy.nanmin
 
 class RollingProductTransformer(RollingFunctionTransformer):
 
 	def __init__(self, n):
 		super(RollingProductTransformer, self).__init__(n = n)
 
-	def _apply(self, X):
-		if isinstance(X, Rolling):
-			return X.apply(numpy.nanprod, raw = True)
-		else:
-			return numpy.nanprod(X, axis = 0)
+	def _fun(self):
+		return numpy.nanprod
 
 class RollingSumTransformer(RollingFunctionTransformer):
 
 	def __init__(self, n):
 		super(RollingSumTransformer, self).__init__(n = n)
 
-	def _apply(self, X):
-		if isinstance(X, Rolling):
-			return X.apply(numpy.nansum, raw = True)
-		else:
-			return numpy.nansum(X, axis = 0)
+	def _fun(self):
+		return numpy.nansum
 
 class ConcatTransformer(BaseEstimator, TransformerMixin):
 	"""Concat data to string."""
