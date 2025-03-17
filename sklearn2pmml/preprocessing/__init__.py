@@ -619,6 +619,28 @@ class RollingAverageTransformer(RollingFunctionTransformer):
 		else:
 			return numpy.nanmean(X, axis = 0)
 
+class RollingMaxTransformer(RollingFunctionTransformer):
+
+	def __init__(self, n):
+		super(RollingMaxTransformer, self).__init__(n = n)
+
+	def _apply(self, X):
+		if isinstance(X, Rolling):
+			return X.apply(numpy.nanmax, raw = True)
+		else:
+			return numpy.nanmax(X, axis = 0)
+
+class RollingMinTransformer(RollingFunctionTransformer):
+
+	def __init__(self, n):
+		super(RollingMinTransformer, self).__init__(n = n)
+
+	def _apply(self, X):
+		if isinstance(X, Rolling):
+			return X.apply(numpy.nanmin, raw = True)
+		else:
+			return numpy.nanmin(X, axis = 0)
+
 class RollingSumTransformer(RollingFunctionTransformer):
 
 	def __init__(self, n):
