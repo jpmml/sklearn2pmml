@@ -1,3 +1,34 @@
+# 0.116.0 #
+
+## Breaking changes
+
+* Renamed `sklearn2pmml.preprocessing.Aggregator` class to `AggregateTransformer`.
+
+In order to support archived pipeline objects, the SkLearn2PMML package shall keep recognizing the old name variant alongside the new one.
+
+## New features
+
+* Added support for [`sklearn.model_selection.FixedThresholdClassifier`](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.FixedThresholdClassifier.html) and [`sklearn.model_selection.TunedThresholdClassifierCV`](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.TunedThresholdClassifierCV.html) classes.
+
+The post-fit tuned target is exposed in the model schema as an extra `thresholded(<target field name>)` output field.
+
+* Added support for `sklearn2pmml.preprocessing.LagTransformer` class.
+
+Implements a "shift" operation using PMML's [`Lag`](https://dmg.org/pmml/v4-4-1/Transformations.html#lag) element.
+
+* Added support for `sklearn2pmml.preprocessing.RollingAggregateTransformer` class.
+
+Implements a "rolling aggregate" operation using PMML's [`Lag`](https://dmg.org/pmml/v4-4-1/Transformations.html#lag) element.
+
+The PMML implementation differs from Pandas' default implementation in that it excludes the curent row. For example, when using a window size of five, then PMML considers five rows preceding the current row (ie. `X.rolling(window = 5, closed = "left")`), whereas Pandas considers four rows preceding the current row plus the current row (ie. `X.rolling(window = 5, closed = "right")`).
+
+A Pandas-equivalent "rolling aggregate" operation can be emulated using `AggregateTransformer` and `LagTransformer` transformers directly.
+
+## Minor improvements and fixes
+
+None.
+
+
 # 0.115.0 #
 
 ## Breaking changes
@@ -19,6 +50,7 @@ See [SkLearn2PMML-443](https://github.com/jpmml/sklearn2pmml/issues/443)
 The 0.5.X development branch underwent breaking changes, with the goal of migrating from proprietary API to Python RE-compatible API. For example, the compiler pattern object now provides both `search(x)` and `sub(replacement, x)` conveniene methods.
 
 * Ensured compatibility with BorutaPy 0.4.3, Category-Encoders 2.6.4, CHAID 5.4.2, Hyperopt-sklearn 1.0.3, Imbalanced-Learn 0.13.0, InterpretML 0.6.9, OptBinning 0.20.1, PyCaret 3.3.2, Scikit-Lego 0.9.4, Scikit-Tree 0.8.0 and TPOT 0.12.2.
+
 
 # 0.114.0 #
 
