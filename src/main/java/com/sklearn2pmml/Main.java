@@ -21,9 +21,14 @@ package com.sklearn2pmml;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.List;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
 import java.util.logging.LogManager;
 
 import com.beust.jcommander.JCommander;
@@ -85,6 +90,23 @@ public class Main extends Application {
 
 		try {
 			Application.setInstance(main);
+
+			Instant buildTimestamp = getBuildTimestamp();
+			if(buildTimestamp != null){
+				Instant now = Instant.now();
+
+				Instant updateRequiredTimestamp = now.minus(12 * 30, ChronoUnit.DAYS);
+				if(buildTimestamp.isBefore(updateRequiredTimestamp)){
+					logger.severe("The SkLearn2PMML package is older than 12 months and must be updated");
+
+					throw new RuntimeException("The SkLearn2PMML package has expired");
+				}
+
+				Instant updateRecommendedTimestamp = now.minus(3 * 30, ChronoUnit.DAYS);
+				if(buildTimestamp.isBefore(updateRecommendedTimestamp)){
+					logger.warning("The SkLearn2PMML package is older than 3 months and should be updated");
+				}
+			}
 
 			main.run();
 		} finally {
@@ -151,6 +173,36 @@ public class Main extends Application {
 			try(OutputStream os = new FileOutputStream(this.outputFile)){
 				jaxbSerializer.serializePretty(pmml, os);
 			}
+		}
+	}
+
+	static
+	public Instant getBuildTimestamp() throws IOException {
+		Manifest manifest = getManifest();
+
+		Attributes mainAttributes = manifest.getMainAttributes();
+
+		String buildTimestampString = mainAttributes.getValue("Build-Timestamp");
+		if(buildTimestampString == null){
+			throw new RuntimeException("The SkLearn2PMML package is not dated");
+		}
+
+		return Instant.parse(buildTimestampString);
+	}
+
+	static
+	private Manifest getManifest() throws IOException {
+		Application application = Application.getInstance();
+		if(application == null){
+			throw new IllegalStateException();
+		}
+
+		Class<?> clazz = application.getClass();
+
+		ClassLoader clazzLoader = clazz.getClassLoader();
+
+		try(InputStream is = clazzLoader.getResourceAsStream("META-INF/MANIFEST.MF")){
+			return new Manifest(is);
 		}
 	}
 

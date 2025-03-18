@@ -146,6 +146,7 @@
 						<manifestEntries>
 							<Implementation-Title>SkLearn2PMML package</Implementation-Title>
 							<Implementation-Version>${sklearn2pmml.version}</Implementation-Version>
+							<Build-Timestamp>${project.build.outputTimestamp}</Build-Timestamp>
 						</manifestEntries>
 					</archive>
 				</configuration>
