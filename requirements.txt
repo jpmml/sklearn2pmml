@@ -1,4 +1,4 @@
-CHAID==5.4.2
+CHAID[graph]==5.4.2
 dill==0.3.9
 interpret==0.6.6; python_version == '3.8'
 interpret==0.6.9; python_version == '3.9'
