@@ -1,4 +1,5 @@
-from pandas import Categorical, DataFrame, Index, Series
+from datetime import datetime
+from pandas import Categorical, DataFrame, Index, Series, Timestamp
 from sklearn.base import clone, BaseEstimator, TransformerMixin
 
 import inspect
@@ -67,28 +68,25 @@ def to_1d(X):
 		raise ValueError("Expected 1d array or 2d column vector array, got {0}d array of shape {1}".format(len(shape), str(shape)))
 
 def dt_transform(X, func):
-	if hasattr(X, "applymap"):
+	if isinstance(X, (Categorical, Series)):
+		return X.apply(func)
+	elif isinstance(X, DataFrame):
 		return X.applymap(func)
-	shape = X.shape
-	if len(shape) > 1:
-		X = X.ravel()
-	Xt = func(X)
-	Xt = to_numpy(Xt)
-	if len(shape) > 1:
-		Xt = Xt.reshape(shape)
+	X = numpy.asarray(X)
+	Xt = numpy.vectorize(func)(X)
 	return Xt
 
-def to_pydatetime(X, dtype):
-	Xt = pandas.to_datetime(X, yearfirst = True, format = iso8601_format, origin = "unix")
-	if hasattr(Xt, "dt"):
-		Xt = Xt.dt
+def to_pydatetime(obj, dtype):
+	if not isinstance(obj, (str, datetime, Timestamp)):
+		raise TypeError()
+	ts = pandas.to_datetime(obj, yearfirst = True, format = iso8601_format, origin = "unix")
 	if dtype == "datetime64[D]":
-		Xt = Xt.floor(freq = "D")
+		ts = ts.floor(freq = "D")
 	elif dtype == "datetime64[s]":
-		Xt = Xt.floor(freq = "s")
+		ts = ts.floor(freq = "s")
 	else:
 		raise ValueError(dtype)
-	return Xt.to_pydatetime()
+	return ts.to_pydatetime()
 
 def ensure_def(expr, env):
 	expr_code = compile(expr, "<string>", "exec")
