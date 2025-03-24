@@ -1,5 +1,5 @@
 from datetime import datetime
-from pandas import CategoricalDtype, DataFrame, Series
+from pandas import CategoricalDtype, DataFrame, Series, Timestamp
 from sklearn_pandas import DataFrameMapper
 from sklearn.base import clone
 from sklearn.exceptions import NotFittedError
@@ -29,6 +29,10 @@ def _list_equal(left, right):
 	return left.equals(right)
 
 class TransformerTest(TestCase):
+
+	def _fit_transform1d(self, transformer, X):
+		transformer = transformer.fit(X)
+		return self._transform1d(transformer, X)
 
 	def _transform1d(self, transformer, X):
 		self.assertIsInstance(X, Series)
@@ -91,25 +95,27 @@ class AggregateTransformerTest(TestCase):
 		X = X.reshape((2, 2))
 		self.assertEqual([[1.0], [3.0]], transformer.transform(X).tolist())
 
-class CastTransformerTest(TestCase):
+class CastTransformerTest(TransformerTest):
 
 	def test_transform(self):
-		X = numpy.asarray([False, "1", float(1.0), 0], dtype = object)
+		X = Series([False, "1", float(1.0), 0], dtype = object)
 		transformer = CastTransformer(dtype = str)
-		self.assertEqual(["False", "1", "1.0", "0"], transformer.fit_transform(X).tolist())
+		self.assertEqual(["False", "1", "1.0", "0"], self._fit_transform1d(transformer, X).tolist())
 		transformer = CastTransformer(dtype = int)
-		self.assertEqual([0, 1, 1, 0], transformer.fit_transform(X).tolist())
+		self.assertEqual([0, 1, 1, 0], self._fit_transform1d(transformer, X).tolist())
 		transformer = CastTransformer(dtype = float)
-		self.assertEqual([0.0, 1.0, 1.0, 0.0], transformer.fit_transform(X).tolist())
+		self.assertEqual([0.0, 1.0, 1.0, 0.0], self._fit_transform1d(transformer, X).tolist())
 		transformer = CastTransformer(dtype = numpy.float64)
-		self.assertEqual([0.0, 1.0, 1.0, 0.0], transformer.fit_transform(X).tolist())
+		self.assertEqual([0.0, 1.0, 1.0, 0.0], self._fit_transform1d(transformer, X).tolist())
 		transformer = CastTransformer(dtype = bool)
-		self.assertEqual([False, True, True, False], transformer.fit_transform(X).tolist())
-		X = numpy.asarray(["1960-01-01T00:00:00", "1960-01-03T03:30:03"])
+		self.assertEqual([False, True, True, False], self._fit_transform1d(transformer, X).tolist())
+
+	def test_transform_datetime(self):
+		X = Series(["1969-07-16T13:32:00Z".replace("Z", ""), datetime.fromisoformat("1969-07-20T20:17:40Z".replace("Z", "")), Timestamp("1969-07-21T17:54:01Z").tz_localize(None), "1969-07-24T16:50:35Z".replace("Z", "")], dtype = str)
 		transformer = CastTransformer(dtype = "datetime64[D]")
-		self.assertEqual([datetime(1960, 1, 1), datetime(1960, 1, 3)], transformer.fit_transform(X).tolist())
+		self.assertEqual([datetime(1969, 7, 16), datetime(1969, 7, 20), datetime(1969, 7, 21), datetime(1969, 7, 24)], self._fit_transform1d(transformer, X).tolist())
 		transformer = CastTransformer(dtype = "datetime64[s]")
-		self.assertEqual([datetime(1960, 1, 1, 0, 0, 0), datetime(1960, 1, 3, 3, 30, 3)], transformer.fit_transform(X).tolist())
+		self.assertEqual([datetime(1969, 7, 16, 13, 32, 0), datetime(1969, 7, 20, 20, 17, 40), datetime(1969, 7, 21, 17, 54, 1), datetime(1969, 7, 24, 16, 50, 35)], self._fit_transform1d(transformer, X).tolist())
 
 	def test_transform_categorical(self):
 		X = Series(["a", "c", "b", "a", "a", "b"], name = "x")
