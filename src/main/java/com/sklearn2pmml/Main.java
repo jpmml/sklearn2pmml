@@ -102,7 +102,7 @@ public class Main extends Application {
 					throw new RuntimeException("The SkLearn2PMML package has expired");
 				}
 
-				Instant updateRecommendedTimestamp = now.minus(3 * 30, ChronoUnit.DAYS);
+				Instant updateRecommendedTimestamp = now.minus(6 * 30, ChronoUnit.DAYS);
 				if(buildTimestamp.isBefore(updateRecommendedTimestamp)){
 					logger.warning("The SkLearn2PMML package is older than 3 months and should be updated");
 				}
