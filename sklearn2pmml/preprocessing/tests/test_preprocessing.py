@@ -701,6 +701,21 @@ class LagTransformerTest(TestCase):
 		self.assertEqual([0.0, 0, False, "0"], Xt[3, :].tolist())
 		self.assertEqual([1.0, 1, True, "1"], Xt[4, :].tolist())
 
+		X = DataFrame([[-1, "a"], [0, "a"], [1, "b"], [2, "b"], [3, "a"]], columns = ["int", "block"])
+		transformer = LagTransformer(n = 1, block_indicators = ["block"])
+		Xt = transformer.transform(X)
+		self.assertIsInstance(Xt, DataFrame)
+		self.assertEqual(X.shape, Xt.shape)
+		self.assertTrue(_list_equal([float("NaN"), -1, float("NaN"), 1, 0], Xt["int"].tolist()))
+		self.assertEqual(["a", "a", "b", "b", "a"], Xt["block"].tolist())
+		X = X.values
+		transformer = LagTransformer(n = 1, block_indicators = [1])
+		Xt = transformer.transform(X)
+		self.assertIsInstance(Xt, numpy.ndarray)
+		self.assertEqual(X.shape, Xt.shape)
+		self.assertTrue(_list_equal([float("NaN"), -1, float("NaN"), 1, 0], Xt[:, 0].tolist()))
+		self.assertEqual(["a", "a", "b", "b", "a"], Xt[:, 1].tolist())
+
 class RollingAggregateTransformerTest(TestCase):
 
 	def _transform1d(self, transformer, X):

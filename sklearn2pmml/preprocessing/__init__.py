@@ -560,27 +560,53 @@ class PowerFunctionTransformer(BaseEstimator, TransformerMixin):
 
 class LagTransformer(BaseEstimator, TransformerMixin):
 
-	def __init__(self, n):
+	def __init__(self, n, block_indicators = None):
 		if not isinstance(n, int):
 			raise TypeError("Shift {} is not an integer".format(n))
 		if n < 1:
 			raise ValueError("Shift {} is not a positive integer".format(n))
 		self.n = n
+		self.block_indicators = block_indicators
 
 	def fit(self, X, y = None):
 		return self
 
 	def transform(self, X):
 		if hasattr(X, "shift"):
-			return X.shift(self.n)
+			if self.block_indicators is not None:
+				Xt = X.copy()
+				block_indicators = X[self.block_indicators]
+				feature_columns = [col for col in X.columns if col not in block_indicators.columns]
+				column_indices = [X.columns.get_loc(col) for col in feature_columns]
+				blocks = numpy.unique(block_indicators)
+				for block in blocks:
+					block_mask = (block_indicators == block)
+					row_indices = numpy.where(block_mask)[0]
+					Xt.iloc[row_indices, column_indices] = X.iloc[row_indices, column_indices].shift(self.n)
+				return Xt
+			else:
+				return X.shift(self.n)
 		else:
 			X = numpy.asarray(X)
 			if len(X.shape) != 2:
 				raise ValueError("Expected a 2D array, got {}D array".format(len(X.shape)))
-			Xt = numpy.full_like(X, fill_value = numpy.nan)
-			if self.n < X.shape[0]:
-				Xt[self.n:, :] = X[:-self.n, :]
-			return Xt
+			if self.block_indicators is not None:
+				Xt = numpy.full_like(X, fill_value = numpy.nan)
+				block_indicators = X[:, self.block_indicators]
+				column_indices = [idx for idx in range(X.shape[1]) if idx not in self.block_indicators]
+				Xt[:, self.block_indicators] = block_indicators
+				blocks = numpy.unique(block_indicators)
+				for block in blocks:
+					block_mask = (block_indicators == block)
+					row_indices = numpy.where(block_mask)[0]
+					if self.n < len(row_indices):
+						Xt[row_indices[self.n:], column_indices] = X[row_indices[:-self.n], column_indices]
+				return Xt
+			else:
+				Xt = numpy.full_like(X, fill_value = numpy.nan)
+				if self.n < X.shape[0]:
+					Xt[self.n:, :] = X[:-self.n, :]
+				return Xt
 
 class RollingAggregateTransformer(BaseEstimator, TransformerMixin):
 
