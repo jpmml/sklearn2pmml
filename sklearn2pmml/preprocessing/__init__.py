@@ -577,8 +577,9 @@ class LagTransformer(BaseEstimator, TransformerMixin):
 			X = numpy.asarray(X)
 			if len(X.shape) != 2:
 				raise ValueError("Expected a 2D array, got {}D array".format(len(X.shape)))
-			Xt = numpy.roll(X, shift = self.n, axis = 0)
-			Xt[:self.n, :] = numpy.nan
+			Xt = numpy.full_like(X, fill_value = numpy.nan)
+			if self.n < X.shape[0]:
+				Xt[self.n:, :] = X[:-self.n, :]
 			return Xt
 
 class RollingAggregateTransformer(BaseEstimator, TransformerMixin):
