@@ -790,6 +790,15 @@ class RollingAggregateTransformerTest(TestCase):
 		Xt = self._transform2d(transformer, X)
 		self.assertTrue(_list_equal([[float("NaN"), float("NaN")], [1, -1], [3, -1], [6, 0], [9, 3]], Xt.values.tolist()))
 
+		X = DataFrame([[-1, "a"], [0, "a"], [1, "b"], [2, "b"], [3, "a"], [4, "b"], [5, "a"]], columns = ["int", "block"])
+		transformer = RollingAggregateTransformer(function = "sum", n = 2, block_indicators = ["block"])
+		Xt = transformer.fit_transform(X)
+		self.assertTrue(_list_equal([float("NaN"), -1, float("NaN"), 1, -1, 3, 3], Xt.iloc[:, 0].tolist()))
+		X = X.values
+		transformer = RollingAggregateTransformer(function = "sum", n = 2, block_indicators = [1])
+		Xt = transformer.fit_transform(X)
+		self.assertTrue(_list_equal([float("NaN"), -1, float("NaN"), 1, -1, 3, 3], Xt[:, 0].tolist()))
+
 class ConcatTransformerTest(TestCase):
 
 	def test_transform(self):

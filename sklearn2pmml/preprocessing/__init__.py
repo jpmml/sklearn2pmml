@@ -573,6 +573,9 @@ class LagTransformer(BaseEstimator, TransformerMixin):
 
 	def transform(self, X):
 		if hasattr(X, "shift"):
+			def _shift(df):
+				return df.shift(self.n)
+
 			if self.block_indicators is not None:
 				Xt = X.copy()
 				block_indicators = X[self.block_indicators]
@@ -582,10 +585,10 @@ class LagTransformer(BaseEstimator, TransformerMixin):
 				for block in blocks:
 					block_mask = (block_indicators == block)
 					row_indices = numpy.where(block_mask)[0]
-					Xt.iloc[row_indices, column_indices] = X.iloc[row_indices, column_indices].shift(self.n)
+					Xt.iloc[row_indices, column_indices] = _shift(X.iloc[row_indices, column_indices])
 				return Xt
 			else:
-				return X.shift(self.n)
+				return _shift(X)
 		else:
 			X = numpy.asarray(X)
 			if len(X.shape) != 2:
@@ -610,7 +613,7 @@ class LagTransformer(BaseEstimator, TransformerMixin):
 
 class RollingAggregateTransformer(BaseEstimator, TransformerMixin):
 
-	def __init__(self, function, n):
+	def __init__(self, function, n, block_indicators = None):
 		functions = ["avg", "min", "max", "mean", "prod", "product", "sum"]
 		if function not in functions:
 			raise ValueError("Function {0} not in {1}".format(function, functions))
@@ -620,6 +623,7 @@ class RollingAggregateTransformer(BaseEstimator, TransformerMixin):
 		if n < 1:
 			raise ValueError("Window size {} is not a positive integer".format(n))
 		self.n = n
+		self.block_indicators = block_indicators
 
 	def fit(self, X, y = None):
 		return self
@@ -627,19 +631,51 @@ class RollingAggregateTransformer(BaseEstimator, TransformerMixin):
 	def transform(self, X):
 		fun = _aggregate_fun(self.function)
 		if hasattr(X, "rolling"):
-			X_windows = X.rolling(window = self.n, min_periods = 1, closed = "left")
-			return X_windows.apply(fun, raw = True)
+			def _rolling_apply(df):
+				df_windows = df.rolling(window = self.n, min_periods = 1, closed = "left")
+				return df_windows.apply(fun, raw = True)
+
+			if self.block_indicators is not None:
+				Xt = X.copy()
+				block_indicators = X[self.block_indicators]
+				feature_columns = [col for col in X.columns if col not in block_indicators.columns]
+				column_indices = [X.columns.get_loc(col) for col in feature_columns]
+				blocks = numpy.unique(block_indicators)
+				for block in blocks:
+					block_mask = (block_indicators == block)
+					row_indices = numpy.where(block_mask)[0]
+					Xt.iloc[row_indices, column_indices] = _rolling_apply(X.iloc[row_indices, column_indices])
+				return Xt
+			else:
+				return _rolling_apply(X)
 		else:
 			X = numpy.asarray(X)
 			if len(X.shape) != 2:
 				raise ValueError("Expected a 2D array, got {}D array".format(len(X.shape)))
-			Xt = numpy.full_like(X, fill_value = numpy.nan, dtype = float)
-			for i in range(0, X.shape[0]):
-				X_window = X[max(0, i - self.n):i]
-				if X_window.size == 0:
-					continue
-				Xt[i] = fun(X_window, axis = 0)
-			return Xt
+			if self.block_indicators is not None:
+				Xt = numpy.full_like(X, fill_value = numpy.nan)
+				block_indicators = X[:, self.block_indicators]
+				column_indices = [idx for idx in range(X.shape[1]) if idx not in self.block_indicators]
+				Xt[:, self.block_indicators] = block_indicators
+				blocks = numpy.unique(block_indicators)
+				for block in blocks:
+					block_mask = (block_indicators == block)
+					row_indices = numpy.where(block_mask)[0]
+					X_block = X[row_indices, column_indices]
+					for i in range(0, len(row_indices)):
+						X_window = X_block[max(0, i - self.n):i]
+						if X_window.size == 0:
+							continue
+						Xt[row_indices[i], column_indices] = fun(X_window, axis = 0)
+				return Xt
+			else:
+				Xt = numpy.full_like(X, fill_value = numpy.nan, dtype = float)
+				for i in range(0, X.shape[0]):
+					X_window = X[max(0, i - self.n):i]
+					if X_window.size == 0:
+						continue
+					Xt[i] = fun(X_window, axis = 0)
+				return Xt
 
 class ConcatTransformer(BaseEstimator, TransformerMixin):
 	"""Concat data to string."""
