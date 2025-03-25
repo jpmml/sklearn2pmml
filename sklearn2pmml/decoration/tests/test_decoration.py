@@ -225,6 +225,11 @@ class CategoricalDomainTest(TestCase):
 		X = numpy.array([["4"]])
 		with self.assertRaises(ValueError):
 			domain.transform(X)
+		X = DataFrame([[-1, float("NaN")], [0, float("NaN")], [1, float("NaN")]])
+		domain = clone(CategoricalDomain(dtype = str))
+		Xt = domain.fit_transform(X)
+		self.assertEqual(["-1", "0", "1"], Xt.iloc[:, 0].tolist())
+		self.assertTrue(_list_equal([float("NaN"), float("NaN"), float("NaN")], Xt.iloc[:, 1].tolist()))
 
 	def test_fit_string_missing(self):
 		domain = clone(CategoricalDomain(with_statistics = True, missing_values = ["NA", "N/A"], missing_value_replacement = "0", invalid_value_treatment = "as_value", invalid_value_replacement = "1"))

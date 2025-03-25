@@ -117,6 +117,11 @@ class CastTransformerTest(TransformerTest):
 		transformer = CastTransformer(dtype = "datetime64[s]")
 		self.assertEqual([datetime(1969, 7, 16, 13, 32, 0), datetime(1969, 7, 20, 20, 17, 40), datetime(1969, 7, 21, 17, 54, 1), datetime(1969, 7, 24, 16, 50, 35)], self._fit_transform1d(transformer, X).tolist())
 
+	def test_transform_string(self):
+		X = Series([float("NaN"), "red", None, "green", pandas.NA], dtype = object)
+		transformer = CastTransformer(dtype = str)
+		self.assertTrue(_list_equal([float("NaN"), "red", None, "green", pandas.NA], self._fit_transform1d(transformer, X).tolist()))
+
 	def test_transform_categorical(self):
 		X = Series(["a", "c", "b", "a", "a", "b"], name = "x")
 		transformer = CastTransformer(dtype = "category")

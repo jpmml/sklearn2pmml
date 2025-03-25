@@ -24,7 +24,15 @@ def cast(X, dtype):
 	else:
 		if not hasattr(X, "astype"):
 			X = numpy.asarray(X)
-		return X.astype(dtype)
+		Xt = X.astype(dtype)
+		if dtype in (str, "unicode"):
+			mask = pandas.isnull(X)
+			if numpy.any(mask):
+				if hasattr(Xt, "where"):
+					Xt = Xt.where(~mask, X)
+				else:
+					Xt = numpy.where(~mask, Xt, X)
+		return Xt
 
 def common_dtype(X):
 	if hasattr(X, "dtype"):
