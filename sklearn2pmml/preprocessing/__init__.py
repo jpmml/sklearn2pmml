@@ -558,6 +558,30 @@ class PowerFunctionTransformer(BaseEstimator, TransformerMixin):
 	def transform(self, X):
 		return numpy.power(X, self.power)
 
+def _df_apply_blockwise(X, block_indicators, fun):
+	Xt = X.copy()
+	X_block_indicators = X[block_indicators]
+	feature_columns = [col for col in X.columns if col not in X_block_indicators.columns]
+	column_indices = [X.columns.get_loc(col) for col in feature_columns]
+	blocks = numpy.unique(X_block_indicators)
+	for block in blocks:
+		block_mask = (X_block_indicators == block)
+		row_indices = numpy.where(block_mask)[0]
+		Xt.iloc[row_indices, column_indices] = fun(X.iloc[row_indices, column_indices])
+	return Xt
+
+def _ndarray_apply_blockwise(X, block_indicators, fun):
+	Xt = numpy.full_like(X, fill_value = numpy.nan)
+	X_block_indicators = X[:, block_indicators]
+	column_indices = [idx for idx in range(X.shape[1]) if idx not in block_indicators]
+	Xt[:, block_indicators] = X_block_indicators
+	blocks = numpy.unique(X_block_indicators)
+	for block in blocks:
+		block_mask = (X_block_indicators == block)
+		row_indices = numpy.where(block_mask)[0]
+		fun(X, Xt, row_indices, column_indices)
+	return Xt
+
 class LagTransformer(BaseEstimator, TransformerMixin):
 
 	def __init__(self, n, block_indicators = None):
@@ -577,38 +601,27 @@ class LagTransformer(BaseEstimator, TransformerMixin):
 				return df.shift(self.n)
 
 			if self.block_indicators is not None:
-				Xt = X.copy()
-				block_indicators = X[self.block_indicators]
-				feature_columns = [col for col in X.columns if col not in block_indicators.columns]
-				column_indices = [X.columns.get_loc(col) for col in feature_columns]
-				blocks = numpy.unique(block_indicators)
-				for block in blocks:
-					block_mask = (block_indicators == block)
-					row_indices = numpy.where(block_mask)[0]
-					Xt.iloc[row_indices, column_indices] = _shift(X.iloc[row_indices, column_indices])
-				return Xt
+				return _df_apply_blockwise(X, self.block_indicators, _shift)
 			else:
 				return _shift(X)
 		else:
 			X = numpy.asarray(X)
 			if len(X.shape) != 2:
 				raise ValueError("Expected a 2D array, got {}D array".format(len(X.shape)))
+
 			if self.block_indicators is not None:
-				Xt = numpy.full_like(X, fill_value = numpy.nan)
-				block_indicators = X[:, self.block_indicators]
-				column_indices = [idx for idx in range(X.shape[1]) if idx not in self.block_indicators]
-				Xt[:, self.block_indicators] = block_indicators
-				blocks = numpy.unique(block_indicators)
-				for block in blocks:
-					block_mask = (block_indicators == block)
-					row_indices = numpy.where(block_mask)[0]
+				def _shift(X, Xt, row_indices, column_indices):
 					if self.n < len(row_indices):
 						Xt[row_indices[self.n:], column_indices] = X[row_indices[:-self.n], column_indices]
-				return Xt
+
+				return _ndarray_apply_blockwise(X, self.block_indicators, _shift)
 			else:
+				def _shift(X, Xt):
+					if self.n < X.shape[0]:
+						Xt[self.n:] = X[:-self.n]
+
 				Xt = numpy.full_like(X, fill_value = numpy.nan)
-				if self.n < X.shape[0]:
-					Xt[self.n:, :] = X[:-self.n, :]
+				_shift(X, Xt)
 				return Xt
 
 class RollingAggregateTransformer(BaseEstimator, TransformerMixin):
@@ -636,16 +649,7 @@ class RollingAggregateTransformer(BaseEstimator, TransformerMixin):
 				return df_windows.apply(fun, raw = True)
 
 			if self.block_indicators is not None:
-				Xt = X.copy()
-				block_indicators = X[self.block_indicators]
-				feature_columns = [col for col in X.columns if col not in block_indicators.columns]
-				column_indices = [X.columns.get_loc(col) for col in feature_columns]
-				blocks = numpy.unique(block_indicators)
-				for block in blocks:
-					block_mask = (block_indicators == block)
-					row_indices = numpy.where(block_mask)[0]
-					Xt.iloc[row_indices, column_indices] = _rolling_apply(X.iloc[row_indices, column_indices])
-				return Xt
+				return _df_apply_blockwise(X, self.block_indicators, _rolling_apply)
 			else:
 				return _rolling_apply(X)
 		else:
@@ -653,28 +657,25 @@ class RollingAggregateTransformer(BaseEstimator, TransformerMixin):
 			if len(X.shape) != 2:
 				raise ValueError("Expected a 2D array, got {}D array".format(len(X.shape)))
 			if self.block_indicators is not None:
-				Xt = numpy.full_like(X, fill_value = numpy.nan)
-				block_indicators = X[:, self.block_indicators]
-				column_indices = [idx for idx in range(X.shape[1]) if idx not in self.block_indicators]
-				Xt[:, self.block_indicators] = block_indicators
-				blocks = numpy.unique(block_indicators)
-				for block in blocks:
-					block_mask = (block_indicators == block)
-					row_indices = numpy.where(block_mask)[0]
+				def _rolling_apply(X, Xt, row_indices, column_indices):
 					X_block = X[row_indices, column_indices]
 					for i in range(0, len(row_indices)):
 						X_window = X_block[max(0, i - self.n):i]
 						if X_window.size == 0:
 							continue
 						Xt[row_indices[i], column_indices] = fun(X_window, axis = 0)
-				return Xt
+
+				return _ndarray_apply_blockwise(X, self.block_indicators, _rolling_apply)
 			else:
+				def _rolling_apply(X, Xt):
+					for i in range(0, X.shape[0]):
+						X_window = X[max(0, i - self.n):i]
+						if X_window.size == 0:
+							continue
+						Xt[i] = fun(X_window, axis = 0)
+
 				Xt = numpy.full_like(X, fill_value = numpy.nan, dtype = float)
-				for i in range(0, X.shape[0]):
-					X_window = X[max(0, i - self.n):i]
-					if X_window.size == 0:
-						continue
-					Xt[i] = fun(X_window, axis = 0)
+				_rolling_apply(X, Xt)
 				return Xt
 
 class ConcatTransformer(BaseEstimator, TransformerMixin):
