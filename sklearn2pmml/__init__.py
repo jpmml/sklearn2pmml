@@ -361,7 +361,7 @@ def _parse_properties(lines):
 	splitter = re.compile(r"\s*=\s*")
 	properties = dict()
 	for line in lines:
-		line = line.decode("UTF-8").rstrip()
+		line = line.decode("utf-8").rstrip()
 		if line.startswith("#"):
 			continue
 		key, value = splitter.split(line)
