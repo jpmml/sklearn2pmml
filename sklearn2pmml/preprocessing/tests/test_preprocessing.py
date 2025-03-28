@@ -716,6 +716,12 @@ class LagTransformerTest(TestCase):
 		self.assertTrue(_list_equal([float("NaN"), -1, float("NaN"), 1, 0], Xt[:, 0].tolist()))
 		self.assertEqual(["a", "a", "b", "b", "a"], Xt[:, 1].tolist())
 
+	def test_get_feature_names_out(self):
+		transformer = LagTransformer(n = 1, block_indicators = [0])
+		self.assertEqual(["x1", "x2_lag1", "x3_lag1"], transformer.get_feature_names_out(["x1", "x2", "x3"]))
+		transformer = LagTransformer(n = 2, block_indicators = ["x3"])
+		self.assertEqual(["x1_lag2", "x2_lag2", "x3"], transformer.get_feature_names_out(["x1", "x2", "x3"]))
+
 class RollingAggregateTransformerTest(TestCase):
 
 	def _transform1d(self, transformer, X):

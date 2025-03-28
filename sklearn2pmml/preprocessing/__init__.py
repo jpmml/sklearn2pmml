@@ -592,6 +592,31 @@ class LagTransformer(BaseEstimator, TransformerMixin):
 		self.n = n
 		self.block_indicators = block_indicators
 
+	def get_feature_names_out(self, input_features = None):
+		def _format_name(name):
+			return "{}_lag{}".format(name, self.n)
+
+		if input_features is None:
+			raise ValueError()
+		if self.block_indicators is not None:
+			block_indicator_features = []
+			for block_indicator in self.block_indicators:
+				if isinstance(block_indicator, int):
+					block_indicator_features.append(input_features[block_indicator])
+				elif isinstance(block_indicator, str):
+					block_indicator_features.append(block_indicator)
+				else:
+					raise TypeError()
+			feature_names_out = []
+			for input_feature in input_features:
+				if input_feature in block_indicator_features:
+					feature_names_out.append(input_feature)
+				else:
+					feature_names_out.append(_format_name(input_feature))
+			return feature_names_out
+		else:
+			return [_format_name(input_feature) for input_feature in input_features]
+
 	def fit(self, X, y = None):
 		return self
 
