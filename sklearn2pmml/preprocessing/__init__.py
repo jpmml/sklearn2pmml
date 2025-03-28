@@ -558,6 +558,28 @@ class PowerFunctionTransformer(BaseEstimator, TransformerMixin):
 	def transform(self, X):
 		return numpy.power(X, self.power)
 
+def _map_feature_names(input_names, block_indicators, fun):
+	if input_names is None:
+		raise ValueError()
+	if block_indicators is not None:
+		block_indicator_features = []
+		for block_indicator in block_indicators:
+			if isinstance(block_indicator, int):
+				block_indicator_features.append(input_names[block_indicator])
+			elif isinstance(block_indicator, str):
+				block_indicator_features.append(block_indicator)
+			else:
+				raise TypeError()
+		output_names = []
+		for input_name in input_names:
+			if input_name in block_indicator_features:
+				output_names.append(input_name)
+			else:
+				output_names.append(fun(input_name))
+		return output_names
+	else:
+		return [fun(input_name) for input_name in input_names]
+
 def _df_apply_blockwise(X, block_indicators, fun):
 	Xt = X.copy()
 	X_block_indicators = X[block_indicators]
@@ -596,26 +618,7 @@ class LagTransformer(BaseEstimator, TransformerMixin):
 		def _format_name(name):
 			return "{}_lag{}".format(name, self.n)
 
-		if input_features is None:
-			raise ValueError()
-		if self.block_indicators is not None:
-			block_indicator_features = []
-			for block_indicator in self.block_indicators:
-				if isinstance(block_indicator, int):
-					block_indicator_features.append(input_features[block_indicator])
-				elif isinstance(block_indicator, str):
-					block_indicator_features.append(block_indicator)
-				else:
-					raise TypeError()
-			feature_names_out = []
-			for input_feature in input_features:
-				if input_feature in block_indicator_features:
-					feature_names_out.append(input_feature)
-				else:
-					feature_names_out.append(_format_name(input_feature))
-			return feature_names_out
-		else:
-			return [_format_name(input_feature) for input_feature in input_features]
+		return numpy.asarray(_map_feature_names(input_features, self.block_indicators, _format_name))
 
 	def fit(self, X, y = None):
 		return self
@@ -662,6 +665,12 @@ class RollingAggregateTransformer(BaseEstimator, TransformerMixin):
 			raise ValueError("Window size {} is not a positive integer".format(n))
 		self.n = n
 		self.block_indicators = block_indicators
+
+	def get_feature_names_out(self, input_features = None):
+		def _format_name(name):
+			return "{}_{}{}".format(name, self.function, self.n)
+
+		return numpy.asarray(_map_feature_names(input_features, self.block_indicators, _format_name))
 
 	def fit(self, X, y = None):
 		return self

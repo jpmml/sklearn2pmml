@@ -718,9 +718,9 @@ class LagTransformerTest(TestCase):
 
 	def test_get_feature_names_out(self):
 		transformer = LagTransformer(n = 1, block_indicators = [0])
-		self.assertEqual(["x1", "x2_lag1", "x3_lag1"], transformer.get_feature_names_out(["x1", "x2", "x3"]))
+		self.assertEqual(["x1", "x2_lag1", "x3_lag1"], transformer.get_feature_names_out(["x1", "x2", "x3"]).tolist())
 		transformer = LagTransformer(n = 2, block_indicators = ["x3"])
-		self.assertEqual(["x1_lag2", "x2_lag2", "x3"], transformer.get_feature_names_out(["x1", "x2", "x3"]))
+		self.assertEqual(["x1_lag2", "x2_lag2", "x3"], transformer.get_feature_names_out(["x1", "x2", "x3"]).tolist())
 
 class RollingAggregateTransformerTest(TestCase):
 
@@ -804,6 +804,10 @@ class RollingAggregateTransformerTest(TestCase):
 		transformer = RollingAggregateTransformer(function = "sum", n = 2, block_indicators = [1])
 		Xt = transformer.fit_transform(X)
 		self.assertTrue(_list_equal([float("NaN"), -1, float("NaN"), 1, -1, 3, 3], Xt[:, 0].tolist()))
+
+	def test_get_feature_names_out(self):
+		transformer = RollingAggregateTransformer(function = "avg", n = 100, block_indicators = [0, 1])
+		self.assertEqual(["x1", "x2", "x3_avg100"], transformer.get_feature_names_out(["x1", "x2", "x3"]).tolist())
 
 class ConcatTransformerTest(TestCase):
 
