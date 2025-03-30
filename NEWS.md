@@ -1,3 +1,46 @@
+# 0.116.1 #
+
+## Breaking changes
+
+* Refactored the cast to Python string data types (`str` and `"unicode"`).
+
+Previously, the cast was implemented using data container-native `apply` methods (eg. `X.astype(str)`). However, these methods act destructively with regards to constant values such as `None`, `numpy.nan`, `pandas.NA` and `pandas.NaT`, by replacing them with the corresponding string literals. For example, a `None` constant becomes a `"None"` string.
+
+The `sklearn2pmml.util.cast()` utility function that implements casts across SkLearn2PMML transformers now contains an extra masking logic to detect and preserve missing value constants unchanged. This is critical for the correct functioning of downstream missing value-aware steps such as imputers, encoders and expression transformers.
+
+See [SkLearn2PMML-445](https://github.com/jpmml/sklearn2pmml/issues/445)
+
+## New features
+
+* Added `LagTransformer.block_indicators` and `RollingAggregateTransformer.block_indicators` attributes.
+
+These attributes enhance the base transformation with "group by" functionality.
+
+For example, calculating a moving average over a mixed stock prices dataset:
+
+``` python
+from sklearn2pmml.preprocessing import RollingAggregateTransformer
+
+mapper = DataFrameMapper([
+  (["stock", "price"], RollingAggregateTransformer(function = "avg", n = 100, block_indicators = ["stock"]))
+], input_df = True, df_out = True)
+```
+
+* Added package up-to-date check.
+
+The Java side of the package computes the timedelta between the current timestamp and the package build timestamp before doing any actual work. If this timedelta is greater than 180 days (6 months) a warning is issued. If this timedelta is greater than 360 days (12 months) an error is raised.
+
+## Minor improvements and fixes
+
+* Added `LagTransformer.get_feature_names_out()` and `RollingAggregateTransformer.get_feature_names_out()` methods.
+
+* Fixed the cast of wildcard features.
+
+Previously, if a `CastTransformer` transformer was applied to a wildcard feature, then the newly assigned operational type was not guaranteed to stick.
+
+See [SkLearn2PMML-445](https://github.com/jpmml/sklearn2pmml/issues/445#issuecomment-2737638764)
+
+
 # 0.116.0 #
 
 ## Breaking changes
@@ -98,7 +141,7 @@ This opens the door for the safe conversion of legacy and/or potentially harmful
 
 For example, attempting to convert an unknown origin and composition estimator file to a PMML document:
 
-```python
+``` python
 from sklearn2pmml import sklearn2pmml
 
 sklearn2pmml("/path/to/estimator.pkl", "estimator.pmml")
