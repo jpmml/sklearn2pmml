@@ -1,3 +1,55 @@
+# 0.116.2 #
+
+## Breaking changes
+
+* Refactored `ExpressionTransformer` class to verify that the target PMML element for `ExpressionTransformer.map_missing_to`, `ExpressionTransformer.default_value` and `ExpressionTransformer.invalid_value_treatment` is clearly known. If any disambiguities are found, then an error is raised, which suggests that the expression should be refactored from inline string representation to UDF representation.
+
+Previously, it was assumed that the target PMML element is the "outermost" transformer element (typically, the `Apply` element).
+
+Before:
+
+``` python
+from sklearn2pmml.preprocessing import ExpressionTransformer
+
+# Ambiguous, because yields a hierarchy of Apply elements,
+# where the target Apply element (`Apply@function="greaterOrEqual"`)
+# is shielded by non-target Apply element (`Apply@function="if"`).
+# Furthermore, the map_missing_to value should be boolean not integer
+transformer = ExpressionTransformer("1 if X[0] >= 0 else 0", map_missing_to = 0)
+```
+
+After:
+
+``` python
+from sklearn2pmml.preprocessing import ExpressionTransformer
+from sklearn2pmml.util import Expression
+
+def _binarize(x):
+  return (1 if x >= 0 else 0)
+
+# Unambiguous, because yields a single Apply element (`Apply@function="_binarize"`)
+transformer = ExpressionTransformer(Expression("_binarize(X[0])", function_defs = [_binarize]), map_missing_to = 0)
+```
+
+See [SkLearn2PMML-446](https://github.com/jpmml/sklearn2pmml/issues/446)
+
+* Refactored the PMML representation of UDFs.
+
+Previously, they were translated to `DerivedField` elements, whereas now they are translated to `DefineFunction` elements.
+
+## New features
+
+None.
+
+## Minor improvements and fixes
+
+* Improved the parsing of Python statements.
+
+See [SkLearn2PMML-447](https://github.com/jpmml/sklearn2pmml/issues/446)
+
+* Ensured compatibility with Python 3.13.
+
+
 # 0.116.1 #
 
 ## Breaking changes
