@@ -21,7 +21,6 @@ package com.sklearn2pmml;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -91,7 +90,7 @@ public class Main extends Application {
 		try {
 			Application.setInstance(main);
 
-			Instant buildTimestamp = getBuildTimestamp();
+			Instant buildTimestamp = getBuildTimestamp(main);
 			if(buildTimestamp != null){
 				Instant now = Instant.now();
 
@@ -177,8 +176,8 @@ public class Main extends Application {
 	}
 
 	static
-	public Instant getBuildTimestamp() throws IOException {
-		Manifest manifest = getManifest();
+	public Instant getBuildTimestamp(Application application) throws IOException {
+		Manifest manifest = application.getManifest();
 
 		Attributes mainAttributes = manifest.getMainAttributes();
 
@@ -188,22 +187,6 @@ public class Main extends Application {
 		}
 
 		return Instant.parse(buildTimestampString);
-	}
-
-	static
-	private Manifest getManifest() throws IOException {
-		Application application = Application.getInstance();
-		if(application == null){
-			throw new IllegalStateException();
-		}
-
-		Class<?> clazz = application.getClass();
-
-		ClassLoader clazzLoader = clazz.getClassLoader();
-
-		try(InputStream is = clazzLoader.getResourceAsStream("META-INF/MANIFEST.MF")){
-			return new Manifest(is);
-		}
 	}
 
 	static {
