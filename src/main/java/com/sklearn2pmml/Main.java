@@ -103,7 +103,7 @@ public class Main extends Application {
 
 				Instant updateRecommendedTimestamp = now.minus(6 * 30, ChronoUnit.DAYS);
 				if(buildTimestamp.isBefore(updateRecommendedTimestamp)){
-					logger.warning("The SkLearn2PMML package is older than 3 months and should be updated");
+					logger.warning("The SkLearn2PMML package is older than 6 months and should be updated");
 				}
 			}
 
