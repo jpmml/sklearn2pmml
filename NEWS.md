@@ -1,3 +1,36 @@
+# 0.116.3 #
+
+## Breaking changes
+
+None.
+
+## New features
+
+* Improved the parsing of Python functions.
+
+Restored support for assignment statements (was temporarily removed in SkLearn2PMML 0.116.2), and added support for collecting multiple "partial" statements into a singular "complete" statement.
+
+See [SkLearn2PMML-447](https://github.com/jpmml/sklearn2pmml/issues/447)
+
+* Added support for type hints.
+
+The Python-to-PMML translator does its best to infer type information for `DefineFunction` and `DerivedField` elements based on their child expression element. However, the inference algorithm is not guaranteed to yield maximally specific results at all times.
+
+A data scientist can now use PEP 484-style type hints to stipulate the intended function return type, and variable types:
+
+``` python
+def _binarize(x) -> int:
+  zeroOrPositive: bool = (x >= 0)
+  if zeroOrPositive:
+    return 1
+  return 0
+```
+
+## Minor improvements and fixes
+
+None.
+
+
 # 0.116.2 #
 
 ## Breaking changes
