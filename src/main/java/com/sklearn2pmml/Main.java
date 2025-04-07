@@ -87,29 +87,34 @@ public class Main extends Application {
 
 		commander.parse(args);
 
+		main.validate();
+
 		try {
 			Application.setInstance(main);
-
-			Instant buildTimestamp = getBuildTimestamp(main);
-			if(buildTimestamp != null){
-				Instant now = Instant.now();
-
-				Instant updateRequiredTimestamp = now.minus(12 * 30, ChronoUnit.DAYS);
-				if(buildTimestamp.isBefore(updateRequiredTimestamp)){
-					logger.severe("The SkLearn2PMML package is older than 12 months and must be updated");
-
-					throw new RuntimeException("The SkLearn2PMML package has expired");
-				}
-
-				Instant updateRecommendedTimestamp = now.minus(6 * 30, ChronoUnit.DAYS);
-				if(buildTimestamp.isBefore(updateRecommendedTimestamp)){
-					logger.warning("The SkLearn2PMML package is older than 6 months and should be updated");
-				}
-			}
 
 			main.run();
 		} finally {
 			Application.setInstance(null);
+		}
+	}
+
+	private void validate(){
+		Instant buildTimestamp = getBuildTimestamp();
+
+		if(buildTimestamp != null){
+			Instant now = Instant.now();
+
+			Instant updateRequiredTimestamp = now.minus(12 * 30, ChronoUnit.DAYS);
+			if(buildTimestamp.isBefore(updateRequiredTimestamp)){
+				logger.severe("The SkLearn2PMML package is older than 12 months and must be updated");
+
+				throw new RuntimeException("The SkLearn2PMML package has expired");
+			}
+
+			Instant updateRecommendedTimestamp = now.minus(6 * 30, ChronoUnit.DAYS);
+			if(buildTimestamp.isBefore(updateRecommendedTimestamp)){
+				logger.warning("The SkLearn2PMML package is older than 6 months and should be updated");
+			}
 		}
 	}
 
@@ -175,9 +180,8 @@ public class Main extends Application {
 		}
 	}
 
-	static
-	public Instant getBuildTimestamp(Application application) throws IOException {
-		Manifest manifest = application.getManifest();
+	private Instant getBuildTimestamp(){
+		Manifest manifest = getManifest();
 
 		Attributes mainAttributes = manifest.getMainAttributes();
 
