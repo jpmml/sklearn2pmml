@@ -1,3 +1,19 @@
+# 0.116.4 #
+
+## Breaking changes
+
+None.
+
+## New features
+
+* Added Unicode support to Python-to-PMML translator.
+It is now possible to use international languages (eg. Chinese) in Python string literals.
+
+## Minor improvements and fixes
+
+* Updated Java libraries.
+
+
 # 0.116.3 #
 
 ## Breaking changes
