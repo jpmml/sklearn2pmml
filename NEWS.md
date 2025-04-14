@@ -11,6 +11,8 @@ It is now possible to use international languages (eg. Chinese) in Python string
 
 ## Minor improvements and fixes
 
+* Ensured compatibility with XGBoost 3.0.0.
+
 * Updated Java libraries.
 
 
