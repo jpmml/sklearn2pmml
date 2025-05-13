@@ -1,4 +1,5 @@
 from datetime import datetime
+from numpy import datetime64
 from pandas import Categorical, DataFrame, Index, Series, Timestamp
 from sklearn.base import clone, BaseEstimator, TransformerMixin
 
@@ -85,7 +86,7 @@ def dt_transform(X, func):
 	return Xt
 
 def to_pydatetime(obj, dtype):
-	if not isinstance(obj, (str, datetime, Timestamp)):
+	if not isinstance(obj, (str, datetime, datetime64, Timestamp)):
 		raise TypeError()
 	ts = pandas.to_datetime(obj, yearfirst = True, format = iso8601_format, origin = "unix")
 	if dtype == "datetime64[D]":
