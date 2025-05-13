@@ -9,7 +9,7 @@ from sklearn.pipeline import make_pipeline
 from sklearn.pipeline import FeatureUnion, Pipeline
 from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder
 from sklearn2pmml.decoration import Alias, DateDomain, DateTimeDomain
-from sklearn2pmml.preprocessing import AggregateTransformer, CastTransformer, ConcatTransformer, CutTransformer, DataFrameConstructor, DateTimeFormatter, DaysSinceYearTransformer, ExpressionTransformer, FilterLookupTransformer, IdentityTransformer, LagTransformer, LookupTransformer, MatchesTransformer, MultiLookupTransformer, NumberFormatter, PMMLLabelBinarizer, PMMLLabelEncoder, PowerFunctionTransformer, ReplaceTransformer, RollingAggregateTransformer, SecondsSinceMidnightTransformer, SecondsSinceYearTransformer, SelectFirstTransformer, SeriesConstructor, StringLengthTransformer, StringNormalizer, SubstringTransformer, WordCountTransformer
+from sklearn2pmml.preprocessing import AggregateTransformer, CastTransformer, ConcatTransformer, CutTransformer, DataFrameConstructor, DateTimeFormatter, DaysSinceYearTransformer, ExpressionTransformer, FilterLookupTransformer, IdentityTransformer, LagTransformer, LookupTransformer, MatchesTransformer, MultiCastTransformer, MultiLookupTransformer, NumberFormatter, PMMLLabelBinarizer, PMMLLabelEncoder, PowerFunctionTransformer, ReplaceTransformer, RollingAggregateTransformer, SecondsSinceMidnightTransformer, SecondsSinceYearTransformer, SelectFirstTransformer, SeriesConstructor, StringLengthTransformer, StringNormalizer, SubstringTransformer, WordCountTransformer
 from sklearn2pmml.preprocessing.h2o import H2OFrameConstructor, H2OFrameCreator
 from sklearn2pmml.preprocessing.lightgbm import make_lightgbm_column_transformer, make_lightgbm_dataframe_mapper
 from sklearn2pmml.preprocessing.xgboost import make_xgboost_column_transformer, make_xgboost_dataframe_mapper
@@ -136,6 +136,34 @@ class CastTransformerTest(TransformerTest):
 		# Can fit, but cannot transform Numpy arrays
 		transformer.fit(X)
 		self.assertEqual(["a", "b", "c"], transformer.dtype_.categories.tolist())
+
+class MultiCastTransformerTest(TestCase):
+
+	def test_transform(self):
+		X = DataFrame([["-1", "-1.0"], ["0", "0.0"], ["1", "1.0"]], columns = ["int", "float"])
+		transformer = MultiCastTransformer(dtypes = [int, float])
+		self.assertEqual([int, float], transformer.dtypes)
+		self.assertFalse(hasattr(transformer, "dtypes_"))
+		Xt = transformer.fit_transform(X)
+		self.assertEqual([int, float], transformer.dtypes_)
+		self.assertIsInstance(Xt, DataFrame)
+		self.assertEqual([[-1, -1.0], [0, 0.0], [1, 1.0]], Xt.values.tolist())
+		X = X.to_numpy()
+		Xt = transformer.transform(X)
+		self.assertIsInstance(Xt, numpy.ndarray)
+		self.assertEqual([[-1, -1.0], [0, 0.0], [1, 1.0]], Xt.tolist())
+
+	def test_transform_categorical(self):
+		X = DataFrame([["apple", "green"], ["cherry", "red"], ["apple", "red"], ["banana", "yellow"], ["avocado", "green"]], columns = ["fruit", "color"])
+		transformer = MultiCastTransformer(dtypes = ["category", pandas.CategoricalDtype()])
+		self.assertFalse(hasattr(transformer, "dtypes_"))
+		Xt = transformer.fit_transform(X)
+		fruit_dtype = transformer.dtypes_[0]
+		color_dtype = transformer.dtypes_[1]
+		self.assertIsInstance(fruit_dtype, CategoricalDtype)
+		self.assertEqual(["apple", "avocado", "banana", "cherry"], fruit_dtype.categories.tolist())
+		self.assertIsInstance(fruit_dtype, CategoricalDtype)
+		self.assertEqual(["green", "red", "yellow"], color_dtype.categories.tolist())
 
 class CutTransformerTest(TestCase):
 

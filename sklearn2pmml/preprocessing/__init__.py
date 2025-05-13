@@ -75,26 +75,62 @@ class BSplineTransformer(BaseEstimator, TransformerMixin):
 		Xt = self.bspline(X1d)
 		return Xt.reshape(X.shape)
 
+def _check_dtype(dtype):
+	if isinstance(dtype, str) and dtype.startswith("datetime64"):
+		dtypes = ["datetime64[D]", "datetime64[s]"]
+		if dtype not in dtypes:
+			raise ValueError("Temporal data type {0} not in {1}".format(dtype, dtypes))
+
+def _fit_dtype(dtype, X):
+	if _is_proto_pandas_categorical(dtype):
+		X = to_numpy(X)
+		return CategoricalDtype(categories = _unique(X), ordered = False)
+	else:
+		return dtype
+
 class CastTransformer(BaseEstimator, TransformerMixin, OneToOneFeatureMixin):
 	"""Change data type."""
 
 	def __init__(self, dtype):
-		if isinstance(dtype, str) and dtype.startswith("datetime64"):
-			dtypes = ["datetime64[D]", "datetime64[s]"]
-			if dtype not in dtypes:
-				raise ValueError("Temporal data type {0} not in {1}".format(dtype, dtypes))
+		_check_dtype(dtype)
 		self.dtype = dtype
 
 	def fit(self, X, y = None):
-		if _is_proto_pandas_categorical(self.dtype):
-			X = to_numpy(X)
-			self.dtype_ = CategoricalDtype(categories = _unique(X), ordered = False)
-		else:
-			self.dtype_ = self.dtype
+		self.dtype_ = _fit_dtype(self.dtype, X)
 		return self
 
 	def transform(self, X):
 		return cast(X, self.dtype_)
+
+class MultiCastTransformer(BaseEstimator, TransformerMixin):
+
+	def __init__(self, dtypes):
+		for dtype in dtypes:
+			_check_dtype(dtype)
+		self.dtypes = dtypes
+
+	def fit(self, X, y = None):
+		rows, columns = X.shape
+		if len(self.dtypes) != columns:
+			raise ValueError("The number of columns {0} is not equal to the number of data types {1}".format(columns, len(self.dtypes)))
+		if isinstance(X, DataFrame):
+			dtypes_ = [_fit_dtype(dtype, X[column]) for dtype, column in zip(self.dtypes, X.columns)]
+		else:
+			dtypes_ = [_fit_dtype(dtype, X[:, column]) for dtype, column in zip(self.dtypes, range(0, columns))]
+		self.dtypes_ = dtypes_
+		return self
+
+	def transform(self, X):
+		rows, columns = X.shape
+		# XXX
+		X = X.copy()
+		if isinstance(X, DataFrame):
+			for dtype, column in zip(self.dtypes_, X.columns):
+				X[column] = cast(X[column], dtype)
+		else:
+			for dtype, column in zip(self.dtypes_, range(0, columns)):
+				X[:, column] = cast(X[:, column], dtype)
+		return X
 
 class CutTransformer(BaseEstimator, TransformerMixin):
 	"""Bin continuous data to categorical."""
