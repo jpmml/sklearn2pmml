@@ -546,6 +546,25 @@ class LookupTransformerTest(TransformerTest):
 		transformer = LookupTransformer(mapping, "(other)")
 		self.assertEqual([[None], ["(other)"]], transformer.transform(X).tolist())
 
+	def test_transform_categorical(self):
+		X = Series(["one", "two", "three"])
+		mapping = {
+			"one" : "ein",
+			"two" : "zwei",
+			"three" : "drei"
+		}
+		transformer = LookupTransformer(mapping, None)
+		Xt = transformer.fit_transform(X)
+		self.assertIsInstance(Xt, Series)
+		self.assertEqual(object, Xt.dtype)
+		self.assertEqual(["ein", "zwei", "drei"], Xt.tolist())
+		transformer = LookupTransformer(mapping, None, dtype = "category")
+		Xt = transformer.fit_transform(X)
+		self.assertIsInstance(Xt, Series)
+		self.assertIsInstance(Xt.dtype, CategoricalDtype)
+		self.assertEqual(["drei", "ein", "zwei"], Xt.dtype.categories.tolist())
+		self.assertEqual(["ein", "zwei", "drei"], Xt.tolist())
+
 class FilterLookupTransformerTest(TransformerTest):
 
 	def test_transform_int(self):

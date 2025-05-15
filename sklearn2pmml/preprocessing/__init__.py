@@ -419,7 +419,7 @@ class LookupTransformer(BaseEstimator, TransformerMixin):
 
 	"""
 
-	def __init__(self, mapping, default_value):
+	def __init__(self, mapping, default_value, dtype = None):
 		if type(mapping) is not dict:
 			raise TypeError("Input value to output value mapping is not a dict")
 		k_type = None
@@ -445,6 +445,9 @@ class LookupTransformer(BaseEstimator, TransformerMixin):
 				if type(default_value) != v_type:
 					raise TypeError("Default value is not a {0}".format(v_type.__name__))
 		self.default_value = default_value
+		if dtype and not _is_proto_pandas_categorical(dtype):
+			raise ValueError("Data type {} is not a proto-categorical data type".format(dtype))
+		self.dtype = dtype
 
 	def _transform_dict(self):
 		transform_dict = defaultdict(lambda: self.default_value)
@@ -464,7 +467,7 @@ class LookupTransformer(BaseEstimator, TransformerMixin):
 				return x
 			return transform_dict[x]
 
-		Xt = eval_rows(X1d, _eval_row, shape = X.shape)
+		Xt = eval_rows(X1d, _eval_row, shape = X.shape, dtype = self.dtype)
 		return Xt
 
 class FilterLookupTransformer(LookupTransformer):
