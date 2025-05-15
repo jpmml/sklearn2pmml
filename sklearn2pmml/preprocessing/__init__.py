@@ -135,11 +135,14 @@ class MultiCastTransformer(BaseEstimator, TransformerMixin):
 class CutTransformer(BaseEstimator, TransformerMixin):
 	"""Bin continuous data to categorical."""
 
-	def __init__(self, bins, right = True, labels = None, include_lowest = True):
+	def __init__(self, bins, right = True, labels = None, include_lowest = True, dtype = None):
 		self.bins = bins
 		self.right = right
 		self.labels = labels
 		self.include_lowest = include_lowest
+		if dtype and not _is_proto_pandas_categorical(dtype):
+			raise ValueError("Data type {} is not a proto-categorical data type".format(dtype))
+		self.dtype = dtype
 
 	def fit(self, X, y = None):
 		to_1d(X)
@@ -148,9 +151,12 @@ class CutTransformer(BaseEstimator, TransformerMixin):
 	def transform(self, X):
 		X1d = to_1d(X)
 		Xt = pandas.cut(X1d, bins = self.bins, right = self.right, labels = self.labels, include_lowest = self.include_lowest)
-		if _is_pandas_categorical(Xt.dtype):
-			Xt = to_numpy(Xt)
-		return Xt.reshape(X.shape)
+		if self.dtype:
+			return Xt
+		else:
+			if _is_pandas_categorical(Xt.dtype):
+				Xt = to_numpy(Xt)
+			return Xt.reshape(X.shape)
 
 class DataFrameConstructor(BaseEstimator, TransformerMixin):
 

@@ -168,9 +168,13 @@ class MultiCastTransformerTest(TestCase):
 class CutTransformerTest(TestCase):
 
 	def test_transform_int(self):
-		bins = [-100, -10, 0, 10, 100]
-		transformer = CutTransformer(bins, labels = ["x-neg", "neg", "pos", "x-pos"])
 		X = DataFrame([[-25], [-1], [5], [25]], columns = ["a"])
+		bins = [-100, -10, 0, 10, 100]
+		transformer = CutTransformer(bins, labels = ["x-neg", "neg", "pos", "x-pos"], dtype = "category")
+		Xt = transformer.fit_transform(X)
+		self.assertIsInstance(Xt, Series)
+		self.assertEqual(["x-neg", "neg", "pos", "x-pos"], Xt.tolist())
+		transformer = CutTransformer(bins, labels = ["x-neg", "neg", "pos", "x-pos"])
 		Xt = transformer.fit_transform(X)
 		self.assertIsInstance(Xt, numpy.ndarray)
 		self.assertEqual([["x-neg"], ["neg"], ["pos"], ["x-pos"]], Xt.tolist())
