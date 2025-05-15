@@ -510,8 +510,8 @@ def _deeptype(t):
 class MultiLookupTransformer(LookupTransformer):
 	"""Re-map multidimensional categorical data."""
 
-	def __init__(self, mapping, default_value):
-		super(MultiLookupTransformer, self).__init__(mapping, default_value)
+	def __init__(self, mapping, default_value, dtype = None):
+		super(MultiLookupTransformer, self).__init__(mapping, default_value, dtype = dtype)
 		k_type = None
 		for k, v in mapping.items():
 			if not isinstance(k, tuple):
@@ -536,8 +536,12 @@ class MultiLookupTransformer(LookupTransformer):
 			x = x if isinstance(x, Hashable) else tuple(numpy.squeeze(numpy.asarray(x)))
 			return transform_dict[tuple(x)]
 
-		Xt = eval_rows(X, _eval_row, to_numpy = True)
-		return Xt.reshape((-1, 1))
+		if self.dtype:
+			Xt = eval_rows(X, _eval_row, dtype = self.dtype)
+			return Xt
+		else:
+			Xt = eval_rows(X, _eval_row, to_numpy = True)
+			return Xt.reshape((-1, 1))
 
 def _make_index(values):
 	result = {}

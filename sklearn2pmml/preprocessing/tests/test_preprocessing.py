@@ -625,6 +625,25 @@ class MultiLookupTransformerTest(TestCase):
 		transformer = MultiLookupTransformer(mapping, "(other)")
 		self.assertEqual([["ein"], [None], ["(other)"], ["zwei"]], transformer.transform(X).tolist())
 
+	def test_transform_categorical(self):
+		X = DataFrame([["apple", "green"], ["banana", "green"], ["banana", "yellow"]], columns = ["fruit", "color"])
+		mapping = {
+			("apple", "red") : True,
+			("banana", "green") : False,
+			("banana", "yellow") : True
+		}
+		transformer = MultiLookupTransformer(mapping, None)
+		Xt = transformer.fit_transform(X)
+		self.assertIsInstance(Xt, numpy.ndarray)
+		self.assertEqual(object, Xt.dtype)
+		self.assertTrue(_list_equal([float("NaN"), False, True], Xt.tolist()))
+		transformer = MultiLookupTransformer(mapping, None, dtype = "category")
+		Xt = transformer.fit_transform(X)
+		self.assertIsInstance(Xt, Series)
+		self.assertIsInstance(Xt.dtype, CategoricalDtype)
+		self.assertEqual([False, True], Xt.dtype.categories.tolist())
+		self.assertTrue(_list_equal([float("NaN"), False, True], Xt.tolist()))
+
 class PMMLLabelBinarizerTest(TestCase):
 
 	def test_fit_float(self):
