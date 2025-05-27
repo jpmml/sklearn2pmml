@@ -1,3 +1,57 @@
+# 0.117.0 #
+
+## Breaking changes
+
+None.
+
+## New features
+
+* Added support for `sklearn2pmml.preprocessing.MultiCastTransformer` class.
+
+Implements casts in multi-column mode.
+
+Before:
+
+``` python
+from sklearn2pmml.preprocessing import CastTransformer
+
+transformer = ColumnTransformer([
+  ("first", CastTransformer(dtype = "category"), [0]),
+  ("second", CastTransformer(dtype = "category"), [1]),
+  ("third", CastTransformer(dtype = "category"), [2])
+])
+```
+
+After:
+
+``` python
+from sklearn2pmml.preprocessing import MultiCastTransformer
+
+transformer = ColumnTransformer([
+  ("cat", MultiCastTransformer(dtypes = ["category", "category", "category"]), [0, 1, 2])
+])
+```
+
+* Added `CutTransformer.dtype` attribute.
+
+If set to a "proto" categorical data type, the `transform(X)` method now yields a Pandas' series.
+Previously, the output was force-converted into a 2D Numpy array of shape `(n_samples, 1)`.
+
+This allows easier interfacing with categorical data type-aware steps such as LightGBM and XGBoost estimators.
+
+* Added `LookupTransformer.dtype` and `MultiLookupTransformer.dtype` attributes.
+
+## Minor improvements and fixes
+
+* Added support for `numpy.datetime64` data type.
+
+See [SkLearn2PMML-454](https://github.com/jpmml/sklearn2pmml/issues/454)
+
+* Added name availability check into the field renaming logic.
+
+See [SkLearn2PMML-455](https://github.com/jpmml/sklearn2pmml/issues/455)
+
+
 # 0.116.4 #
 
 ## Breaking changes
@@ -7,6 +61,7 @@ None.
 ## New features
 
 * Added Unicode support to Python-to-PMML translator.
+
 It is now possible to use international languages (eg. Chinese) in Python string literals.
 
 ## Minor improvements and fixes
@@ -413,7 +468,7 @@ assert regex_engine.replace("c", "ABBA") == "AcA"
 
 See [SkLearn2PMML-228](https://github.com/jpmml/sklearn2pmml/issues/228)
 
-* Refactored `StringNormalizer.transform(X)` and `SubstringTransformer.transform(X)` methods to support Pandas' Series input and output.
+* Refactored `StringNormalizer.transform(X)` and `SubstringTransformer.transform(X)` methods to support `pandas.Series` input and output.
 
 See [SkLearn2PMML-434](https://github.com/jpmml/sklearn2pmml/issues/434)
 
@@ -788,7 +843,7 @@ sklearn2pmml(ordinal_classifier, "OrdinalClassifier.pmml")
 This bug manifested itself when the input column was mixing different data type values.
 For example, a sparse string column, where non-missing values are strings, and missing values are floating-point `numpy.NaN` values.
 
-Scikit-Learn documentation warns against mixing string and numeric values within a single column, but it can happen inadvertently when reading a sparse dataset into a Pandas' DataFrame using standard library functions (eg. the [`pandas.read_csv()`](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.read_csv.html) function).
+Scikit-Learn documentation warns against mixing string and numeric values within a single column, but it can happen inadvertently when reading a sparse dataset into a Pandas' dataframe using standard library functions (eg. the [`pandas.read_csv()`](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.read_csv.html) function).
 
 * Added Pandas to package dependencies.
 
@@ -1084,7 +1139,7 @@ pipeline.customize(command = "insert", pmml_element = model_explanation.tostring
 
 * Refactored the `transform(X)` methods of SkLearn2PMML custom transformers to maximally preserve the original type and dimensionality of data containers.
 
-For example, if the input to a single-column transformation is a Pandas' Series, and the nature of the transformation allows for it, then the output will also be a Pandas' Series.
+For example, if the input to a single-column transformation is a Pandas' series, and the nature of the transformation allows for it, then the output will also be a Pandas' series.
 Previously, the output was force-converted into a 2D Numpy array of shape `(n_samples, 1)`.
 
 This change should go unnoticed for the majority of pipelines, as most Scikit-Learn transformers and estimators are quite lenient towards what they accept as input.
@@ -1377,7 +1432,7 @@ transformer = ColumnTransformer([
   ("cat", CategoricalDomain(...), cat_cols)
 ])
 
-# Force the output data container to be a Pandas' DataFrame (rather than a Numpy array)
+# Force the output data container to be a Pandas' dataframe (rather than a Numpy array)
 transformer.set_output(transform = "pandas")
 ```
 
