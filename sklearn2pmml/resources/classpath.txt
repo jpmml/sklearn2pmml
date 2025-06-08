@@ -29,5 +29,6 @@ pmml-xgboost-1.9.1.jar
 serpent-1.40.jar
 slf4j-api-2.0.17.jar
 slf4j-jdk14-2.0.17.jar
+telemetry-client-1.0.0.jar
 ubjson-0.1.8.jar
 ubjson-gson-0.1.8.jar

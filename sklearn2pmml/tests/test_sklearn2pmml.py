@@ -143,9 +143,9 @@ class ClasspathTest(TestCase):
 
 	def test_classpath(self):
 		classpath = _classpath([])
-		self.assertEqual(33, len(classpath))
+		self.assertEqual(34, len(classpath))
 		classpath = _classpath(["A.jar", "B.jar"])
-		self.assertEqual(33 + 2, len(classpath))
+		self.assertEqual(34 + 2, len(classpath))
 
 	def test_expand_complex_key(self):
 		self.assertEqual(["a.b.C"], _expand_complex_key("a.b.C"))

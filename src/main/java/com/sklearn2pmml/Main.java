@@ -25,7 +25,9 @@ import java.io.OutputStream;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import java.util.logging.LogManager;
@@ -52,6 +54,8 @@ import org.jpmml.python.StorageUtil;
 import org.jpmml.sklearn.Encodable;
 import org.jpmml.sklearn.EncodableUtil;
 import org.jpmml.sklearn.SkLearnUtil;
+import org.jpmml.telemetry.Incident;
+import org.jpmml.telemetry.TelemetryClient;
 
 public class Main extends Application {
 
@@ -93,6 +97,24 @@ public class Main extends Application {
 			Application.setInstance(main);
 
 			main.run();
+		} catch(Exception e){
+			Package _package = Main.class.getPackage();
+
+			Map<String, String> environment = new LinkedHashMap<>();
+			environment.put("sklearn2pmml", _package.getImplementationVersion());
+
+			Incident incident = new Incident()
+				.setProject("sklearn2pmml")
+				.setEnvironment(environment)
+				.setException(e);
+
+			try {
+				TelemetryClient.report("https://telemetry.jpmml.org/v1/incidents", incident);
+			} catch(IOException ioe){
+				// Ignored
+			}
+
+			throw e;
 		} finally {
 			Application.setInstance(null);
 		}
