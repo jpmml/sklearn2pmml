@@ -1,7 +1,7 @@
 CHAID[graph]==5.4.2
 dill==0.3.9
 interpret==0.6.6; python_version == '3.8'
-interpret==0.6.9; python_version == '3.9'
+interpret==0.6.11; python_version == '3.9'
 joblib==1.4.2
 lightgbm==4.6.0
 lxml==5.3.1
@@ -13,7 +13,7 @@ pcre2==0.4.0; python_version == '3.8'
 pcre2==0.5.2; python_version >= '3.9'
 pandas==2.0.3; python_version == '3.8'
 pandas==2.2.3; python_version >= '3.9'
-scikit-learn>=1.0,<=1.5.2
+scikit-learn>=1.0,<=1.6.1
 scikit-lego==0.9.4
 scikit-tree==0.8.0; python_version >= '3.9'
 sklearn-pandas==2.2.0
