@@ -1,3 +1,20 @@
+# 0.118.0 #
+
+## Breaking changes
+
+None.
+
+## New features
+
+* Added support for Scikit-Learn 1.6.X.
+
+* Added telemetry.
+
+## Minor improvements and fixes
+
+* Ensured compatibility with InterpretML 0.6.11, Scikit-Lego 0.9.5 and Treeple 0.10.3 (formerly Scikit-Tree).
+
+
 # 0.117.0 #
 
 ## Breaking changes
