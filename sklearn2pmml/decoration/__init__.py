@@ -6,6 +6,11 @@ try:
 	from sklearn.base import OneToOneFeatureMixin
 except ImportError:
 	from sklearn.base import _OneToOneFeatureMixin as OneToOneFeatureMixin
+try:
+	# SkLearn 1.7.0+
+	from sklearn.utils.validation import _check_feature_names, _check_n_features
+except ImportError:
+	pass
 from sklearn2pmml import _is_pandas_categorical, _is_proto_pandas_categorical
 from sklearn2pmml.util import cast, common_dtype, is_1d, to_numpy
 
@@ -64,8 +69,14 @@ class MultiAlias(TransformerWrapper):
 		return numpy.asarray(self.names)
 
 def _check_input(estimator, X, reset):
-	estimator._check_n_features(X, reset = reset)
-	estimator._check_feature_names(X, reset = reset)
+	# SkLearn 1.6.1
+	if hasattr(estimator, "_check_feature_names") and hasattr(estimator, "_check_n_features"):
+		estimator._check_n_features(X, reset = reset)
+		estimator._check_feature_names(X, reset = reset)
+	# SkLearn 1.7.0+
+	else:
+		_check_n_features(estimator, X, reset = reset)
+		_check_feature_names(estimator, X, reset = reset)
 	return X
 
 def _check_cols(X, values):
