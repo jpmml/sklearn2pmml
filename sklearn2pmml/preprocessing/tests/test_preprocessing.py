@@ -1,3 +1,7 @@
+from sklearn2pmml.sklearn_pandas import patch_sklearn
+
+patch_sklearn()
+
 from datetime import datetime
 from pandas import CategoricalDtype, DataFrame, Series, Timestamp
 from sklearn_pandas import DataFrameMapper

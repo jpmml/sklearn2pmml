@@ -1,3 +1,7 @@
+from sklearn2pmml.sklearn_pandas import patch_sklearn
+
+patch_sklearn()
+
 from datetime import datetime
 from pandas import BooleanDtype, Categorical, CategoricalDtype, DataFrame, Int64Dtype, Series
 from sklearn.base import clone
