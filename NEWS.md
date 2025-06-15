@@ -1,3 +1,36 @@
+# 0.119.0 #
+
+## Breaking changes
+
+None.
+
+## New features
+
+* Added support for Scikit-Learn 1.7.X.
+
+* Added `sklearn2pmml.sklearn_pandas.patch_sklearn()` utility function.
+
+The `sklearn_pandas.DataFrameMapper` class depends on the `sklearn.utils.tosequence()` utility function, which was removed in Scikit-Learn 1.7.0. It is currently unclear when and if all the `sklearn_pandas` package will be updated to reflect this breaking change.
+
+A data scientist can safely "patch" the latest Scikit-Learn version for SkLearn-Pandas 2.2.0 needs by calling the `patch_sklearn` utility function during Python environment initialization:
+
+``` python
+from sklearn2pmml.sklearn_pandas import patch_sklearn
+
+patch_sklearn()
+
+from sklearn_pandas import DataFrameMapper
+
+mapper = DataFrameMapper(...)
+```
+
+## Minor improvements and fixes
+
+* Improved support for `pandas.Int64Dtype` data type in the `DiscreteDomain.fit(X, y)` method.
+
+* Ensured compatibility with Category-Encoders 2.8.1.
+
+
 # 0.118.0 #
 
 ## Breaking changes
