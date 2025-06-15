@@ -195,6 +195,8 @@ class CategoricalDomainTest(TestCase):
 		self.assertIsInstance(Xt.dtype, Int64Dtype)
 		self.assertFalse(hasattr(domain, "n_features_in_"))
 		self.assertEqual([-1, 1, 2], domain.data_values_.tolist())
+		for data_value in domain.data_values_:
+			self.assertIsInstance(data_value, (int, numpy.int64))
 		self.assertEqual([-1, pandas.NA, 1, 2, -1], Xt.tolist())
 		domain = clone(CategoricalDomain())
 		X = to_numpy(X)
