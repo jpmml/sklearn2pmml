@@ -1,3 +1,18 @@
+# 0.119.1 #
+
+## Breaking changes
+
+None.
+
+## New features
+
+* Added support for [`sklearn.linear_model.TweedieRegressor`](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.TweedieRegressor.html) and [`sklearn.linear_model.Perceptron`](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Perceptron.html) classes.
+
+## Minor improvements and fixes
+
+* Updated telemetry.
+
+
 # 0.119.0 #
 
 ## Breaking changes
