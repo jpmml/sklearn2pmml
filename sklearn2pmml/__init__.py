@@ -1,3 +1,4 @@
+from importlib.metadata import version, PackageNotFoundError
 from pandas import CategoricalDtype
 from pathlib import Path
 try:
@@ -178,6 +179,21 @@ def _make_java_command(java_home, java_opts, java_args):
 	result.extend(java_args)
 	return result
 
+def _environment(java_home = None):
+	result = dict()
+
+	java_version = _java_version(java_home = java_home)
+	if java_version:
+		result[java_version[0]] = java_version[1]
+
+	python_version = _python_version()
+	result["python"] = python_version
+
+	package_versions = _package_versions()
+	result.update(package_versions)
+
+	return result
+
 def _java_version(java_home = None):
 	cmd = _make_java_command(java_home = java_home, java_opts = None, java_args = ["-version"])
 	try:
@@ -196,6 +212,20 @@ def _parse_java_version(java_version):
 		return (match.group(1), match.group(2))
 	else:
 		return None
+
+def _python_version():
+	return platform.python_version()
+
+def _package_versions():
+	pkgs = ["Boruta", "category_encoders", "CHAID", "dill", "h2o", "hyperopt", "imbalanced-learn", "interpret", "joblib", "lightgbm", "mlxtend", "numpy", "optbinning", "pandas", "pycaret", "scikit-learn", "scikit-lego", "sklearn2pmml", "statsmodels", "tpot", "treeple", "xgboost"]
+
+	result = dict()
+	for pkg in pkgs:
+		try:
+			result[pkg] = version(pkg)
+		except PackageNotFoundError:
+			pass
+	return result
 
 def _classpath(user_classpath):
 	return _package_classpath() + user_classpath
@@ -274,18 +304,11 @@ def sklearn2pmml(estimator, pmml_path, with_repr = False, pmml_schema = None, ja
 		If true, print information about the conversion process.
 
 	"""
+
+	env = _environment(java_home = java_home)
+
 	if debug:
-		java_version = _java_version(java_home = java_home)
-		if java_version is None:
-			java_version = ("java", "N/A")
-		print("python: {0}".format(platform.python_version()))
-		print("sklearn2pmml: {0}".format(__version__))
-		print("sklearn: {0}".format(sklearn.__version__))
-		print("pandas: {0}".format(pandas.__version__))
-		print("numpy: {0}".format(numpy.__version__))
-		print("dill: {0}".format(dill.__version__))
-		print("joblib: {0}".format(joblib.__version__))
-		print("{0}: {1}".format(java_version[0], java_version[1]))
+		print("Execution environment:\n" + "\n".join(["{}: {}".format(k, v) for k, v in env.items()]))
 
 	dumps = []
 	try:
