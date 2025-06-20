@@ -305,10 +305,11 @@ def sklearn2pmml(estimator, pmml_path, with_repr = False, pmml_schema = None, ja
 
 	"""
 
-	env = _environment(java_home = java_home)
+	sklearn2pmml_env = _environment(java_home = java_home)
+	sklearn2pmml_env = "\n".join(["{}: {}".format(k, v) for k, v in sklearn2pmml_env.items()])
 
 	if debug:
-		print("Execution environment:\n" + "\n".join(["{}: {}".format(k, v) for k, v in env.items()]))
+		print("Execution environment:\n" + sklearn2pmml_env)
 
 	dumps = []
 	try:
@@ -356,8 +357,10 @@ def sklearn2pmml(estimator, pmml_path, with_repr = False, pmml_schema = None, ja
 		cmd = _make_java_command(java_home = java_home, java_opts = java_opts, java_args = java_args)
 		if debug:
 			print("Executing command:\n{0}".format(" ".join(cmd)))
+		env = os.environ.copy()
+		env["SKLEARN2PMML_ENVIRONMENT"] = sklearn2pmml_env
 		try:
-			process = Popen(cmd, stdout = PIPE, stderr = PIPE, bufsize = 1, universal_newlines = True)
+			process = Popen(cmd, env = env, stdout = PIPE, stderr = PIPE, bufsize = 1, universal_newlines = True)
 		except OSError:
 			raise RuntimeError("Java is not installed, or the Java executable is not on system path")
 		output, error = process.communicate()

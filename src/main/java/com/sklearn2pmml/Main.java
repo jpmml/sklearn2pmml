@@ -19,6 +19,7 @@
 package com.sklearn2pmml;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -97,11 +98,23 @@ public class Main extends Application {
 			Application.setInstance(main);
 
 			main.run();
+		} catch(FileNotFoundException fnfe){
+			throw fnfe;
 		} catch(Exception e){
 			Package _package = Main.class.getPackage();
 
-			Map<String, String> environment = new LinkedHashMap<>();
-			environment.put("sklearn2pmml", _package.getImplementationVersion());
+			Map<String, String> environment;
+
+			String sklearn2pmmlEnvironment = System.getenv("SKLEARN2PMML_ENVIRONMENT");
+			if(sklearn2pmmlEnvironment != null && sklearn2pmmlEnvironment.length() > 0){
+				environment = parseEnvironment(sklearn2pmmlEnvironment);
+			} else
+
+			{
+				environment = new LinkedHashMap<>();
+				environment.put(System.getProperty("java.vendor"), System.getProperty("java.version"));
+				environment.put("sklearn2pmml", _package.getImplementationVersion());
+			}
 
 			Incident incident = new Incident()
 				.setProject("sklearn2pmml")
@@ -213,6 +226,23 @@ public class Main extends Application {
 		}
 
 		return Instant.parse(buildTimestampString);
+	}
+
+	static
+	private Map<String, String> parseEnvironment(String string){
+		Map<String, String> result = new LinkedHashMap<>();
+
+		String[] lines = string.split("\n");
+		for(String line : lines){
+			int colon = line.indexOf(':');
+
+			String key = (line.substring(0, colon)).trim();
+			String value = (line.substring(colon + 1)).trim();
+
+			result.put(key, value);
+		}
+
+		return result;
 	}
 
 	static {
