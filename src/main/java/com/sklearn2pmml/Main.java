@@ -49,11 +49,12 @@ import org.jpmml.model.metro.MetroJAXBSerializer;
 import org.jpmml.model.visitors.VersionChecker;
 import org.jpmml.model.visitors.VersionDowngrader;
 import org.jpmml.model.visitors.VersionStandardizer;
-import org.jpmml.python.PickleUtil;
+import org.jpmml.python.PythonUnpickler;
 import org.jpmml.python.Storage;
 import org.jpmml.python.StorageUtil;
 import org.jpmml.sklearn.Encodable;
 import org.jpmml.sklearn.EncodableUtil;
+import org.jpmml.sklearn.SkLearnUnpickler;
 import org.jpmml.sklearn.SkLearnUtil;
 import org.jpmml.telemetry.Incident;
 import org.jpmml.telemetry.TelemetryClient;
@@ -157,7 +158,9 @@ public class Main extends Application {
 		Object object;
 
 		try(Storage storage = StorageUtil.createStorage(this.inputFile)){
-			object = PickleUtil.unpickle(storage);
+			PythonUnpickler pythonUnpickler = new SkLearnUnpickler();
+
+			object = pythonUnpickler.load(storage);
 		}
 
 		Encodable encodable = EncodableUtil.toEncodable(object);
