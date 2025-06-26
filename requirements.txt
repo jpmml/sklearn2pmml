@@ -16,6 +16,7 @@ pandas==2.2.3; python_version >= '3.9'
 scikit-learn>=1.0,<=1.6.1
 scikit-lego==0.9.4
 scikit-tree==0.8.0; python_version >= '3.9'
+scipy<=1.15.3
 sklearn-pandas==2.2.0
 statsmodels==0.14.1; python_version == '3.8'
 statsmodels==0.14.4; python_version >= '3.9'
