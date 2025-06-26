@@ -135,7 +135,7 @@ def _escape(obj, escape_func):
 def _escape_steps(steps, escape_func):
 	return [(step[:1] + (escape_func(step[1], escape_func = escape_func), ) + step[2:]) for step in steps]
 
-def make_pmml_pipeline(estimator, active_fields = None, target_fields = None, escape_func = _escape):
+def make_pmml_pipeline(estimator, active_fields = None, target_fields = None):
 	"""Wraps a Scikit-Learn estimator or pipeline object into a PMML pipeline object.
 
 	Parameters:
@@ -155,7 +155,6 @@ def make_pmml_pipeline(estimator, active_fields = None, target_fields = None, es
 	pipeline = PMMLPipeline([
 		("estimator", estimator)
 	])
-	pipeline = _escape(pipeline, escape_func = escape_func)
 	if active_fields is not None:
 		pipeline.active_fields = numpy.asarray(active_fields)
 	if target_fields is not None:

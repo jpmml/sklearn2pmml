@@ -8,5 +8,5 @@ def _escape(obj, escape_func):
 		obj.transformer = escape_func(obj.transformer, escape_func = escape_func)
 	return obj
 
-def make_pmml_pipeline(obj, active_fields = None, target_fields = None, escape_func = _escape):
-	return default_make_pmml_pipeline(obj, active_fields = active_fields, target_fields = target_fields, escape_func = escape_func)
+def make_pmml_pipeline(obj, active_fields = None, target_fields = None):
+	return default_make_pmml_pipeline(obj, active_fields = active_fields, target_fields = target_fields)
