@@ -267,7 +267,7 @@ def _is_supported(estimator):
 		return True
 	return isinstance(estimator, BaseEstimator)
 
-def sklearn2pmml(estimator, pmml_path, with_repr = False, pmml_schema = None, java_home = None, java_opts = None, user_classpath = [], dump_flavour = "joblib", debug = False):
+def sklearn2pmml(estimator, pmml_path, escape_func = _escape, with_repr = False, pmml_schema = None, java_home = None, java_opts = None, user_classpath = [], dump_flavour = "joblib", debug = False):
 	"""Converts a fitted estimator or pipeline object to PMML.
 
 	Parameters:
@@ -313,14 +313,19 @@ def sklearn2pmml(estimator, pmml_path, with_repr = False, pmml_schema = None, ja
 	dumps = []
 	try:
 		if isinstance(estimator, (str, Path)):
+			if escape_func:
+				warnings.warn("Ignoring 'escape_func' argument")
 			if with_repr:
-				warnings.warn("Ignoring 'with_repr' flag")
+				warnings.warn("Ignoring 'with_repr' argument")
 
 			pkl_path = str(estimator)
 		else:
 			if not _is_supported(estimator):
 				raise TypeError("The estimator object is not an instance of {0}".format(BaseEstimator.__name__))
 
+			# Escape first, capture the string representation second
+			if escape_func:
+				estimator = _escape(estimator, escape_func = escape_func)
 			if with_repr:
 				estimator.repr_ = repr(estimator)
 
