@@ -1,9 +1,11 @@
 from pandas import Categorical, CategoricalDtype, DataFrame, Series
 from sklearn.dummy import DummyRegressor
 from sklearn.feature_selection import f_regression, SelectFromModel, SelectKBest
+from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import MinMaxScaler
 from sklearn.tree import DecisionTreeRegressor
-from sklearn2pmml import _classpath, _escape, _escape_steps, _expand_complex_key, _is_categorical, _is_ordinal, _is_proto_pandas_categorical, _java_version, _parse_java_version, _strip_module, load_class_mapping, make_class_mapping_jar, make_pmml_pipeline, EstimatorProxy, SelectorProxy
+from sklearn2pmml import _classpath, _escape, _escape_steps, _expand_complex_key, _is_categorical, _is_extension_class, _is_ordinal, _is_proto_pandas_categorical, _java_version, _parse_java_version, _strip_module, load_class_mapping, make_class_mapping_jar, make_pmml_pipeline, EstimatorProxy, SelectorProxy
 from sklearn2pmml.pipeline import PMMLPipeline
 from unittest import TestCase
 
@@ -177,7 +179,49 @@ class ClasspathTest(TestCase):
 		self.assertEqual("sklearn.preprocessing.StandardScaler", _strip_module("sklearn.preprocessing.data.StandardScaler"))
 		self.assertEqual("sklearn.tree.DecisionTreeClassifier", _strip_module("sklearn.tree.tree.DecisionTreeClassifier"))
 
+class MultinomialClassifier(LogisticRegression):
+
+	def __init__(self):
+		super().__init__(multi_class = "multinomial")
+
+class CustomMultinomialClassifier(LogisticRegression):
+
+	def __init__(self):
+		super().__init__(multi_class = "multinomial")
+
+	def predict(self, X):
+		return super().predict(X = X)
+
+class PercentageTransformer(MinMaxScaler):
+
+	def __init__(self):
+		super().__init__(feature_range = (0, 100))
+
+class CustomPercentageTransformer(MinMaxScaler):
+
+	def __init__(self):
+		super().__init__(feature_range = (0, 100))
+
+	def transform(self, X):
+		return super().transform(X = X)
+
 class FunctionTest(TestCase):
+
+	def test_is_extension_estimator(self):
+		estimator = LogisticRegression(multi_class = "multinomial")
+		self.assertEqual((False, None), _is_extension_class(estimator))
+		estimator = MultinomialClassifier()
+		self.assertEqual((True, "{}.{}".format(LogisticRegression.__module__, LogisticRegression.__name__)), _is_extension_class(estimator))
+		estimator = CustomMultinomialClassifier()
+		self.assertEqual((False, None), _is_extension_class(estimator))
+
+	def test_is_extension_transformer(self):
+		transformer = MinMaxScaler(feature_range = (0, 100))
+		self.assertEqual((False, None), _is_extension_class(transformer))
+		transformer = PercentageTransformer()
+		self.assertEqual((True, "{}.{}".format(MinMaxScaler.__module__, MinMaxScaler.__name__)), _is_extension_class(transformer))
+		transformer = CustomPercentageTransformer()
+		self.assertEqual((False, None), _is_extension_class(transformer))
 
 	def test_make_pmml_pipeline(self):
 		with self.assertRaises(TypeError):
