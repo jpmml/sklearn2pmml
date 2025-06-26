@@ -1,3 +1,77 @@
+# 0.120.0 #
+
+## Breaking changes
+
+* Moved `escape_func` parameter from `sklearn2pmml.make_pmml_pipeline()` utility function to `sklearn2pmml.sklearn2pmml()`.
+
+The default value of this parameter is a `sklearn2pmml._escape()` utility function reference, which should be fine for all pure Scikit-Learn workflows.
+
+Before:
+
+``` python
+from sklearn2pmml import _escape, make_pmml_pipeline, sklearn2pmml
+
+estimator = joblib.load("estimator.pkl")
+
+# The escape_func argument may be omitted
+pmml_pipeline = make_pmml_pipeline(estimator, escape_func = _escape)
+
+sklearn2pmml(pmml_pipeline, "estimator.pmml")
+```
+
+After:
+
+``` python
+from sklearn2pmml import _escape, sklearn2pmml
+
+estimator = joblib.load("estimator.pkl")
+
+# The escape_func argument may be omitted
+sklearn2pmml(estimator, "estimator.pkl", escape_func = _escape)
+```
+
+* Removed `sklearn2pmml.pycaret.make_pmml_pipeline()` utility function.
+
+PyCaret workflows require setting the `escape_func` argument to the `sklearn2pmml.pycaret._escape()` utility function reference.
+
+
+## New features
+
+* Added support for [`sklearn.frozen.FrozenEstimator`](https://scikit-learn.org/stable/modules/generated/sklearn.frozen.FrozenEstimator.html) class.
+
+* Added support for converting derived estimator and transformer classes.
+
+The JPMML-SkLearn library is unable to access and traverse Python class hierarchies. Therefore, it only knows about Python classes whose fully-qualified class names have been previously whitelisted.
+
+A custom estimator or transformer class can be made "recognizable" by defining a `pmml_base_class_` attribute that points to some whitelisted class (typically, a parent class):
+
+``` python
+from sklearn.linear_model import LogisticRegression
+from sklearn2pmml import sklearn2pmml
+
+class MultinomialClassifier(LogisticRegression):
+
+  def __init__(self):
+    super().__init__(multi_class = "multinomial")
+    # Stipulate that the fitted state of this class conforms to that of the LogisticRegression class
+    self.pmml_base_class_ = LogisticRegression
+
+classifier = MultinomialClassifier()
+classifier.fit(X, y)
+
+sklearn2pmml(classifier, "classifier.pmml")
+```
+
+The `sklearn2pmml._escape()` utility function automatically sets the `pmml_base_class_` attribute for all objects that meet the following criteria:
+1. The class has been defined in the current script (ie. `obj.__module__ == "__main__"`).
+2. The class has exactly one parent class, which is not abstract, and inherits from `sklearn.base.BaseEstimator` or `sklearn.base.TransformerMixin` base classes.
+3. The class does not override `fit(X, y)`, `predict(X)` and/or `transform(X)` methods.
+
+## Minor improvements and fixes
+
+* Added `--unpickle` command-line option.
+
+
 # 0.119.1 #
 
 ## Breaking changes
