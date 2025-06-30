@@ -1,3 +1,22 @@
+# 0.121.0 #
+
+## Breaking changes
+
+None.
+
+## New features
+
+* Added support for [`sklearn.naive_bayes.BernoulliNB`](https://scikit-learn.org/stable/modules/generated/sklearn.naive_bayes.BernoulliNB.html) class.
+
+* Added support for [`sklearn.naive_bayes.MultinomialNB`](https://scikit-learn.org/stable/modules/generated/sklearn.naive_bayes.MultinomialNB.html) class.
+
+See [JPMML-SkLearn-20](https://github.com/jpmml/jpmml-sklearn/issues/20). An eight-and-a-half-year-old issue!
+
+## Minor improvements and fixes
+
+None.
+
+
 # 0.120.0 #
 
 ## Breaking changes
