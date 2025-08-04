@@ -1,3 +1,22 @@
+# 0.121.1 #
+
+## Breaking changes
+
+None.
+
+## New features
+
+* Added support for [`sklearn.naive_bayes.CategoricalNB`](https://scikit-learn.org/stable/modules/generated/sklearn.naive_bayes.CategoricalNB.html) class.
+
+## Minor improvements and fixes
+
+* Fixed target category levels for `BernoulliNB` estimator.
+
+* Improved integration between `CountVectorizer` transformer and `BernoulliNB` estimator.
+
+* Ensured compatibility with Scikit-Learn 1.7.1.
+
+
 # 0.121.0 #
 
 ## Breaking changes
@@ -586,7 +605,7 @@ transformer = ExpressionTransformer("pcre2.substitute('B+', 'c', X[0])")
 
 * Assume `re` as the default regular expression (RE) flavour.
 
-* Removed support for multi-column mode from `StrngNormalizer` class.
+* Removed support for multi-column mode from `StringNormalizer` class.
 String transformations are unique and rare enough, so that they should be specified on a column-by-column basis.
 
 ## New features
@@ -767,7 +786,7 @@ sklearn2pmml(booster, "XGBoost.pmml")
 
 This attribute allows overriding the embedded feature map with a user-defined feature map.
 
-The main use case is refining the category levels of categorical levels.
+The main use case is refining the category levels of categorical features.
 
 A suitable feature map object can be generated from the training dataset using the `sklearn2pmml.xgboost.make_feature_map(X)` utility function:
 
