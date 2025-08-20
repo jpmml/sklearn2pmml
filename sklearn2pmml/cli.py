@@ -1,4 +1,4 @@
-from argparse import ArgumentParser
+from argparse import ArgumentParser, BooleanOptionalAction
 from sklearn2pmml import __version__, sklearn2pmml
 
 import dill
@@ -10,7 +10,7 @@ def main():
 	parser = ArgumentParser(prog = "sklearn2pmml", description = "SkLearn2PMML command-line application")
 	parser.add_argument("-i", "--input", type = str, required = True, help = "Input Pickle file")
 	parser.add_argument("-o", "--output", type = str, required = True, help = "Output PMML file")
-	parser.add_argument("--unpickle", action = "store_true", help = "Unpickle the pickle file to make its content modifiable")
+	parser.add_argument("--unpickle", action = BooleanOptionalAction, default = True, help = "Unpickle the pickle file to make its content modifiable")
 	parser.add_argument("--schema", type = str, help = "Output PMML schema version")
 	parser.add_argument("--version", action = "version", version = version)
 
