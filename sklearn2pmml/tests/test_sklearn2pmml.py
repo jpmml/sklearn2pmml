@@ -1,3 +1,4 @@
+from dataclasses import asdict, is_dataclass
 from pandas import Categorical, CategoricalDtype, DataFrame, Series
 from sklearn.dummy import DummyRegressor
 from sklearn.feature_selection import f_regression, SelectFromModel, SelectKBest
@@ -206,6 +207,15 @@ class CustomPercentageTransformer(MinMaxScaler):
 		return super().transform(X = X)
 
 class FunctionTest(TestCase):
+
+	def test_escape(self):
+		estimator = DecisionTreeRegressor()
+		estimator = _escape(estimator, escape_func = _escape)
+		if hasattr(estimator, "__sklearn_tags__"):
+			tags = estimator.__sklearn_tags__()
+			self.assertTrue(is_dataclass(tags))
+			self.assertEqual("regressor", tags.estimator_type)
+			self.assertEqual(asdict(tags), estimator._sklearn_tags)
 
 	def test_is_extension_estimator(self):
 		estimator = LogisticRegression(multi_class = "multinomial")
