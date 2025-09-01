@@ -179,8 +179,6 @@ def make_pmml_pipeline(estimator, active_fields = None, target_fields = None):
 		Label name(s). If missing, "y" is assumed.
 
 	"""
-	if not isinstance(estimator, BaseEstimator):
-		raise TypeError("The estimator object is not an instance of {0}".format(BaseEstimator.__name__))
 	pipeline = PMMLPipeline([
 		("estimator", estimator)
 	])

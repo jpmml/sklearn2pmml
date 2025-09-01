@@ -234,8 +234,16 @@ class FunctionTest(TestCase):
 		self.assertEqual((False, None), _is_extension_class(transformer))
 
 	def test_make_pmml_pipeline(self):
+		estimator = None
+		pmml_pipeline = make_pmml_pipeline(estimator)
+		self.assertTrue(isinstance(pmml_pipeline, PMMLPipeline))
+		estimator = "drop"
 		with self.assertRaises(TypeError):
-			make_pmml_pipeline(None)
+			make_pmml_pipeline(estimator)
+		estimator = "passthrough"
+		pmml_pipeline = make_pmml_pipeline(estimator)
+		self.assertTrue(isinstance(pmml_pipeline, PMMLPipeline))
+
 		estimator = DummyRegressor()
 		pmml_pipeline = make_pmml_pipeline(estimator)
 		self.assertTrue(isinstance(pmml_pipeline, PMMLPipeline))

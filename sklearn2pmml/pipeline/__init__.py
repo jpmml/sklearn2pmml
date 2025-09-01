@@ -52,6 +52,10 @@ class PMMLPipeline(Pipeline):
 		# SkLearn 0.24+
 		super(PMMLPipeline, self).__init__(steps = steps, memory = memory, verbose = verbose)
 
+		# SkLearn 0.20+
+		if hasattr(self, "_validate_steps"):
+			self._validate_steps()
+
 	def __repr__(self):
 		class_name = self.__class__.__name__
 		return "%s(steps=[%s])" % (class_name, (",\n" + (1 + len(class_name) // 2) * " ").join(repr(step) for step in self.steps))
