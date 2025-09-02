@@ -1,3 +1,63 @@
+# 0.122.0 #
+
+## Breaking changes
+
+* Changed the default value of the `--unpickle` command-line option from `False` to `True`.
+
+It means that the command-line application is now coupled to library version of the Python environment. This may cause problems if the pickle file references classes from incompatible library versions, or unavailable libraries.
+
+The old behaviour can be restored by specifying the `--no-unpickle` command-line option:
+
+```
+sklearn2pmml --no-unpickle -i pipeline.pkl -o pipeline.pmml
+```
+
+## New features
+
+* Added support for Scikit-Learn [estimator tags](https://scikit-learn.org/stable/developers/develop.html#estimator-tags).
+
+If the Python class has an `__sklearn_tags__` attribute, then its value will be captured as `dict` and persisted as a `_pmml_sklearn` attribute.
+
+The JPMML-SkLearn library may use this information for PMML refinement.
+
+* Improved support for `GridSearchCV` and `RandomizedSearchCV` classes.
+
+Fitted estimator searcher objects can now be passed directly to the `sklearn2pmml.sklearn2pmml()` utility function.
+Previously, they required manual dissection for that.
+
+``` python
+from sklearn.model_selection import GridSearchCV
+from sklearn2pmml import sklearn2pmml
+
+searcher = GridSearchCV(estimator = ..., param_grid = ...)
+searcher.fit(X, y)
+
+# Legacy approach
+# sklearn2pmml(searcher.best_estimator_, "BestEstimator.pmml")
+
+sklearn2pmml(searcher, "BestEstimator.pmml")
+```
+
+* Made `PMMLPipeline` constructor validate the `steps` argument.
+
+The `Pipeline` parent class validates steps during the `fit(X, y)` method call.
+However, `PMMLPipeline` objects are often constructed from pre-fitted components, in which case the `fit(X, y)` method call is intentionally skipped to prevent overwriting the existing state.
+
+## Minor improvements and fixes
+
+* Improved support for `FunctionTransformer.func` attribute.
+
+The export to PMML is typically not possible if this attribute refers to a user-defined function (the pickle files stores the function name, but not its body).
+
+The new behaviour is to raise an error, which suggests replacing the `FunctionTransformer` transformer with a `sklearn2pmml.preprocessing.ExpressionTransformer` transformer that does not suffer from partial serializability issues.
+
+* Improved support for `xgboost.Booster.fmap` attribute.
+
+* Fixed compatibility with XGBoost 3.0.1 and newer.
+
+See [JPMML-XGBoost-77](https://github.com/jpmml/jpmml-xgboost/issues/77)
+
+
 # 0.121.1 #
 
 ## Breaking changes
@@ -486,7 +546,7 @@ sklearn2pmml("/path/to/estimator.pkl", "estimator.pmml")
 
 * Added `--version` command-line option.
 
-Checking the version of the currently installed command-line application:
+Checking the version of the currently installed `sklearn2pmml` command-line application:
 
 ```
 sklearn2pmml --version
@@ -1589,7 +1649,7 @@ mapper = DataFrameMapper([
 mapper.fit_transform(iris_X, iris_y)
 ```
 
-* Improved support for the "category" data type in the `CastTransformer.fit(X, y)` method.
+* Improved support for "category" data type in the `CastTransformer.fit(X, y)` method.
 
 If the `CastTransformer.dtype` parameter value is "category" (ie. a string literal), then the fit method will auto-detect valid category levels, and will set the `CastTransformer.dtype_` attribute to a `pandas.CategoricalDtype` object instead.
 The subsequent transform method invocations are now guaranteed to exhibit stable transformation behaviour.
