@@ -1,3 +1,25 @@
+# 0.122.1 #
+
+## Breaking changes
+
+None.
+
+## New features
+
+None.
+
+## Minor improvements and fixes
+
+* Improved interaction between `OrdinalEncoder` transformer and XGBoost estimators.
+
+XGBoost estimators now check ordinally encoded features, and exclude the last category value if it matches the `missing` attribute value.
+Previously, this value was encoded into categorical split elements.
+
+* Improved support for `OneHotEncoder.handle_unknown` attribute.
+
+* Ensured compatibility with Scikit-Learn 1.7.2 and XGBoost 3.0.5.
+
+
 # 0.122.0 #
 
 ## Breaking changes
