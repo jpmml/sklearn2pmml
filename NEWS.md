@@ -1,3 +1,20 @@
+# 0.122.2 #
+
+## Breaking changes
+
+None.
+
+## New features
+
+* Added support for [`sklearn.kernel_ridge.KernelRidge`](https://scikit-learn.org/stable/modules/generated/sklearn.kernel_ridge.KernelRidge.html) class.
+
+## Minor improvements and fixes
+
+* Fixed compatibility with Scikit-Learn 1.5.2 and earlier.
+
+The bug was introduced in the 0.122.0 version, in relation to the `__sklearn_tags__` attribute capture.
+
+
 # 0.122.1 #
 
 ## Breaking changes
