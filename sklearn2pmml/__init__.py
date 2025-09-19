@@ -132,10 +132,13 @@ def _is_extension_class(obj):
 def _escape(obj, escape_func):
 	if isinstance(obj, (BaseEstimator, TransformerMixin)):
 		if hasattr(obj, "__sklearn_tags__"):
-			tags = obj.__sklearn_tags__()
-			if is_dataclass(tags):
-				tags = asdict(tags)
-			obj._sklearn_tags = tags
+			try:
+				tags = obj.__sklearn_tags__()
+				if is_dataclass(tags):
+					tags = asdict(tags)
+				obj._sklearn_tags = tags
+			except AttributeError:
+				pass
 
 		is_extension_class, base_class = _is_extension_class(obj)
 		if is_extension_class:
