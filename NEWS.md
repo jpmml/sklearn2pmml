@@ -1,3 +1,33 @@
+# 0.123.0 #
+
+## Breaking changes
+
+None.
+
+## New features
+
+* Added support for `bool()`, `float()`, `int()` and `str()` built-in functions in expressions and predicates.
+
+Value conversions are implemented in a maximally Pythonic way.
+For example, the `bool()` function performs a "truthiness check" on its argument:
+
+``` python
+# Empty string evaluates to False
+assert not bool("")
+
+# All non-empty strings evaluate to True
+assert bool("False")
+assert bool("True")
+```
+
+## Minor improvements and fixes
+
+* Refined Java exception types.
+Specifically, the `org.jpmml.python.AttributeException` class was split into `org.jpmml.python.MissingAttributeException` and `org.jpmml.python.InvalidAttributeException` subclasses.
+
+* Ensured compatibility with StatsModels 0.14.5.
+
+
 # 0.122.2 #
 
 ## Breaking changes
