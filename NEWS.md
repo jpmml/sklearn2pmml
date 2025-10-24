@@ -1,3 +1,22 @@
+# 0.123.1 #
+
+## Breaking changes
+
+None.
+
+## New features
+
+* Added support for `abs()`, `max()` and `min()` built-in functions.
+
+* Added support for NumPy and Pandas module aliases (`np` and `pd`, respectively) in expressions and predicates.
+
+## Minor improvements and fixes
+
+* Ensured compatibility with XGBoost 3.1.1.
+
+* Updated Java libraries.
+
+
 # 0.123.0 #
 
 ## Breaking changes
@@ -6,12 +25,12 @@ None.
 
 ## New features
 
-* Added support for `bool()`, `float()`, `int()` and `str()` built-in functions in expressions and predicates.
+* Added support for `bool()`, `float()`, `int()` and `str()` built-in type cast functions.
 
 Value conversions are implemented in a maximally Pythonic way.
 For example, the `bool()` function performs a "truthiness check" on its argument:
 
-``` python
+```python
 # Empty string evaluates to False
 assert not bool("")
 
@@ -77,7 +96,7 @@ It means that the command-line application is now coupled to library version of 
 
 The old behaviour can be restored by specifying the `--no-unpickle` command-line option:
 
-```
+```bash
 sklearn2pmml --no-unpickle -i pipeline.pkl -o pipeline.pmml
 ```
 
@@ -94,7 +113,7 @@ The JPMML-SkLearn library may use this information for PMML refinement.
 Fitted estimator searcher objects can now be passed directly to the `sklearn2pmml.sklearn2pmml()` utility function.
 Previously, they required manual dissection for that.
 
-``` python
+```python
 from sklearn.model_selection import GridSearchCV
 from sklearn2pmml import sklearn2pmml
 
@@ -175,7 +194,7 @@ The default value of this parameter is a `sklearn2pmml._escape()` utility functi
 
 Before:
 
-``` python
+```python
 from sklearn2pmml import _escape, make_pmml_pipeline, sklearn2pmml
 
 estimator = joblib.load("estimator.pkl")
@@ -188,7 +207,7 @@ sklearn2pmml(pmml_pipeline, "estimator.pmml")
 
 After:
 
-``` python
+```python
 from sklearn2pmml import _escape, sklearn2pmml
 
 estimator = joblib.load("estimator.pkl")
@@ -212,7 +231,7 @@ The JPMML-SkLearn library is unable to access and traverse Python class hierarch
 
 A custom estimator or transformer class can be made "recognizable" by defining a `pmml_base_class_` attribute that points to some whitelisted class (typically, a parent class):
 
-``` python
+```python
 from sklearn.linear_model import LogisticRegression
 from sklearn2pmml import sklearn2pmml
 
@@ -270,7 +289,7 @@ The `sklearn_pandas.DataFrameMapper` class depends on the `sklearn.utils.toseque
 
 A data scientist can safely "patch" the latest Scikit-Learn version for SkLearn-Pandas 2.2.0 needs by calling the `patch_sklearn` utility function during Python environment initialization:
 
-``` python
+```python
 from sklearn2pmml.sklearn_pandas import patch_sklearn
 
 patch_sklearn()
@@ -318,7 +337,7 @@ Implements casts in multi-column mode.
 
 Before:
 
-``` python
+```python
 from sklearn2pmml.preprocessing import CastTransformer
 
 transformer = ColumnTransformer([
@@ -330,7 +349,7 @@ transformer = ColumnTransformer([
 
 After:
 
-``` python
+```python
 from sklearn2pmml.preprocessing import MultiCastTransformer
 
 transformer = ColumnTransformer([
@@ -397,7 +416,7 @@ The Python-to-PMML translator does its best to infer type information for `Defin
 
 A data scientist can now use PEP 484-style type hints to stipulate the intended function return type, and variable types:
 
-``` python
+```python
 def _binarize(x) -> int:
   zeroOrPositive: bool = (x >= 0)
   if zeroOrPositive:
@@ -420,7 +439,7 @@ Previously, it was assumed that the target PMML element is the "outermost" trans
 
 Before:
 
-``` python
+```python
 from sklearn2pmml.preprocessing import ExpressionTransformer
 
 # Ambiguous, because yields a hierarchy of Apply elements,
@@ -432,7 +451,7 @@ transformer = ExpressionTransformer("1 if X[0] >= 0 else 0", map_missing_to = 0)
 
 After:
 
-``` python
+```python
 from sklearn2pmml.preprocessing import ExpressionTransformer
 from sklearn2pmml.util import Expression
 
@@ -482,7 +501,7 @@ These attributes enhance the base transformation with "group by" functionality.
 
 For example, calculating a moving average over a mixed stock prices dataset:
 
-``` python
+```python
 from sklearn2pmml.preprocessing import RollingAggregateTransformer
 
 mapper = DataFrameMapper([
@@ -605,7 +624,7 @@ This opens the door for the safe conversion of legacy and/or potentially harmful
 
 For example, attempting to convert an unknown origin and composition estimator file to a PMML document:
 
-``` python
+```python
 from sklearn2pmml import sklearn2pmml
 
 sklearn2pmml("/path/to/estimator.pkl", "estimator.pmml")
@@ -617,7 +636,7 @@ sklearn2pmml("/path/to/estimator.pkl", "estimator.pmml")
 
 Checking the version of the currently installed `sklearn2pmml` command-line application:
 
-```
+```bash
 sklearn2pmml --version
 ```
 
@@ -641,7 +660,7 @@ For example, the `sklearn2pmml.sklearn2pmml(estimator, pmml_path)` utlity functi
 
 Testing the (source checkout of-) package:
 
-```
+```bash
 python -m pytest .
 ```
 
@@ -651,13 +670,13 @@ python -m pytest .
 
 Sample usage:
 
-```
+```bash
 python -m sklearn2pmml --input pipeline.pkl --output pipeline.pmml
 ```
 
 Getting help:
 
-```
+```bash
 python -m sklearn2pmml --help
 ```
 
@@ -665,7 +684,7 @@ python -m sklearn2pmml --help
 
 Sample usage:
 
-```
+```bash
 sklearn2pmml -i pipeline.pkl -o pipeline.pmml
 ```
 
@@ -716,7 +735,7 @@ The decision was to drop the leading metadata line in order to de-clutter the co
 
 For example, performing text replacement operation on a string column:
 
-``` python
+```python
 from sklearn2pmml.preprocessing import ExpressionTransformer
 
 # Replace sequences of one or more 'B' characters with a single 'c' character
@@ -763,7 +782,7 @@ The `RegExEngine` class provides `matches(x)` and `replace(replacement, x)` meth
 
 For example, unit testing a RE engine:
 
-``` python
+```python
 from sklearn2pmml.preprocessing.regex import make_regex_engine
 
 regex_engine = make_regex_engine("B+", re_flavour = "pcre2")
@@ -799,7 +818,7 @@ The downgrade fails if there are structural changes needed.
 
 Exprting a pipeline into a PMML schema version 4.3 document:
 
-``` python
+```python
 from sklearn2pmml import sklearn2pmml
 
 pipeline = Pipeline([...])
@@ -885,7 +904,7 @@ It is claimed to outperform the [`H2OIsolationForestEstimator`](https://docs.h2o
 
 The SkLearn2PMML package now supports both LightGBM [Training API](https://lightgbm.readthedocs.io/en/latest/Python-API.html#training-api) and [Scikit-Learn API](https://lightgbm.readthedocs.io/en/latest/Python-API.html#scikit-learn-api):
 
-``` python
+```python
 from lightgbm import train, Dataset
 from sklearn2pmml import sklearn2pmml
 
@@ -900,7 +919,7 @@ sklearn2pmml(booster, "LightGBM.pmml")
 
 The SkLearn2PMML package now supports both XGBoost [Learning API](https://xgboost.readthedocs.io/en/latest/python/python_api.html#module-xgboost.training) and [Scikit-Learn API](https://xgboost.readthedocs.io/en/latest/python/python_api.html#module-xgboost.sklearn):
 
-``` python
+```python
 from xgboost import train, DMatrix
 from sklearn2pmml import sklearn2pmml
 
@@ -919,7 +938,7 @@ The main use case is refining the category levels of categorical features.
 
 A suitable feature map object can be generated from the training dataset using the `sklearn2pmml.xgboost.make_feature_map(X)` utility function:
 
-``` python
+```python
 from xgboost import train, DMatrix
 from sklearn2pmml.xgboost import make_feature_map
 
@@ -952,7 +971,7 @@ None.
 
 For example, training and exporting an `ExtendedIsolationForest` outlier detector into a PMML document:
 
-``` python
+```python
 from sklearn.datasets import load_iris
 from sktree.ensemble import ExtendedIsolationForest
 from sklearn2pmml import sklearn2pmml
@@ -1021,7 +1040,7 @@ The JPMML-SkLearn library now detects and maintains the data type on a single co
 
 For example, training and exporting a `BaseNEncoder` transformer into a PMML document for manual analysis and interpretation purposes:
 
-``` python
+```python
 from category_encoders import BaseNEncoder
 from sklearn2pmml import sklearn2pmml
 
@@ -1068,7 +1087,7 @@ Scikit-Learn tree and tree ensemble models prepare their inputs by first casting
 PMML does not provide effective means for implementing "chained casts"; the chain must be broken down into elementary cast operations, each of which is represented using a standalone `DerivedField` element.
 For example, preparing the "Sepal.Length" field of the iris dataset:
 
-``` xml
+```xml
 <PMML>
   <DataDictionary>
     <DataField name="Sepal.Length" optype="continuous" dataType="double">
@@ -1088,7 +1107,7 @@ For example, preparing the "Sepal.Length" field of the iris dataset:
 
 Activating the `input_float` conversion option:
 
-``` python
+```python
 pipeline = PMMLPipeline([
   ("classifier", DecisionTreeClassifier())
 ])
@@ -1105,7 +1124,7 @@ sklearn2pmml("DecisionTree-input_float.pmml")
 
 This conversion option updates the data type of the "Sepal.Length" data field from `double` to `float`, thereby eliminating the need for the first `DerivedField` element of the two:
 
-``` xml
+```xml
 <PMML>
   <DataDictionary>
     <DataField name="Sepal.Length" optype="continuous" dataType="float">
@@ -1131,7 +1150,7 @@ It comes in handly when working with ordinal targets, where the H2O.ai framework
 A fitted H2O.ai ordinal classifier predicts integer indices, which must be manually decoded in the application layer.
 The JPMML-SkLearn library is able to "erase" this encode-decode helper step from the workflow, resulting in a clean and efficient PMML document:
 
-``` python
+```python
 ordinal_classifier = H2OGeneralizedLinearEstimator(family = "ordinal")
 ordinal_classifier.fit(...)
 
@@ -1176,7 +1195,7 @@ Domain decorators are natively about "logical" input inspection (ie. establishin
 
 By combining these two complementary areas of functionality, they now make a great **first** step for any pipeline:
 
-``` python
+```python
 from sklearn.datasets import load_iris
 from sklearn.pipeline import Pipeline
 from sklearn2pmml.decoration import ContinuousDomain
@@ -1211,7 +1230,7 @@ The "missing allowed" mode corresponds to Scikit-Learn 1.3 and newer behaviour, 
 
 Right now, the data scientist must activate the latter mode manually, by configuring `allow_missing = True`:
 
-``` python
+```python
 from sklearn.tree import DecisionTreeClassifier
 from sklearn2pmml.pipeline import PMMLPipeline
 
@@ -1273,7 +1292,7 @@ The uses of this class should be replaced with the uses of the `sklego.meta.Ordi
 
 * Added support for `sklego.meta.OrdinalClassifier` class.
 
-``` python
+```python
 from pandas import CategoricalDtype, Series
 
 # A proper ordinal target
@@ -1334,7 +1353,7 @@ This attribute gets initialized automatically if a `HistGradientBoostingClassifi
 In Scikit-Learn 1.0 through 1.3 it is necessary to pre-process categorical features manually.
 The indices of (ordinally-) encoded columns must be tracked and passed to the estimator using the `categorical_features` parameter:
 
-``` python
+```python
 from sklearn_pandas import DataFrameMapper
 from sklearn.preprocessing import OrdinalEncoder
 from sklearn2pmml.decoration import CategoricalDomain, ContinuousDomain
@@ -1355,7 +1374,7 @@ pipeline.fit(X, y)
 
 In Scikit-Learn 1.4, this workflow simplifies to the following:
 
-``` python
+```python
 # Activate full Pandas' support by specifying `input_df = True` and `df_out = True` 
 mapper = DataFrameMapper(
   [([cont_col], ContinuousDomain()) for cont_col in cont_cols] +
@@ -1374,7 +1393,7 @@ pipeline.fit(X, y)
 # Print out feature type information
 # This list should contain one or more `True` values
 print(pipeline._final_estimator.is_categorical_)
-``` 
+```
 
 ## Minor improvements and fixes
 
@@ -1398,7 +1417,7 @@ The `pmml_element` is a PMML fragment string.
 
 For example, suppressing the secondary results by deleting the `Output` element:
 
-``` python
+```python
 pipeline = PMMLPipeline([
   ("classifier", ...)
 ])
@@ -1414,7 +1433,7 @@ This module provides high-level `BinaryClassifierQuality`, `ClassifierQuality` a
 
 Refactoring the v0.103.0 code example:
 
-``` python
+```python
 from sklearn2pmml.metrics import ModelExplanation, RegressorQuality
 
 pipeline = PMMLPipeline([
@@ -1467,7 +1486,7 @@ Second, the `dtype_` attribute holds the "post" state - what was actually found 
 
 For example:
 
-``` python
+```python
 transformer = ExpressionTransformer(..., dtype = "category")
 Xt = transformer.fit_transform(X, y)
 
@@ -1510,13 +1529,13 @@ However, it is indispensable for the proper representation of categorical featur
 
 Default usage (the VVS is learned automatically from the training dataset):
 
-``` python
+```python
 domain = CategoricalDomain(..., dtype = "category")
 ```
 
 Advanced usage (the VVS is pre-defined):
 
-``` python
+```python
 vvs = [...]
 
 # The DiscreteDomain.data_values parameter expects a list-like of list-likes, hence the double indexing syntax
@@ -1551,7 +1570,7 @@ The intended use case is defining model metadata such as [`ModelStats`](https://
 
 For example, embedding regression model quality information:
 
-``` python
+```python
 from lxml import etree
 
 pipeline = PMMLPipeline([
@@ -1612,7 +1631,7 @@ In other words, the use of `MultiOutputClassifier` and `MultiOutputRegressor` me
 
 Before:
 
-``` python
+```python
 from sklearn.multioutput import MultiOutputRegressor
 from xgboost import XGBRegressor
 
@@ -1626,7 +1645,7 @@ regressor.fit(X, ynd)
 
 After: 
 
-``` python
+```python
 regressor = XGBRegressor()
 regressor.fit(X, ynd)
 ```
@@ -1668,7 +1687,7 @@ This brings discrete domain decorators to functional parity with continuous doma
 
 Before:
 
-``` python
+```python
 from sklearn_pandas import DataFrameMapper
 from sklearn2pmml.decoration import CategoricalDomain, ContinuousDomain
 
@@ -1685,7 +1704,7 @@ mapper = DataFrameMapper(
 
 After:
 
-``` python
+```python
 mapper = DataFrameMapper([
   # Map both continuous and categorical columns in one go
   ([cont_cols], ContinuousDomain(...)),
@@ -1701,7 +1720,7 @@ This allows the data scientist to specify valid value spaces that are different 
 
 Extending the valid value space for the "iris" dataset:
 
-``` python
+```python
 from sklearn.datasets import load_iris
 
 iris_X, iris_y = load_iris(return_X_y = True, as_frame = True)
@@ -1730,7 +1749,7 @@ This makes domain decorators compatible with Scikit-Learn's `set_output` API.
 
 Choosing a data container for transformation results:
 
-``` python
+```python
 from sklearn.compose import ColumnTransformer
 
 transformer = ColumnTransformer([
