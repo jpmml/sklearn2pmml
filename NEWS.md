@@ -1,3 +1,26 @@
+# 0.124.0 #
+
+## Breaking changes
+
+None.
+
+## New features
+
+* Added support for [`sklearn.preprocessing.QuantileTransformer`](https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.QuantileTransformer.html) class.
+
+See [JPMML-SkLearn-70](https://github.com/jpmml/jpmml-sklearn/issues/70)
+
+## Minor improvements and fixes
+
+* Refined Java exception types and messages.
+
+* Made `ColumnTransformer` and `DataFrameMapper` converters more lenient towards occasional NumPy scalars.
+
+* Fixed the parsing of Scikit-Learn version strings.
+
+* Ensured compatibility with Category-Encoders 2.9.0, Imbalanced-Learn 0.14.0, InterpretML 0.7.3, OptBinning 0.21.0 and Scikit-Lego 0.9.6.
+
+
 # 0.123.1 #
 
 ## Breaking changes
@@ -360,7 +383,7 @@ transformer = ColumnTransformer([
 * Added `CutTransformer.dtype` attribute.
 
 If set to a "proto" categorical data type, the `transform(X)` method now yields a Pandas' series.
-Previously, the output was force-converted into a 2D Numpy array of shape `(n_samples, 1)`.
+Previously, the output was force-converted into a 2D NumPy array of shape `(n_samples, 1)`.
 
 This allows easier interfacing with categorical data type-aware steps such as LightGBM and XGBoost estimators.
 
@@ -1254,7 +1277,7 @@ The size difference disappears when the tree model is compacted.
 
 * Added support for nullable Pandas' scalar data types.
 
-If the dataset contains sparse columns, then they should be cast from the default Numpy `object` data type to the most appropriate nullable Pandas' scalar data type. The cast may be performed using a data type object (eg. `pandas.BooleanDtype`, `pandas.Int64Dtype`, `pandas.Float32Dtype`) or its string alias (eg. `Boolean`, `Int64`, `Float32`).
+If the dataset contains sparse columns, then they should be cast from the default NumPy `object` data type to the most appropriate nullable Pandas' scalar data type. The cast may be performed using a data type object (eg. `pandas.BooleanDtype`, `pandas.Int64Dtype`, `pandas.Float32Dtype`) or its string alias (eg. `Boolean`, `Int64`, `Float32`).
 
 This kind of "type hinting" is instrumental to generating high(er) quality PMML documents.
 
@@ -1465,10 +1488,10 @@ pipeline.customize(command = "insert", pmml_element = model_explanation.tostring
 * Refactored the `transform(X)` methods of SkLearn2PMML custom transformers to maximally preserve the original type and dimensionality of data containers.
 
 For example, if the input to a single-column transformation is a Pandas' series, and the nature of the transformation allows for it, then the output will also be a Pandas' series.
-Previously, the output was force-converted into a 2D Numpy array of shape `(n_samples, 1)`.
+Previously, the output was force-converted into a 2D NumPy array of shape `(n_samples, 1)`.
 
 This change should go unnoticed for the majority of pipelines, as most Scikit-Learn transformers and estimators are quite lenient towards what they accept as input.
-Any conflicts can be resolved by converting and/or reshaping the data container to a 2D Numpy array manually.
+Any conflicts can be resolved by converting and/or reshaping the data container to a 2D NumPy array manually.
 
 ## New features
 
@@ -1757,7 +1780,7 @@ transformer = ColumnTransformer([
   ("cat", CategoricalDomain(...), cat_cols)
 ])
 
-# Force the output data container to be a Pandas' dataframe (rather than a Numpy array)
+# Force the output data container to be a Pandas' dataframe (rather than a NumPy array)
 transformer.set_output(transform = "pandas")
 ```
 
