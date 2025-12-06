@@ -40,7 +40,7 @@
 
 	<properties>
 		<jpmml-sklearn.version>1.9.20</jpmml-sklearn.version>
-		<project.build.outputTimestamp>2025-10-24T10:00:00Z</project.build.outputTimestamp>
+		<project.build.outputTimestamp>2025-12-06T10:45:00Z</project.build.outputTimestamp>
 	</properties>
 
 	<dependencies>
