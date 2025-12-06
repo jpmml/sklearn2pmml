@@ -165,7 +165,7 @@ public class Main extends Application {
 
 		Encodable encodable = EncodableUtil.toEncodable(object);
 
-		PMML pmml = encodable.encodePMML();
+		PMML pmml = EncodableUtil.encodePMML(encodable);
 
 		if(!this.outputFile.exists()){
 			File absoluteOutputFile = this.outputFile.getAbsoluteFile();
