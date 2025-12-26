@@ -16,7 +16,7 @@ except ImportError:
 	from sklearn.base import _OneToOneFeatureMixin as OneToOneFeatureMixin
 from sklearn.exceptions import NotFittedError
 from sklearn.pipeline import Pipeline
-from sklearn2pmml import _is_pandas_categorical, _is_proto_pandas_categorical
+from sklearn2pmml import _is_pandas_categorical, _is_proto_pandas_categorical, StatelessTransformerMixin
 from sklearn2pmml.preprocessing.regex import make_regex_engine
 from sklearn2pmml.util import cast, check_expression, check_predicate, dt_transform, ensure_def, eval_rows, is_1d, to_1d, to_expr_func, to_numpy, Reshaper
 
@@ -158,7 +158,7 @@ class CutTransformer(BaseEstimator, TransformerMixin):
 				Xt = to_numpy(Xt)
 			return Xt.reshape(X.shape)
 
-class DataFrameConstructor(BaseEstimator, TransformerMixin):
+class DataFrameConstructor(BaseEstimator, StatelessTransformerMixin):
 
 	def __init__(self, columns, dtype):
 		self.columns = columns
@@ -173,7 +173,7 @@ class DataFrameConstructor(BaseEstimator, TransformerMixin):
 	def transform(self, X):
 		return DataFrame(X, columns = self.columns, dtype = self.dtype)
 
-class SeriesConstructor(BaseEstimator, TransformerMixin, OneToOneFeatureMixin):
+class SeriesConstructor(BaseEstimator, StatelessTransformerMixin, OneToOneFeatureMixin):
 
 	def __init__(self, name, dtype):
 		self.name = name
@@ -593,7 +593,7 @@ class PMMLLabelEncoder(BaseEstimator, TransformerMixin):
 		Xt = numpy.array([self.missing_values if pandas.isnull(v) else mapping.get(v, self.missing_values) for v in X1d])
 		return Xt.reshape((-1, 1))
 
-class PowerFunctionTransformer(BaseEstimator, TransformerMixin):
+class PowerFunctionTransformer(BaseEstimator, StatelessTransformerMixin):
 	"""Raise numeric data to power."""
 
 	def __init__(self, power):
@@ -824,7 +824,7 @@ class ReplaceTransformer(RegExTransformer):
 
 		return replace
 
-class StringTransformer(BaseEstimator, TransformerMixin):
+class StringTransformer(BaseEstimator, StatelessTransformerMixin):
 
 	def __init__(self):
 		pass

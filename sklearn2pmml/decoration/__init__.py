@@ -11,7 +11,7 @@ try:
 	from sklearn.utils.validation import _check_feature_names, _check_n_features
 except ImportError:
 	pass
-from sklearn2pmml import _is_pandas_categorical, _is_proto_pandas_categorical
+from sklearn2pmml import _is_pandas_categorical, _is_proto_pandas_categorical, StatelessTransformerMixin
 from sklearn2pmml.util import cast, common_dtype, is_1d, to_numpy
 
 import copy
@@ -530,7 +530,7 @@ class MultiDomain(BaseEstimator, TransformerMixin):
 					X[:, column] = domain.transform(X[:, column])
 		return X
 
-class DomainEraser(BaseEstimator, TransformerMixin):
+class DomainEraser(BaseEstimator, StatelessTransformerMixin):
 
 	def __init__(self):
 		pass

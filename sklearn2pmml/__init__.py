@@ -59,6 +59,11 @@ def _is_pandas_ordinal(dtype):
 		return dtype.ordered
 	return False
 
+class StatelessTransformerMixin(TransformerMixin):
+
+	def __sklearn_is_fitted__(self):
+		return True
+
 class EstimatorProxy(BaseEstimator):
 
 	def __init__(self, estimator, attr_names = ["feature_importances_"]):
