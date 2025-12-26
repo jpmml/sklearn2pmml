@@ -28,6 +28,8 @@ jobs:
             sklearn: 1.7.2
           - python: 3.9
             sklearn: '1.8.0'
+          - python: '3.10'
+            sklearn: '1.8.0'
           - python: 3.11
             sklearn: 1.0.2
           - python: 3.12
