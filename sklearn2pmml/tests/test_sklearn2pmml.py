@@ -180,15 +180,15 @@ class ClasspathTest(TestCase):
 		self.assertEqual("sklearn.preprocessing.StandardScaler", _strip_module("sklearn.preprocessing.data.StandardScaler"))
 		self.assertEqual("sklearn.tree.DecisionTreeClassifier", _strip_module("sklearn.tree.tree.DecisionTreeClassifier"))
 
-class MultinomialClassifier(LogisticRegression):
+class MyLogisticRegression(LogisticRegression):
 
 	def __init__(self):
-		super().__init__(multi_class = "multinomial")
+		super().__init__(fit_intercept = True)
 
-class CustomMultinomialClassifier(LogisticRegression):
+class MyCustomLogisticRegression(LogisticRegression):
 
 	def __init__(self):
-		super().__init__(multi_class = "multinomial")
+		super().__init__(fit_intercept = True)
 
 	def predict(self, X):
 		return super().predict(X = X)
@@ -218,11 +218,11 @@ class FunctionTest(TestCase):
 			self.assertEqual(asdict(tags), estimator._sklearn_tags)
 
 	def test_is_extension_estimator(self):
-		estimator = LogisticRegression(multi_class = "multinomial")
+		estimator = LogisticRegression(fit_intercept = True)
 		self.assertEqual((False, None), _is_extension_class(estimator))
-		estimator = MultinomialClassifier()
+		estimator = MyLogisticRegression()
 		self.assertEqual((True, "{}.{}".format(LogisticRegression.__module__, LogisticRegression.__name__)), _is_extension_class(estimator))
-		estimator = CustomMultinomialClassifier()
+		estimator = MyCustomLogisticRegression()
 		self.assertEqual((False, None), _is_extension_class(estimator))
 
 	def test_is_extension_transformer(self):
