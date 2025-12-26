@@ -1,3 +1,41 @@
+# 0.125.0 #
+
+## Breaking changes
+
+None intended, but some breaking changes in Scikit-Learn 1.8.0 may not be fully handled yet.
+
+## New features
+
+* Added support for the floor division operator `//` in expressions.
+
+* Added support for chained comparison operations (eg. `0 <= x < 1`) in expressions and predicates.
+
+* Added support for `raise` statements in Python functions.
+
+The exception class and exception message are mapped to an `X-Error` element (a JPMML vendor extension).
+
+* Added support for `assert` statements in Python functions.
+
+* Added support for `pow()` and `round(x, digits?)` built-in functions.
+
+* Added support for `abs()`, `exp2()` and `round(x, digits?)` NumPy functions.
+
+* Added support for the `float("NaN")` expression.
+
+In Scikit-Learn, `math.nan` and `numpy.nan` are typically regarded as missing values, not invalid values.
+Therefore, this expression is translated to a PMML missing value constant.
+
+* Added support for string type names.
+
+## Minor improvements and fixes
+
+* Refined Java exception types and messages.
+
+* Ensured compatibility with Scikit-Learn 1.8.0.
+
+* Updated Java libraries.
+
+
 # 0.124.0 #
 
 ## Breaking changes
