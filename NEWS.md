@@ -1,3 +1,20 @@
+# 0.125.1 #
+
+## Breaking changes
+
+None.
+
+## New features
+
+None.
+
+## Minor improvements and fixes
+
+* Refined Java exception types and messages.
+
+* Ensured compatibility with Dill 0.4.0, Joblib 1.5.3, NumPy 2.3.5 and Pandas 2.3.3.
+
+
 # 0.125.0 #
 
 ## Breaking changes
