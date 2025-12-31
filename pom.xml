@@ -39,7 +39,7 @@
 	</issueManagement>
 
 	<properties>
-		<jpmml-sklearn.version>1.9.21</jpmml-sklearn.version>
+		<jpmml-sklearn.version>1.9.22</jpmml-sklearn.version>
 		<project.build.outputTimestamp>2025-12-26T10:15:00Z</project.build.outputTimestamp>
 	</properties>
 
@@ -108,13 +108,7 @@
 		<dependency>
 			<groupId>org.jpmml</groupId>
 			<artifactId>telemetry-client</artifactId>
-			<version>1.0.0</version>
-			<exclusions>
-				<exclusion>
-					<groupId>com.google.errorprone</groupId>
-					<artifactId>error_prone_annotations</artifactId>
-				</exclusion>
-			</exclusions>
+			<version>1.0.2</version>
 		</dependency>
 
 		<dependency>
