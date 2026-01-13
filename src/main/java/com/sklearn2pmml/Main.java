@@ -84,7 +84,7 @@ public class Main extends Application {
 
 
 	static
-	public void main(String... args) throws Exception {
+	public void main(String... args){
 		Main main = new Main();
 
 		JCommander commander = JCommander.newBuilder()
@@ -93,15 +93,18 @@ public class Main extends Application {
 
 		commander.parse(args);
 
-		main.validate();
-
 		try {
 			Application.setInstance(main);
 
+			main.validate();
 			main.run();
 		} catch(FileNotFoundException fnfe){
-			throw fnfe;
+			Main.logger.severe("Failed to convert PKL to PMML", fnfe);
+
+			System.exit(-1);
 		} catch(Exception e){
+			Main.logger.severe("Failed to convert PKL to PMML", e);
+
 			Package _package = Main.class.getPackage();
 
 			Map<String, String> environment;
@@ -124,11 +127,13 @@ public class Main extends Application {
 
 			try {
 				TelemetryClient.report("https://telemetry.jpmml.org/v1/incidents", incident);
+			} catch(InterruptedException ie){
+				// Ignored
 			} catch(IOException ioe){
 				// Ignored
 			}
 
-			throw e;
+			System.exit(-1);
 		} finally {
 			Application.setInstance(null);
 		}
@@ -142,14 +147,14 @@ public class Main extends Application {
 
 			Instant updateRequiredTimestamp = now.minus(12 * 30, ChronoUnit.DAYS);
 			if(buildTimestamp.isBefore(updateRequiredTimestamp)){
-				logger.severe("The SkLearn2PMML package is older than 12 months and must be updated");
+				Main.logger.severe("The SkLearn2PMML package is older than 12 months and must be updated");
 
 				throw new SkLearn2PMMLException("The SkLearn2PMML package has expired");
 			}
 
 			Instant updateRecommendedTimestamp = now.minus(6 * 30, ChronoUnit.DAYS);
 			if(buildTimestamp.isBefore(updateRecommendedTimestamp)){
-				logger.warning("The SkLearn2PMML package is older than 6 months and should be updated");
+				Main.logger.warning("The SkLearn2PMML package is older than 6 months and should be updated");
 			}
 		}
 	}
