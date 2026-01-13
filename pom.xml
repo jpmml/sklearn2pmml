@@ -39,7 +39,7 @@
 	</issueManagement>
 
 	<properties>
-		<jpmml-sklearn.version>1.9.22</jpmml-sklearn.version>
+		<jpmml-sklearn.version>1.9.23</jpmml-sklearn.version>
 		<project.build.outputTimestamp>2025-12-31T13:30:00Z</project.build.outputTimestamp>
 	</properties>
 
