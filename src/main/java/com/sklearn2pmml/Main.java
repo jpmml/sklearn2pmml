@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -41,6 +42,7 @@ import com.sun.istack.logging.Logger;
 import org.dmg.pmml.PMML;
 import org.dmg.pmml.Version;
 import org.jpmml.converter.Application;
+import org.jpmml.converter.ConversionException;
 import org.jpmml.converter.VersionConverter;
 import org.jpmml.model.JAXBSerializer;
 import org.jpmml.model.MarkupException;
@@ -253,13 +255,16 @@ public class Main extends Application {
 		return result;
 	}
 
+	// XXX
 	static {
-		LogManager logManager = LogManager.getLogManager();
+		ConversionException.SECTION_SEPARATOR = "";
 
-		try {
-			logManager.readConfiguration(Main.class.getResourceAsStream("/logging.properties"));
-		} catch(IOException ioe){
-			ioe.printStackTrace(System.err);
+		try(InputStream is = Main.class.getResourceAsStream("/logging.properties")){
+			LogManager logManager = LogManager.getLogManager();
+
+			logManager.readConfiguration(is);
+		} catch(Exception e){
+			e.printStackTrace(System.err);
 		}
 	}
 
