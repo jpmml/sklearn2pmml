@@ -1,3 +1,20 @@
+# 0.125.2 #
+
+## Breaking changes
+
+None.
+
+## New features
+
+* Improved logging.
+
+The Java exception chain is clearly separated from other log messages using `EXCEPTION` and `Caused by` headers, making logs much easier to skim, parse and interpret.
+
+## Minor improvements and fixes
+
+* Refined Java exception types and messages.
+
+
 # 0.125.1 #
 
 ## Breaking changes
