@@ -144,7 +144,7 @@ public class Main extends Application {
 			if(buildTimestamp.isBefore(updateRequiredTimestamp)){
 				logger.severe("The SkLearn2PMML package is older than 12 months and must be updated");
 
-				throw new RuntimeException("The SkLearn2PMML package has expired");
+				throw new SkLearn2PMMLException("The SkLearn2PMML package has expired");
 			}
 
 			Instant updateRecommendedTimestamp = now.minus(6 * 30, ChronoUnit.DAYS);
@@ -225,7 +225,7 @@ public class Main extends Application {
 
 		String buildTimestampString = mainAttributes.getValue("Build-Timestamp");
 		if(buildTimestampString == null){
-			throw new RuntimeException("The SkLearn2PMML package is not dated");
+			throw new SkLearn2PMMLException("The SkLearn2PMML package is not dated");
 		}
 
 		return Instant.parse(buildTimestampString);
