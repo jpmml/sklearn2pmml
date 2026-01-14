@@ -1,5 +1,5 @@
 from sklearn.base import clone, BaseEstimator, TransformerMixin
-from sklearn2pmml.preprocessing import ExpressionTransformer
+from sklearn2pmml.preprocessing import ExpressionTransformer, IdentityTransformer
 
 import copy
 
@@ -51,3 +51,12 @@ class BusinessDecisionTransformer(BaseEstimator, TransformerMixin):
 		if self.transformer_ is not None:
 			return self.transformer_.transform(X)
 		return X
+
+class FeatureExporter(IdentityTransformer):
+
+	def __init__(self, names):
+		super(IdentityTransformer, self).__init__()
+		for name in names:
+			if not isinstance(name, str):
+				raise TypeError("Name is not a string")
+		self.names = names

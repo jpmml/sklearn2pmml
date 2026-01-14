@@ -1,4 +1,5 @@
-from sklearn2pmml.postprocessing import BusinessDecisionTransformer
+from pandas import DataFrame
+from sklearn2pmml.postprocessing import FeatureExporter, BusinessDecisionTransformer
 from sklearn2pmml.preprocessing import ExpressionTransformer
 from unittest import TestCase
 
@@ -31,3 +32,17 @@ class BusinessDecisionTransformerTest(TestCase):
 		self.assertTrue(hasattr(transformer, "transformer_"))
 		self.assertEqual([[False], [True]], transformer.transform(X).tolist())
 		self.assertEqual([[False], [True]], transformer.fit_transform(X).tolist())
+
+class FeatureExporterTest(TestCase):
+
+	def test_transform(self):
+		X = DataFrame([["a", 1], ["b", 2], ["c", 3], ["d", 4]], columns = ["x1", "x2"])
+		transformer = FeatureExporter(names = ["x(1)", "x(2)"])
+		self.assertEqual(["x1", "x2"], transformer.get_feature_names_out(X.columns).tolist())
+		Xt = transformer.transform(X)
+		self.assertIsInstance(Xt, DataFrame)
+		self.assertEqual((4, 2), Xt.shape)
+		X = X.to_numpy()
+		Xt = transformer.transform(X)
+		self.assertIsInstance(Xt, numpy.ndarray)
+		self.assertEqual((4, 2), Xt.shape)
