@@ -344,7 +344,7 @@ class ExpressionTransformer(BaseEstimator, TransformerMixin):
 		self.dtype_ = dtype
 		return Xt
 
-class IdentityTransformer(BaseEstimator, TransformerMixin, OneToOneFeatureMixin):
+class IdentityTransformer(BaseEstimator, StatelessTransformerMixin, OneToOneFeatureMixin):
 	"""Passes data through as-is."""
 
 	def __init__(self):
@@ -355,6 +355,9 @@ class IdentityTransformer(BaseEstimator, TransformerMixin, OneToOneFeatureMixin)
 
 	def transform(self, X):
 		return X
+
+	def get_feature_names_out(self, input_features = None):
+		return input_features
 
 class DateTimeFormatter(BaseEstimator, TransformerMixin):
 	"""Formats dates, times and datetimes according to a pattern. Analogous to C's strftime() function.
