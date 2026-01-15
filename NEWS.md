@@ -1,3 +1,79 @@
+# 0.126.0 #
+
+## Breaking changes
+
+* Refactored the post-processing.
+
+The final transformed state of `PMMLPipeline.predict_transformer`, `PMMLPipeline.predict_proba_transformer` and `PMMLPipeline.apply_transformer` is now discarded.
+
+Previously, if this state contained not-yet-materialized features (ie. features not backed by any `DerivedField` elements), they were automatically materialized as `OutputField` elements.
+
+All feature materializations must be explicit in order to keep the model schema clean from unnecessary output fields.
+Use the newly introduced `FeatureExporter` transformer for that (see below).
+
+## New features
+
+* Added support for [FLAML](https://github.com/microsoft/FLAML) package.
+
+FLAML is a lightweight AutoML and hyperparameter tuning framework.
+
+The `AutoML.fit()` method sets the `AutoML.model` attribute to some `flaml.automl.model.SKLearnEstimator` wrapper object.
+
+The `sklearn2pmml.sklearn2pmml()` utility function can now accept this object directly in most cases (Scikit-Learn, LightGBM and XGBoost estimators). There is no need to decompose it manually anymore.
+
+```python
+from flaml import AutoML
+from sklearn2pmml import sklearn2pmml
+
+automl = AutoML()
+automl.fit(X, y, task = ...)
+
+sklearn2pmml(automl.model, "FLAML.pmml")
+```
+
+* Added support for `sklearn2pmml.postprocessing.FeatureExporter` class.
+
+This is a meta-transformer for the post-processing part of the workflow.
+
+It creates and attaches an `OutputField` element to the final model element for each of its incoming features.
+Data scientists can leverage this meta-transformer to enrich the model schema with custom output fields, which refer to primary and secondary transformations in the pipeline.
+
+Use the `Recaller` meta-transformer for looking up the desired data pre-processing step(s) by name:
+
+```python
+from sklearn.pipeline import make_pipeline
+from sklearn2pmml import sklearn2pmml
+from sklearn2pmml.cross_reference import Recaller
+from sklearn2pmml.pipeline import PMMLPipeline
+from sklearn2pmml.postprocessing import FeatureExporter
+
+custom_output = make_pipeline(
+  Recaller(memory = None, names = ["func(field1)", "func(field2)"]), # List of DerivedField names
+  FeatureExporter(names = ["feature1", "feature2"]) # List of OutputField names
+)
+
+pipeline = PMMLPipeline(...)
+pipeline.fit(X, y)
+
+# Activate post-processing
+pipeline.predict_transformer = custom_output
+
+sklearn2pmml(pipeline, "Pipeline.pmml")
+```
+
+See [SkLearn2PMML-469](https://github.com/jpmml/sklearn2pmml/issues/469)
+
+## Minor improvements and fixes
+
+* Fixed the lookup of fields during post-processing.
+
+A `Recaller` can now reference any `DerivedField` element by name.
+
+* Improved logging.
+
+* Ensured compatibility with InterpretML 0.7.4.
+
+
 # 0.125.2 #
 
 ## Breaking changes
