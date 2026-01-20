@@ -1,3 +1,36 @@
+# 0.126.1 #
+
+## Breaking changes
+
+None.
+
+## New features
+
+* Added support for negative indexing in column selectors.
+
+For example, dropping the last two columns from a dataset:
+
+```python
+from sklearn.compose import ColumnTransformer
+
+transformer = ColumnTransformer([
+  ("tail", "drop", [-2, -1])
+])
+```
+
+## Minor improvements and fixes
+
+* Fixed customization.
+
+Customizations can now operate on the same element any number of times.
+
+Previously, the first customization left the PMML DOM in an inconsistent state, preventing subsequent customizations from correctly identifying and matching it (typical error message `XPath expression <XPath> is not associated with a PMML object`).
+
+See [SkLearn2PMML-469](https://github.com/jpmml/sklearn2pmml/issues/469)
+
+* Refined Java exception types and messages.
+
+
 # 0.126.0 #
 
 ## Breaking changes
