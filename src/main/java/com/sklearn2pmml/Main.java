@@ -24,6 +24,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
@@ -223,6 +225,13 @@ public class Main extends Application {
 				jaxbSerializer.serializePretty(pmml, os);
 			}
 		}
+
+		DecimalFormatSymbols formatSymbols = new DecimalFormatSymbols();
+		formatSymbols.setGroupingSeparator('\'');
+
+		DecimalFormat fileSizeFormatter = new DecimalFormat("#,###", formatSymbols);
+
+		Main.logger.info("Generated PMML file " + this.outputFile.getAbsolutePath() + " (" + fileSizeFormatter.format(this.outputFile.length())  + " bytes)");
 	}
 
 	private Instant getBuildTimestamp(){

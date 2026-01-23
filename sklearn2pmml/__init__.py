@@ -404,7 +404,7 @@ def sklearn2pmml(estimator, pmml_path, escape_func = _escape, with_repr = False,
 			raise RuntimeError("Java is not installed, or the Java executable is not on system path")
 		output, error = process.communicate()
 		retcode = process.poll()
-		if debug or retcode:
+		if retcode:
 			if len(output):
 				print("Standard output:\n{0}".format(output))
 			else:
@@ -413,8 +413,12 @@ def sklearn2pmml(estimator, pmml_path, escape_func = _escape, with_repr = False,
 				print("Standard error:\n{0}".format(error))
 			else:
 				print("Standard error is empty")
-		if retcode:
 			raise RuntimeError("The SkLearn2PMML application has failed. The Java executable should have printed more information about the failure into its standard output and/or standard error streams")
+		else:
+			if len(output):
+				print(output.rstrip())
+			if len(error):
+				print(error.rstrip())
 	finally:
 		if debug:
 			print("Preserved dump file(s): {0}".format(" ".join(dumps)))
