@@ -1,3 +1,36 @@
+# 0.127.0 #
+
+## Breaking changes
+
+* The `sklearn2pmml.sklearn2pmml()` utility function now prints an informational message (stating the PMML file location and size) after a successful conversion. The first such instance of each day prints an extra informational banner message.
+
+Previously, this utility function did not print anything, which might lead users to think that it was muted by design.
+
+## New features
+
+* Added support for [`sklearn.preprocessing.Normalizer`](https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.Normalizer.html) class.
+
+See [JPMML-SkLearn-64](https://github.com/jpmml/jpmml-sklearn/issues/64). An eight-year-old issue!
+
+* Added support for `TfidfVectorizer.norm` attribute.
+
+The current implementation is correct and complete, but is a little inefficient.
+
+See [SkLearn2PMML-98](https://github.com/jpmml/sklearn2pmml/issues/98)
+
+* Added support for `flaml.automl.model.SGDEstimator` class.
+
+* Added support for missing values in EBM models.
+
+See [SkLearn2PMML-440](https://github.com/jpmml/sklearn2pmml/issues/440)
+
+## Minor improvements and fixes
+
+* Fixed the `PMMLPipeline.predict_transform(X)` method for multi-output models.
+
+* Ensured compatibility with FLAML 2.5.0.
+
+
 # 0.126.1 #
 
 ## Breaking changes
