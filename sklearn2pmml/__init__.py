@@ -1,4 +1,5 @@
 from dataclasses import asdict, is_dataclass
+from datetime import date
 from importlib.metadata import version, PackageNotFoundError
 from pandas import CategoricalDtype
 from pathlib import Path
@@ -302,6 +303,24 @@ def _is_supported(estimator):
 		return True
 	return isinstance(estimator, BaseEstimator)
 
+def _print_banner():
+	print()
+	print("Recommended PMML deployment tools:")
+
+	tools = [
+		("MS Excel", "https://xlsboost.com"),
+		("Java", "https://github.com/jpmml/jpmml-evaluator"),
+		("Python", "https://github.com/jpmml/jpmml-evaluator-python"),
+		("R", "https://github.com/jpmml/jpmml-evaluator-r"),
+		("Apache Spark", "https://github.com/jpmml/jpmml-evaluator-spark"),
+		("REST API", "https://github.com/openscoring/openscoring")
+	]
+	for name, url in tools:
+		print("  * {:15}{}".format(name, url))
+
+	print()
+	print("Please contact info@openscoring.io for commercial licensing options")
+
 def sklearn2pmml(estimator, pmml_path, escape_func = _escape, with_repr = False, pmml_schema = None, java_home = None, java_opts = None, user_classpath = [], dump_flavour = "joblib", debug = False):
 	"""Converts a fitted estimator or pipeline object to PMML.
 
@@ -419,6 +438,11 @@ def sklearn2pmml(estimator, pmml_path, escape_func = _escape, with_repr = False,
 				print(output.rstrip())
 			if len(error):
 				print(error.rstrip())
+
+			today = (date.today()).isoformat()
+			if os.environ.get("SKLEARN2PMML_BANNER") != today:
+				_print_banner()
+				os.environ["SKLEARN2PMML_BANNER"] = today
 	finally:
 		if debug:
 			print("Preserved dump file(s): {0}".format(" ".join(dumps)))
