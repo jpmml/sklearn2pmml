@@ -1,3 +1,29 @@
+# 0.127.1 #
+
+## Breaking changes
+
+None.
+
+## New features
+
+* Added support for Pandas 3.0.0.
+
+Pandas 3 breaks things (relative to Pandas 2) in two ways.
+First, many public-facing core classes have been moved to different modules (eg. `pandas.core.Series` has become `pandas.Series`, and `pandas.core.arrays.string_.StringArray` has become `pandas.arrays.StringArray`).
+Second, string arrays are selectively persisted in Parquet data format.
+
+The JPMML-SkLearn library should now be able to handle pickled Pandas 3 objects.
+However, if Pandas-related unpickling errors are still raised, then consider reverting to Pandas 2.
+
+## Minor improvements and fixes
+
+* Improved support for Pandas arrays.
+
+See [SkLearn2PMML-420](https://github.com/jpmml/sklearn2pmml/issues/420)
+
+* Ensured compatibility with NumPy 2.4.1.
+
+
 # 0.127.0 #
 
 ## Breaking changes
