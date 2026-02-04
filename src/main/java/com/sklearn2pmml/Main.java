@@ -22,7 +22,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -44,7 +43,7 @@ import com.sun.istack.logging.Logger;
 import org.dmg.pmml.PMML;
 import org.dmg.pmml.Version;
 import org.jpmml.converter.Application;
-import org.jpmml.converter.ConversionException;
+import org.jpmml.converter.LoggingUtil;
 import org.jpmml.converter.VersionConverter;
 import org.jpmml.model.JAXBSerializer;
 import org.jpmml.model.MarkupException;
@@ -264,17 +263,11 @@ public class Main extends Application {
 		return result;
 	}
 
-	// XXX
 	static {
-		ConversionException.SECTION_SEPARATOR = "";
+		LogManager logManager = LogManager.getLogManager();
+		logManager.reset();
 
-		try(InputStream is = Main.class.getResourceAsStream("/logging.properties")){
-			LogManager logManager = LogManager.getLogManager();
-
-			logManager.readConfiguration(is);
-		} catch(Exception e){
-			e.printStackTrace(System.err);
-		}
+		LoggingUtil.configureConsole();
 	}
 
 	private static final Logger logger = Logger.getLogger(Main.class);
