@@ -34,8 +34,15 @@ from .pipeline import PMMLPipeline
 def _is_categorical(dtype):
 	if dtype == object or dtype == str or dtype == bool:
 		return True
+	elif _is_pandas_string(dtype):
+		return True
 	elif _is_pandas_categorical(dtype):
 		return True
+	return False
+
+def _is_pandas_string(dtype):
+	if hasattr(dtype, "name"):
+		return dtype.name in ["str", "string"]
 	return False
 
 def _is_pandas_categorical(dtype):

@@ -80,7 +80,10 @@ def dt_transform(X, func):
 	if isinstance(X, (Categorical, Series)):
 		return X.apply(func)
 	elif isinstance(X, DataFrame):
-		return X.applymap(func)
+		if hasattr(X, "applymap"):
+			return X.applymap(func)
+		else:
+			return X.map(func)
 	X = numpy.asarray(X)
 	Xt = numpy.vectorize(func)(X)
 	return Xt

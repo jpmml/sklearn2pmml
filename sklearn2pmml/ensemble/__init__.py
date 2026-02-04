@@ -142,10 +142,11 @@ def _to_sparse(X, step_mask, step_result):
 	else:
 		result = numpy.empty((X.shape[0], step_result.shape[1]), dtype = object)
 	# Fill array
+	step_mask = numpy.asarray(step_mask).ravel()
 	if len(step_result.shape) == 1:
-		result[step_mask.ravel()] = step_result
+		result[step_mask] = step_result
 	else:
-		result[step_mask.ravel(), :] = step_result
+		result[step_mask, :] = step_result
 	return result
 
 class _BaseEnsemble(_BaseComposition):

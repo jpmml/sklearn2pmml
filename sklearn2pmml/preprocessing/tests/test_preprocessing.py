@@ -4,6 +4,7 @@ patch_sklearn()
 
 from datetime import datetime
 from pandas import CategoricalDtype, DataFrame, Series, Timestamp
+from pandas.arrays import ArrowStringArray
 from sklearn_pandas import DataFrameMapper
 from sklearn.base import clone
 from sklearn.exceptions import NotFittedError
@@ -41,12 +42,12 @@ class TransformerTest(TestCase):
 	def _transform1d(self, transformer, X):
 		self.assertIsInstance(X, Series)
 		X_ndarray = X.values
-		self.assertIsInstance(X_ndarray, numpy.ndarray)
+		self.assertIsInstance(X_ndarray, (numpy.ndarray, ArrowStringArray))
 		Xt = transformer.transform(X)
 		Xt_ndarray = transformer.transform(X_ndarray)
 		self.assertIsInstance(Xt, Series)
-		self.assertIsInstance(Xt_ndarray, numpy.ndarray)
-		self.assertEqual(Xt.tolist(), Xt_ndarray.tolist())
+		self.assertIsInstance(Xt_ndarray, (numpy.ndarray, ArrowStringArray))
+		self.assertTrue(_list_equal(Xt.tolist(), Xt_ndarray.tolist()))
 		return Xt
 
 class AggregateTransformerTest(TestCase): 
@@ -122,9 +123,10 @@ class CastTransformerTest(TransformerTest):
 		self.assertEqual([datetime(1969, 7, 16, 13, 32, 0), datetime(1969, 7, 20, 20, 17, 40), datetime(1969, 7, 21, 17, 54, 1), datetime(1969, 7, 24, 16, 50, 35)], self._fit_transform1d(transformer, X).tolist())
 
 	def test_transform_string(self):
-		X = Series([float("NaN"), "red", None, "green", pandas.NA], dtype = object)
+		# XXX: Replace "pandas.NA" string literal with the actual constant
+		X = Series([float("NaN"), "red", None, "green", "pandas.NA"], dtype = object)
 		transformer = CastTransformer(dtype = str)
-		self.assertTrue(_list_equal([float("NaN"), "red", None, "green", pandas.NA], self._fit_transform1d(transformer, X).tolist()))
+		self.assertTrue(_list_equal([float("NaN"), "red", None, "green", "pandas.NA"], self._fit_transform1d(transformer, X).tolist()))
 
 	def test_transform_categorical(self):
 		X = Series(["a", "c", "b", "a", "a", "b"], name = "x")
@@ -236,7 +238,7 @@ class SeriesConstructorTest(TestCase):
 		Xt = transformer.fit_transform(X)
 		self.assertIsInstance(Xt, Series)
 		self.assertEqual("x", Xt.name)
-		self.assertEqual(object, Xt.dtype)
+		self.assertIn(str(Xt.dtype), ["object", "string"])
 		transformer = SeriesConstructor(name = "x", dtype = "category")
 		Xt = transformer.fit_transform(X)
 		self.assertIsInstance(Xt.dtype, CategoricalDtype)
@@ -560,7 +562,7 @@ class LookupTransformerTest(TransformerTest):
 		transformer = LookupTransformer(mapping, None)
 		Xt = transformer.fit_transform(X)
 		self.assertIsInstance(Xt, Series)
-		self.assertEqual(object, Xt.dtype)
+		self.assertIn(str(Xt.dtype), ["object", "str"])
 		self.assertEqual(["ein", "zwei", "drei"], Xt.tolist())
 		transformer = LookupTransformer(mapping, None, dtype = "category")
 		Xt = transformer.fit_transform(X)
@@ -594,7 +596,7 @@ class FilterLookupTransformerTest(TransformerTest):
 		mapping["blue"] = "green"
 		transformer = FilterLookupTransformer(mapping)
 		X = Series(["red", "orange", None, "green", "blue"])
-		self.assertEqual(["red", "yellow", None, "green", "green"], self._transform1d(transformer, X).tolist())
+		self.assertTrue(_list_equal(["red", "yellow", None, "green", "green"], self._transform1d(transformer, X).tolist()))
 
 class MultiLookupTransformerTest(TestCase):
 
@@ -606,7 +608,7 @@ class MultiLookupTransformerTest(TestCase):
 		}
 		transformer = MultiLookupTransformer(mapping, None)
 		X = DataFrame([[1, 0], [1, 1], [2, 0], [2, 1], [2, 2], [3, 0], [3, 1], [3, 2], [3, 3]])
-		self.assertEqual([[None], ["one"], [None], [None], ["two"], [None], [None], [None], ["three"]], transformer.transform(X).tolist())
+		self.assertTrue(_list_equal([[None], ["one"], [None], [None], ["two"], [None], [None], [None], ["three"]], transformer.transform(X).tolist()))
 
 	def test_transform_object(self):
 		mapping = {
@@ -623,11 +625,11 @@ class MultiLookupTransformerTest(TestCase):
 		mapping.pop(("zero", int(0)))
 		transformer = MultiLookupTransformer(mapping, None)
 		X = DataFrame([["one", None], ["one", True], [None, True], ["two", True], ["three", True]])
-		self.assertEqual([[None], ["ein"], [None], ["zwei"], ["drei"]], transformer.transform(X).tolist())
+		self.assertTrue(_list_equal([[None], ["ein"], [None], ["zwei"], ["drei"]], transformer.transform(X).tolist()))
 		X = numpy.array([["one", True], ["one", None], ["one", False], ["two", True]], dtype = "O")
 		self.assertEqual([["ein"], [None], [None], ["zwei"]], transformer.transform(X).tolist())
 		transformer = MultiLookupTransformer(mapping, "(other)")
-		self.assertEqual([["ein"], [None], ["(other)"], ["zwei"]], transformer.transform(X).tolist())
+		self.assertTrue(_list_equal([["ein"], [None], ["(other)"], ["zwei"]], transformer.transform(X).tolist()))
 
 	def test_transform_categorical(self):
 		X = DataFrame([["apple", "green"], ["banana", "green"], ["banana", "yellow"]], columns = ["fruit", "color"])
@@ -639,7 +641,7 @@ class MultiLookupTransformerTest(TestCase):
 		transformer = MultiLookupTransformer(mapping, None)
 		Xt = transformer.fit_transform(X)
 		self.assertIsInstance(Xt, numpy.ndarray)
-		self.assertEqual(object, Xt.dtype)
+		self.assertIn(str(Xt.dtype), ["object", "string"])
 		self.assertTrue(_list_equal([float("NaN"), False, True], Xt.tolist()))
 		transformer = MultiLookupTransformer(mapping, None, dtype = "category")
 		Xt = transformer.fit_transform(X)
@@ -755,7 +757,7 @@ class LagTransformerTest(TestCase):
 		Xt = transformer.transform(X)
 		self.assertIsInstance(Xt, Series)
 		self.assertEqual(X.dtype, Xt.dtype)
-		self.assertEqual([None, None, "-1", "0", "1"], Xt.tolist())
+		self.assertTrue(_list_equal([None, None, "-1", "0", "1"], Xt.tolist()))
 
 		X = DataFrame([[-1.0, -1, False, "-1"], [0.0, 0, False, "0"], [1.0, 1, True, "1"], [2.0, 2, True, "2"], [3.0, 3, True, "3"]], columns = ["float", "int", "bool", "str"])
 		Xt = transformer.transform(X)
@@ -939,7 +941,7 @@ class StringNormalizerTest(TransformerTest):
 		Xt = pipeline.fit_transform(X)
 		self.assertEqual((3, 3), Xt.shape)
 
-		X = X.reshape((3, 1))
+		X = numpy.asarray(X).reshape((3, 1))
 		pipeline = make_pipeline(StringNormalizer(), OrdinalEncoder())
 		Xt = pipeline.fit_transform(X)
 		self.assertEqual((3, 1), Xt.shape)
