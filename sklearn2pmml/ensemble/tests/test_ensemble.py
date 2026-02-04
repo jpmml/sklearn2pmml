@@ -2,10 +2,12 @@ from pandas import DataFrame
 from sklearn.base import clone
 from sklearn.datasets import load_iris
 from sklearn.dummy import DummyClassifier
+from sklearn.exceptions import NotFittedError
 from sklearn.linear_model import ElasticNet, LinearRegression, LogisticRegression, SGDClassifier, SGDRegressor
 from sklearn.svm import LinearSVC
 from sklearn.tree import DecisionTreeClassifier
 from sklearn2pmml.ensemble import _checkLM, _checkLR, _extract_step_params, _mask_params, EstimatorChain, Link, SelectFirstClassifier, SelectFirstRegressor
+from sklearn.utils.validation import check_is_fitted
 from unittest import TestCase
 
 import numpy
@@ -38,7 +40,10 @@ class EstimatorChainTest(TestCase):
 		self.assertEqual("most_frequent", params["negative__strategy"])
 		self.assertEqual("most_frequent", params["not_negative__strategy"])
 		self.assertEqual("most_frequent", params["any__strategy"])
+		with self.assertRaises(NotFittedError):
+			check_is_fitted(estimator)
 		estimator.fit(X, y)
+		check_is_fitted(estimator)
 		pred = estimator.predict(X)
 		self.assertEqual((5, 3), pred.shape)
 		self.assertEqual([-1, None, -1, None, -1], pred[:, 0].tolist())
@@ -74,11 +79,17 @@ class EstimatorChainTest(TestCase):
 			("not_setosa", LinearRegression(), "X[-3] < 0.5"),
 			("setosa", LinearRegression(), "X[-3] >= 0.5")
 		])
+		with self.assertRaises(NotFittedError):
+			check_is_fitted(regressor)
 		estimator = EstimatorChain([
 			("classifier", classifier, str(True)),
 			("regressor", regressor, str(True))
 		])
+		with self.assertRaises(NotFittedError):
+			check_is_fitted(estimator)
 		estimator.fit(X, y)
+		check_is_fitted(estimator)
+		check_is_fitted(regressor)
 		if hasattr(classifier.estimator_, "n_features_"):
 			self.assertEqual(4, classifier.estimator_.n_features_)
 		else:
@@ -106,7 +117,10 @@ class SelectFirstClassifierTest(TestCase):
 		self.assertEqual("most_frequent", params["positive__strategy"])
 		self.assertEqual("constant", params["zero__strategy"])
 		self.assertEqual(0, params["zero__constant"])
+		with self.assertRaises(NotFittedError):
+			check_is_fitted(classifier)
 		classifier.fit(X, y)
+		check_is_fitted(classifier)
 		pred = classifier.predict(X)
 		self.assertEqual((5, ), pred.shape)
 		self.assertEqual([-1, 0, -1, 1, -1], pred.tolist())
