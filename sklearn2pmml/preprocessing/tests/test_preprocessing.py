@@ -4,7 +4,7 @@ patch_sklearn()
 
 from datetime import datetime
 from pandas import CategoricalDtype, DataFrame, Series, Timestamp
-from pandas.arrays import ArrowStringArray
+from pandas.arrays import ArrowStringArray, StringArray
 from sklearn_pandas import DataFrameMapper
 from sklearn.base import clone
 from sklearn.exceptions import NotFittedError
@@ -42,11 +42,11 @@ class TransformerTest(TestCase):
 	def _transform1d(self, transformer, X):
 		self.assertIsInstance(X, Series)
 		X_ndarray = X.values
-		self.assertIsInstance(X_ndarray, (numpy.ndarray, ArrowStringArray))
+		self.assertIsInstance(X_ndarray, (numpy.ndarray, ArrowStringArray, StringArray))
 		Xt = transformer.transform(X)
 		Xt_ndarray = transformer.transform(X_ndarray)
 		self.assertIsInstance(Xt, Series)
-		self.assertIsInstance(Xt_ndarray, (numpy.ndarray, ArrowStringArray))
+		self.assertIsInstance(Xt_ndarray, (numpy.ndarray, ArrowStringArray, StringArray))
 		self.assertTrue(_list_equal(Xt.tolist(), Xt_ndarray.tolist()))
 		return Xt
 
