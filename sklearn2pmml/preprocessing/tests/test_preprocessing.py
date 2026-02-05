@@ -413,7 +413,7 @@ class ExpressionTransformerTest(TestCase):
 
 	def test_category_transform(self):
 		begin_err_state = numpy.geterr()
-		transformer = ExpressionTransformer("numpy.rint(X[0])", dtype = "category")
+		transformer = ExpressionTransformer("numpy.rint(X['a'])", dtype = "category")
 		self.assertTrue(hasattr(transformer, "dtype"))
 		self.assertFalse(hasattr(transformer, "dtype_"))
 		X = DataFrame([[1.2], [0.1], [1.8], [2.3], [0.7], [0.0]], columns = ["a"])
@@ -430,7 +430,7 @@ class ExpressionTransformerTest(TestCase):
 		self.assertEqual([1.0, 0.0, 2.0, 2.0, 1.0, 0.0], Xt.tolist())
 		end_err_state = numpy.geterr()
 		self.assertEqual(begin_err_state, end_err_state)
-		transformer = ExpressionTransformer("numpy.rint(X[0])", dtype = CategoricalDtype(categories = [0, 1]))
+		transformer = ExpressionTransformer("numpy.rint(X['a'])", dtype = CategoricalDtype(categories = [0, 1]))
 		self.assertTrue(hasattr(transformer, "dtype"))
 		self.assertFalse(hasattr(transformer, "dtype_"))
 		Xt = transformer.fit_transform(X)

@@ -27,12 +27,12 @@ class GBDTLRTest(TestCase):
 class EstimatorChainTest(TestCase):
 
 	def test_fit_predict(self):
-		df = DataFrame([[-1, 0], [0, 0], [-1, -1], [1, 1], [-1, -1]], columns = ["X", "y"])
-		X = df[["X"]]
+		df = DataFrame([[-1, 0], [0, 0], [-1, -1], [1, 1], [-1, -1]], columns = ["a", "y"])
+		X = df[["a"]]
 		y = df["y"]
 		steps = [
-			("negative", DummyClassifier(strategy = "most_frequent"), "X[0] < 0"), # binary
-			("not_negative", DummyClassifier(strategy = "most_frequent"), "X[0] >= 0"), # binary
+			("negative", DummyClassifier(strategy = "most_frequent"), "X['a'] < 0"), # binary
+			("not_negative", DummyClassifier(strategy = "most_frequent"), "X['a'] >= 0"), # binary
 			("any", DummyClassifier(strategy = "most_frequent"), str(True)) # multiclass
 		]
 		estimator = EstimatorChain(steps, multioutput = True)
@@ -104,12 +104,12 @@ class EstimatorChainTest(TestCase):
 class SelectFirstClassifierTest(TestCase):
 
 	def test_fit_predict(self):
-		df = DataFrame([[-1, 0], [0, 0], [-1, -1], [1, 1], [-1, -1]], columns = ["X", "y"])
-		X = df[["X"]]
+		df = DataFrame([[-1, 0], [0, 0], [-1, -1], [1, 1], [-1, -1]], columns = ["a", "y"])
+		X = df[["a"]]
 		y = df["y"]
 		classifier = clone(SelectFirstClassifier([
-			("negative", DummyClassifier(strategy = "most_frequent"), "X[0] < 0"),
-			("positive", DummyClassifier(strategy = "most_frequent"), "X[0] > 0"),
+			("negative", DummyClassifier(strategy = "most_frequent"), "X['a'] < 0"),
+			("positive", DummyClassifier(strategy = "most_frequent"), "X['a'] > 0"),
 			("zero", DummyClassifier(strategy = "constant", constant = 0), str(True))
 		], eval_rows = True))
 		params = classifier.get_params(deep = True)

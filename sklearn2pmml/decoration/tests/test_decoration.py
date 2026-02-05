@@ -38,7 +38,7 @@ class AliasTest(TestCase):
 
 	def test_get_feature_names_out(self):
 		X = DataFrame([[0, 0], [0, 1], [1, 1]], columns = ["x1", "x2"])
-		alias = Alias(ExpressionTransformer("X[0] == X[1]", dtype = int), name = "flag", prefit = True)
+		alias = Alias(ExpressionTransformer("X['x1'] == X['x2']", dtype = int), name = "flag", prefit = True)
 		self.assertEqual(["flag"], alias.get_feature_names_out(None).tolist())
 		ohe = OneHotEncoder()
 		pipeline = Pipeline([

@@ -14,12 +14,11 @@ class RuleSetClassifierTest(TestCase):
 		X = numpy.array([[0.0], [1.0], [-1.0]])
 		pred = classifier.predict(X)
 		self.assertEqual(["zero", "positive", "negative"], pred.tolist())
-		X = DataFrame(X, columns = ["x"])
-		pred = classifier.predict(X)
-		self.assertEqual(["zero", "positive", "negative"], pred.tolist())
+
 		classifier = RuleSetClassifier([
-			("X['x'] < 0", "negative"),
-			("X['x'] > 0", "positive")
+			("X['a'] < 0", "negative"),
+			("X['a'] > 0", "positive")
 		], default_score = "zero")
+		X = DataFrame(X, columns = ["a"])
 		pred = classifier.predict(X)
 		self.assertEqual(["zero", "positive", "negative"], pred.tolist())
