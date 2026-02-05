@@ -1,3 +1,29 @@
+# 0.127.2 #
+
+## Breaking changes
+
+None.
+
+## New features
+
+* Refactored the handling of missing value and invalid value treatment decorations.
+
+Such decorations control how the model checks and sanitizes its inputs.
+They should be declared once at the very beginning of the pipeline (eg. using `CategoricalDomain`, `ContinuousDomain` domain decorators), and remain unchanged after that.
+
+The refactored behaviour is to protect the applied decoration against replacement with more permissive configurations.
+For example, if the invalid value treatment has been set to "replace with predefined value" (eg. `CategoricalDomain(invalid_value_treatment = "as_value", invalid_value_replacement = "__other")`), then any subsequent attempt to replace it with "pass through as-is" (eg. `OneHotEncoder(handle_unknown = "warn")`) will be ignored.
+
+Previously, all replacements succeeded.
+This led to very unintuitive bugs, where explicit decorations did not have any effect, because they got silently overridden by implicit decorations.
+
+See [SkLearn2PMML-428](https://github.com/jpmml/sklearn2pmml/issues/428)
+
+## Minor improvements and fixes
+
+* Improved support for Pandas 3.0.0.
+
+
 # 0.127.1 #
 
 ## Breaking changes
