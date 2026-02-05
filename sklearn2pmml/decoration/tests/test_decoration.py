@@ -231,7 +231,7 @@ class CategoricalDomainTest(TestCase):
 		X = numpy.array([["4"]])
 		with self.assertRaises(ValueError):
 			domain.transform(X)
-		X = DataFrame([[-1, float("NaN")], [0, float("NaN")], [1, float("NaN")]])
+		X = DataFrame([[-1, float("NaN")], [0, float("NaN")], [1, float("NaN")]], dtype = object)
 		domain = clone(CategoricalDomain(dtype = str))
 		Xt = domain.fit_transform(X)
 		self.assertEqual(["-1", "0", "1"], Xt.iloc[:, 0].tolist())
