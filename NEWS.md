@@ -1,3 +1,52 @@
+# 0.128.0 #
+
+## Breaking changes
+
+None.
+
+## New features
+
+* Added support for [`NGBoost`](https://github.com/stanfordmlgroup/ngboost) package.
+
+The initial implementation supports `ngboost.NGBClassifier` and `ngboost.NGBRegressor` classes.
+
+The main selling point of `NGBRegressor` over conventional regressors is [heteroscedastic prediction intervals](https://grokipedia.com/page/Homoscedasticity_and_heteroscedasticity).
+Contrary to LLM claims, the PMML standard is capable of representing this functionality fully and very efficiently.
+
+The export of prediction intervals is available for `Normal` and `LogNormal` distributions, by setting the `confidence_level` conversion option to the appropriate value (float for static intervals, boolean `True` or string for dynamic intervals).
+
+For example, generating static 95% prediction intervals:
+
+```python
+from ngboost import NGBRegressor
+from ngboost.distns import Normal
+from sklearn2pmml import sklearn2pmml
+from sklearn2pmml.pipeline import PMMLPipeline
+
+pipeline = PMMLPipeline([
+  ("regressor", NGBRegressor(Dist = Normal))
+])
+pipeline.fit(X, y)
+pipeline.configure(confidence_level = 0.95)
+
+sklearn2pmml(pipeline, "NGBoost_Q95.pmml")
+```
+
+* Added support for [`sklearn.ensemble.AdaBoostClassifier`](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.AdaBoostClassifier.html) class.
+
+See [SkLearn2PMML-377](https://github.com/jpmml/sklearn2pmml/issues/377)
+
+* Added support for `FeatureUnion.transformer_weights` attribute.
+
+See [JPMML-SkLearn-63](https://github.com/jpmml/jpmml-sklearn/issues/63)
+
+## Minor improvements and fixes
+
+* Added support for `passthrough` and `drop` pseudo-transformers in `FeatureUnion`.
+
+* Refined Java exception types and messages.
+
+
 # 0.127.2 #
 
 ## Breaking changes
