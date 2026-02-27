@@ -1,3 +1,42 @@
+# 0.128.1 #
+
+## Breaking changes
+
+None.
+
+## New features
+
+* Added support for `ngboost.NGBSurvival` class.
+
+## Minor improvements and fixes
+
+* Added tree model conversion options to AdaBoost and NGBoost estimators.
+
+The goal is to enable tree conversion options for all ensemble estimators, where the (default-) base estimator is Scikit-Learn's decision tree regressor.
+
+For example, exporting the same NGBoost regressor first in optimized (flattened hierarchy, multy-way splits) and then in native-looking (deep hierarchy, binary splits) representations:
+
+```python
+from ngboost import NGBRegressor
+from ngboost.distns import LogNormal
+from sklearn2pmml import sklearn2pmml
+from sklearn2pmml.pipeline import PMMLPipeline
+
+pipeline = PMMLPipeline([
+  ("regressor", NGBRegressor(Dist = LogNormal))
+])
+pipeline.fit(X, y)
+
+pipeline.configure(prune = True, compact = True)
+sklearn2pmml(pipeline, "NGBoost_optimized.pmml")
+
+pipeline.configure(prune = False, compact = False)
+sklearn2pmml(pipeline, "NGBoost_native-sklearn.pmml")
+```
+
+* Refined Java exception types and messages.
+
+
 # 0.128.0 #
 
 ## Breaking changes
@@ -27,10 +66,13 @@ pipeline = PMMLPipeline([
   ("regressor", NGBRegressor(Dist = Normal))
 ])
 pipeline.fit(X, y)
-pipeline.configure(confidence_level = 0.95)
 
+# Generate 'upper(<y>)' and 'lower(<y>)' output fields
+pipeline.configure(confidence_level = 0.95)
 sklearn2pmml(pipeline, "NGBoost_Q95.pmml")
 ```
+
+See [Converting Scikit-Learn NGBoost pipelines to PMML](https://docs.jpmml.org/conversion/sklearn/ngboost/)
 
 * Added support for [`sklearn.ensemble.AdaBoostClassifier`](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.AdaBoostClassifier.html) class.
 
