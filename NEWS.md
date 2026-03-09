@@ -1,3 +1,70 @@
+# 0.129.0 #
+
+## Breaking changes
+
+None.
+
+## New features
+
+* Added support for [Causal ML](https://github.com/uber/causalml) package.
+
+The initial implementation supports S-learner and T-learner classes (both regression and classification objectives, single and multiple treatment cases).
+
+CausalML estimators are typically fitted outside of pipelines, because their fit method requires an extra `treatment` argument.
+However, for the export to PMML, it is still advisable to wrap the data pre-processor and the final estimator into a `PMMLPipeline` object:
+
+```python
+from causalml.inference.meta import BaseTRegressor
+from sklearn.compose import ColumnTransformer
+from sklearn2pmml import sklearn2pmml
+from sklearn2pmml.pipeline import PMMLPipeline
+
+transformer = ColumnTransformer(...)
+regressor = BaseTRegressor(...)
+
+# Stepwise fit
+Xt = transformer.fit_transform(X)
+regressor.fit(X = Xt, treatment = ..., y = y)
+
+# Wrapper for pre-fitted steps
+pipeline = PMMLPipeline([
+  ("transformer", transformer),
+  ("regressor", regressor)
+])
+pipeline.active_fields = numpy.asarray(X.columns.values)
+pipeline.target_fields = numpy.asarray(["uplift"])
+
+sklearn2pmml(pipeline, "Pipeline.pmml")
+```
+
+When assembling a pipeline for S-learners, then the first column of the pre-processed dataset must contain ordinally encoded treatment values.
+
+Use the `FeatureUnion` meta-transformer to prepend the treatment column to feature columns:
+
+```python
+from sklearn.pipeline import FeatureUnion
+from sklearn.preprocessing import OrdinalEncoder
+
+treatment_transformer = ColumnTransformer([
+  ("keep", OrdinalEncoder(), ["treatment"])
+], remainder = "drop")
+
+pipeline = PMMLPipeline([
+  ("transformer", FeatureUnion([
+    # The treatment column
+    ("treatment", treatment_transformer),
+    # Subsequent feature columns
+    ("features", transformer)
+  ])),
+  ("regressor", regressor)
+])
+```
+
+## Minor improvements and fixes
+
+* Refined Java exception types and messages.
+
+
 # 0.128.1 #
 
 ## Breaking changes
@@ -45,7 +112,7 @@ None.
 
 ## New features
 
-* Added support for [`NGBoost`](https://github.com/stanfordmlgroup/ngboost) package.
+* Added support for [NGBoost](https://github.com/stanfordmlgroup/ngboost) package.
 
 The initial implementation supports `ngboost.NGBClassifier` and `ngboost.NGBRegressor` classes.
 
@@ -1789,7 +1856,7 @@ Column selection using dense boolean arrays.
 * Refactored the `PMMLPipeline.customize(customizations: [str])` method into `PMMLPipeline.customize(command: str, xpath_expr: str, pmml_element: str)`.
 
 This method may be invoked any number of times.
-Each invocation appends a `sklearn2pmml.customization.Customization` object to the `pmml_customizations_` attribute of the final estimator step.
+Each invocation appends a `sklearn2pmml.customization.Customization` object to the `pmml_customizations_` attribute of the final estimator.
 
 The `command` argument is one of SQL-inspired keywords `insert`, `update` or `delete` (to insert a new element, or to update or delete an existing element, respectively).
 The `xpath_expr` is an XML Path (XPath) expression for pinpointing the action site. The XPath expression is evaluated relative to the main model element.
