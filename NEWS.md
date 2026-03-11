@@ -1,3 +1,20 @@
+# 0.129.1 #
+
+## Breaking changes
+
+None.
+
+## New features
+
+* Added support for `causalml.inference.meta.BaseXClassifier` and `BaseXRegressor` classes (aka X-learners).
+
+* Added support for `causalml.propensity.ElasticNetPropensityModel` and `LogisticRegressionPropensityModel` classes.
+
+## Minor improvements and fixes
+
+None.
+
+
 # 0.129.0 #
 
 ## Breaking changes
@@ -8,7 +25,7 @@ None.
 
 * Added support for [Causal ML](https://github.com/uber/causalml) package.
 
-The initial implementation supports S-learner and T-learner classes (both regression and classification objectives, single and multiple treatment cases).
+The initial implementation supports `causalml.inference.meta.BaseSClassifier` and `BaseSRegressor` classes (aka S-learners), as well as `causalml.inference.meta.BaseTClassifier` and `BaseTRegressor` classes (aka T-learners).
 
 CausalML estimators are typically fitted outside of pipelines, because their fit method requires an extra `treatment` argument.
 However, for the export to PMML, it is still advisable to wrap the data pre-processor and the final estimator into a `PMMLPipeline` object:
@@ -114,7 +131,7 @@ None.
 
 * Added support for [NGBoost](https://github.com/stanfordmlgroup/ngboost) package.
 
-The initial implementation supports `ngboost.NGBClassifier` and `ngboost.NGBRegressor` classes.
+The initial implementation supports `ngboost.NGBClassifier` and `NGBRegressor` classes.
 
 The main selling point of `NGBRegressor` over conventional regressors is [heteroscedastic prediction intervals](https://grokipedia.com/page/Homoscedasticity_and_heteroscedasticity).
 Contrary to LLM claims, the PMML standard is capable of representing this functionality fully and very efficiently.
