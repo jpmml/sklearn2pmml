@@ -1,3 +1,22 @@
+# 0.129.2 #
+
+## Breaking changes
+
+None.
+
+## New features
+
+* Added support for `causalml.inference.meta.BaseRClassifier` and `BaseRRegressor` classes (aka R-learners).
+
+* Added support for `causalml.inference.meta.XGBRRegressor` and `XGBTRegressor` classes.
+
+* Added tree model conversion options to Causal ML estimators.
+
+## Minor improvements and fixes
+
+None.
+
+
 # 0.129.1 #
 
 ## Breaking changes
