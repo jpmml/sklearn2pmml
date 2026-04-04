@@ -320,6 +320,7 @@ def _print_banner():
 		("Python", "https://github.com/jpmml/jpmml-evaluator-python"),
 		("R", "https://github.com/jpmml/jpmml-evaluator-r"),
 		("Apache Spark", "https://github.com/jpmml/jpmml-evaluator-spark"),
+		("PySpark", "https://github.com/jpmml/jpmml-evaluator-pyspark"),
 		("REST API", "https://github.com/openscoring/openscoring")
 	]
 	for name, url in tools:
