@@ -1,3 +1,24 @@
+# 0.130.0 #
+
+## Breaking changes
+
+None.
+
+## New features
+
+* Added support for [`sklearn.cross_decomposition.PLSRegression`](https://scikit-learn.org/stable/modules/generated/sklearn.cross_decomposition.PLSRegression.html) class.
+
+* Added support for [`sklearn.naive_bayes.ComplementNB`](https://scikit-learn.org/stable/modules/generated/sklearn.naive_bayes.ComplementNB.html) class.
+
+## Minor improvements and fixes
+
+* Improved support for `sklearn.naive_bayes.BernoulliNB` class.
+
+Removed a schema check, which rejected all multiclass models for no reason.
+
+* Ensured compatibility with InterpretML 0.7.8 and NGBoost 0.5.10.
+
+
 # 0.129.2 #
 
 ## Breaking changes
