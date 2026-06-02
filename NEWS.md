@@ -1,3 +1,24 @@
+# 0.130.1 #
+
+## Breaking changes
+
+None.
+
+## New features
+
+* Aggregated interaction features when encoding linear models.
+
+* Unwrapped the `TreeElement` model when encoding single-segment LightGBM and XGBoost models.
+
+## Minor improvements and fixes
+
+* Fixed the application of `NormContinuous` transformation to already transformed features.
+
+* Deduplicated `Value` elements for missing and invalid value spaces.
+
+Previously, it was possible for complex ensemble models (involving LightGBM and XGBoost as elementary models) to contain duplicate `Value` elements for missing values.
+
+
 # 0.130.0 #
 
 ## Breaking changes
