@@ -1,11 +1,17 @@
+from pathlib import Path
 from setuptools import find_packages, setup
 
 exec(open("sklearn2pmml/metadata.py").read())
+
+long_description = (Path(__file__).parent / "README.md") \
+	.read_text(encoding = "utf-8")
 
 setup(
 	name = "sklearn2pmml",
 	version = __version__,
 	description = "Python library for converting Scikit-Learn pipelines to PMML",
+	long_description = long_description,
+	long_description_content_type = "text/markdown",
 	author = "Villu Ruusmann",
 	author_email = "villu.ruusmann@gmail.com",
 	url = "https://github.com/jpmml/sklearn2pmml",
