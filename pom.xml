@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.jpmml</groupId>
 		<artifactId>jpmml-parent</artifactId>
-		<version>1.0.14</version>
+		<version>1.0.21</version>
 	</parent>
 
 	<groupId>com.sklearn2pmml</groupId>
@@ -16,21 +16,13 @@
 		<license>
 			<name>GNU Affero General Public License (AGPL) version 3.0</name>
 			<url>http://www.gnu.org/licenses/agpl-3.0.html</url>
-			<distribution>repo</distribution>
 		</license>
 	</licenses>
-
-	<developers>
-		<developer>
-			<id>villu.ruusmann</id>
-			<name>Villu Ruusmann</name>
-		</developer>
-	</developers>
 
 	<scm>
 		<connection>scm:git:git@github.com:jpmml/sklearn2pmml.git</connection>
 		<developerConnection>scm:git:git@github.com:jpmml/sklearn2pmml.git</developerConnection>
-		<url>git://github.com/jpmml/sklearn2pmml.git</url>
+		<url>https://github.com/jpmml/sklearn2pmml</url>
 		<tag>HEAD</tag>
 	</scm>
 	<issueManagement>
