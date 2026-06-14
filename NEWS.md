@@ -8,7 +8,7 @@ None.
 
 * Aggregated interaction features when encoding linear models.
 
-* Unwrapped the `TreeElement` model when encoding single-segment LightGBM and XGBoost models.
+* Unwrapped the `TreeModel` element when encoding single-segment LightGBM and XGBoost models.
 
 ## Minor improvements and fixes
 
@@ -159,7 +159,7 @@ None.
 
 The goal is to enable tree conversion options for all ensemble estimators, where the (default-) base estimator is Scikit-Learn's decision tree regressor.
 
-For example, exporting the same NGBoost regressor first in optimized (flattened hierarchy, multy-way splits) and then in native-looking (deep hierarchy, binary splits) representations:
+For example, exporting the same NGBoost regressor first in native-looking (binary splits, deep hierarchy) and then in optimized (multi-way splits, flattened hierarchy) representations:
 
 ```python
 from ngboost import NGBRegressor
@@ -172,11 +172,11 @@ pipeline = PMMLPipeline([
 ])
 pipeline.fit(X, y)
 
+pipeline.configure(prune = False, compact = False)
+sklearn2pmml(pipeline, "NGBoost_sklearn-native.pmml")
+
 pipeline.configure(prune = True, compact = True)
 sklearn2pmml(pipeline, "NGBoost_optimized.pmml")
-
-pipeline.configure(prune = False, compact = False)
-sklearn2pmml(pipeline, "NGBoost_native-sklearn.pmml")
 ```
 
 * Refined Java exception types and messages.
