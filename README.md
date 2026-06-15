@@ -5,7 +5,7 @@ Python package for converting [Scikit-Learn](https://scikit-learn.org/) pipeline
 
 # Features #
 
-This package is a thin Python wrapper around the [JPMML-SkLearn](https://github.com/jpmml/jpmml-sklearn#features) library.
+This package is a thin Python wrapper around the [JPMML-SkLearn](https://github.com/jpmml/jpmml-sklearn) library.
 
 # News and Updates #
 
@@ -38,93 +38,149 @@ pip install --upgrade git+https://github.com/jpmml/sklearn2pmml.git
 
 # Usage #
 
-## Command-line application ##
+## Native Scikit-Learn ##
+
+SkLearn2PMML can convert a wide variety of Scikit-Learn and Scikit-Learn adjacent estimators as-is.
+
+The list of supported transformer, selector and predictor (aka model) classes is given in the [features.md](https://github.com/jpmml/jpmml-sklearn/blob/master/features.md) file of the JPMML-SkLearn project.
+
+Keep SkLearn2PMML maximally up-to-date.
+One and the same package version -- preferably the latest and greatest -- is able to work with all Scikit-Learn 0.17 (ca 2015) and newer versions.
+
+### Library
+
+Use the `sklearn2pmml.sklearn2pmml(estimator, pmml_path)` utility function to convert a fitted estimator object to PMML:
+
+```python
+from sklearn2pmml import sklearn2pmml
+
+estimator = ...
+estimator.fit(X, y)
+
+# Convert a live estimator object
+sklearn2pmml(estimator, "Estimator.pmml")
+```
+
+The `estimator` argument may also be a path-like object to an estimator pickle file in local filesystem:
+
+```python
+from sklearn2pmml import sklearn2pmml
+
+import joblib
+
+joblib.dump(estimator, "Estimator.pkl")
+
+sklearn2pmml("Estimator.pkl", "Estimator.pmml")
+```
+
+SkLearn2PMML uses a custom Java component (rather than the built-in Python unpickler component) for reading pickle files.
+As such, it is safe to use with unvetted pickle files.
+
+### Command-line application
 
 The `sklearn2pmml` module is executable.
-The main application loads the estimator object from the Pickle file (`-i` or `--input`; supports `joblib`, `pickle` or `dill` variants), performs the conversion, and saves the result to a PMML file (`-o` or `--output`):
 
-```
-python -m sklearn2pmml --input pipeline.pkl --output pipeline.pmml
+The main application simply calls the `sklearn2pmml.sklearn2pmml()` utility function.
+At minimum, it is necessary to provide the input pickle file (`-i` or `--input`; supports `joblib`, `pickle` or `dill` variants) and output PMML file paths (`-o` or `--output`):
+
+```bash
+python -m sklearn2pmml --input Estimator.pkl --output Estimator.pmml
 ```
 
-Getting help:
+To see all supported command-line options, pass `--help`:
 
-```
+```bash
 python -m sklearn2pmml --help
 ```
 
 On some platforms, the [Pip](https://pypi.org/project/pip/) package installer additionally makes the main application available as a top-level command:
 
-```
+```bash
 sklearn2pmml --input pipeline.pkl --output pipeline.pmml
 ```
 
-## Library ##
+## PMML-enhanced Scikit-Learn ##
 
-A typical workflow can be summarized as follows:
+Native Scikit-Learn estimators have rather limited portability between environments, because they lack adequate metadata.
+For example, they did not collect and store even the most crucial metadata about the feature matrix (ie. the `feature_names_in_` attribute) prior to Scikit-Learn 1.0 (ca 2021).
 
-1. Create a `PMMLPipeline` object, and populate it with pipeline steps as usual. The `sklearn2pmml.pipeline.PMMLPipeline` class extends the `sklearn.pipeline.Pipeline` class with the following functionality:
-  * If the `PMMLPipeline.fit(X, y)` method is invoked with `pandas.DataFrame` or `pandas.Series` object as an `X` argument, then its column names are used as feature names. Otherwise, feature names default to "x1", "x2", .., "x{number_of_features}".
-  * If the `PMMLPipeline.fit(X, y)` method is invoked with `pandas.Series` object as an `y` argument, then its name is used as the target name (for supervised models). Otherwise, the target name defaults to "y".
-2. Fit and validate the pipeline as usual.
-3. Optionally, compute and embed verification data into the `PMMLPipeline` object by invoking `PMMLPipeline.verify(X)` method with a small but representative subset of training data.
-4. Convert the `PMMLPipeline` object to a PMML file in local filesystem by invoking the `sklearn2pmml.sklearn2pmml(estimator, pmml_path)` utility method.
+SkLearn2PMML provides the `sklearn2pmml.pipeline.PMMLPipeline` meta-estimator class, which extends the `sklearn.pipeline.Pipeline` class with the following functionality:
 
-Developing a simple decision tree model for the classification of iris species:
+* Collect feature and label metadata using the `fit(X, y)` method:
+  * The column names of the `X` dataset become input field names. Otherwise, they default to `x1`, `x2`, ..., `x{n_features_in_}`.
+  * The column names of the `y` dataset become target field name(s). Otherwise, they default to `y` (single-output case) or `y1`, `y2`, ..., `y{n_outputs_}` (multi-output case).
+* Perform prediction post-processing using `predict_transform(X)`, `predict_proba_transform(X)` and `apply_transform(X)` methods (operating on `predict_transformer`, `predict_proba_transformer` and `apply_transformer` attributes, respectively).
+* Embed model verification data using the `verify(X)` method.
+* Configure the representation of final estimator step using the `configure(**pmml_options)` method.
+* Perform extra edits (ie. insert, update or delete PMML XML fragments) on the PMML document using the `customize(command, xpath_expr, pmml_element)` method.
+
+PMML-enhanced workflow:
 
 ```python
-import pandas
-
-iris_df = pandas.read_csv("Iris.csv")
-
-iris_X = iris_df[iris_df.columns.difference(["Species"])]
-iris_y = iris_df["Species"]
-
-from sklearn.tree import DecisionTreeClassifier
+#from sklearn.pipeline import Pipeline
+from sklearn2pmml import sklearn2pmml
 from sklearn2pmml.pipeline import PMMLPipeline
 
-pipeline = PMMLPipeline([
-	("classifier", DecisionTreeClassifier())
-])
-pipeline.fit(iris_X, iris_y)
+#pipeline = Pipeline(...)
+# Activate prediction post-processing
+pipeline = PMMLPipeline(..., predict_transformer = ...)
+pipeline.fit(X, y)
 
-from sklearn2pmml import sklearn2pmml
+# Embed small but representative sample for self-check purposes during deployment
+pipeline.verify(X.sample(n = 10))
 
-sklearn2pmml(pipeline, "DecisionTreeIris.pmml", with_repr = True)
+# Default prediction
+yt = pipeline.predict(X)
+# Default prediction, together with its transformation results
+yt_transformed = pipeline.predict_transform(X)
+
+# Default PMML representation
+sklearn2pmml(pipeline, "Pipeline.pmml")
+
+pipeline.configure(...)
+#pipeline.customize(...)
+
+# Customized PMML representation
+sklearn2pmml(pipeline, "Pipeline-customized.pmml")
 ```
 
-Developing a more elaborate logistic regression model for the same:
+Additionally, SkLearn2PMML provides a number of PMML-oriented transformer, selector and predictor classes:
+
+* `sklearn2pmml.decoration`. Capture or declare the domain of individual features by their operational type using `ContinuousDomain`, `CategoricalDomain` or `OrdinalDomain` meta-transformers. Give transformed features meaningful names using `Alias` and `MultiAlias` meta-transformers.
+* `sklearn2pmml.preprocessing`. Transform features using `ExpressionTransformer` (any to any), `CutTransformer` (continuous to discrete), `LookupTransformer` (discrete to discrete), and many other transformers.
+* `sklearn2pmml.cross_reference`. Cross-reference features and transformed features at subsequent transformer steps using `Memorizer` and `Recaller` meta-transformers.
+* `sklearn2pmml.ensemble`. Estimate conditionally using the `SelectFirstTransformer` meta-transformer, plus `SelectFirstClassifier` and `SelectFirstRegressor` meta-predictors. Combine predictors using `GBDTLRClassifier` and `GBDTLMRegressor` meta-predictors.
+* `sklearn2pmml.postprocessing`. Transform predictions using the `BusinessDecisionTransformer` transformer.
+
+For example, mapping and pre-processing the [Audit](https://github.com/jpmml/jpmml-sklearn/blob/master/pmml-sklearn/src/test/resources/csv/Audit.csv) dataset:
 
 ```python
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import OneHotEncoder
+from sklearn2pmml.decoration import Alias, CategoricalDomain, ContinuousDomain
+from sklearn2pmml.preprocessing import ExpressionTransformer
+
 import pandas
 
-iris_df = pandas.read_csv("Iris.csv")
+df = pandas.read_csv("Audit.csv")
 
-iris_X = iris_df[iris_df.columns.difference(["Species"])]
-iris_y = iris_df["Species"]
+# Group features by type (operational type plus data type)
+cat_cols = ["Education", "Employment", "Marital", "Occupation", "Gender"]
+cont_int_cols = ["Age", "Hours"]
+cont_float_cols = ["Income"]
 
-from sklearn_pandas import DataFrameMapper
-from sklearn.decomposition import PCA
-from sklearn.feature_selection import SelectKBest
-from sklearn.impute import SimpleImputer
-from sklearn.linear_model import LogisticRegression
-from sklearn2pmml.decoration import ContinuousDomain
-from sklearn2pmml.pipeline import PMMLPipeline
+transformer = ColumnTransformer([
+	# Features
+	("cat", make_pipeline(CategoricalDomain(), OneHotEncoder()), cat_cols),
+	("cont_int", ContinuousDomain(), cont_int_cols),
+	("cont_float", ContinuousDomain(), cont_float_cols),
+	# Transformed features
+	("hourly_income", Alias(ExpressionTransformer("X['Income'] / (X['Hours'] * 52)"), name = "Hourly_Income"), ["Income", "Hours"])
+], remainder = "drop")
+transformer.fit(df)
 
-pipeline = PMMLPipeline([
-	("mapper", DataFrameMapper([
-		(["Sepal.Length", "Sepal.Width", "Petal.Length", "Petal.Width"], [ContinuousDomain(), SimpleImputer()])
-	])),
-	("pca", PCA(n_components = 3)),
-	("selector", SelectKBest(k = 2)),
-	("classifier", LogisticRegression(multi_class = "ovr"))
-])
-pipeline.fit(iris_X, iris_y)
-pipeline.verify(iris_X.sample(n = 15))
-
-from sklearn2pmml import sklearn2pmml
-
-sklearn2pmml(pipeline, "LogisticRegressionIris.pmml", with_repr = True)
+Xt = transformer.transform(df)
 ```
 
 # Documentation #
@@ -171,14 +227,6 @@ Miscellaneous:
 Archived:
 
 * [Converting Scikit-Learn to PMML](https://www.slideshare.net/VilluRuusmann/converting-scikitlearn-to-pmml)
-
-# De-installation #
-
-Uninstalling:
-
-```
-pip uninstall sklearn2pmml
-```
 
 # License #
 
