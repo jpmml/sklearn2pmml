@@ -1,3 +1,45 @@
+# 0.131.0 #
+
+## Breaking changes
+
+None.
+
+## New features
+
+* Added record counts and intermediate leaf scores for XGBoost estimators.
+
+This functionality is only available if the XGBoost estimator is maintained in its native (ie. binary tree) layout, and the underlying objective function supports it (eg. fully supported by `reg:squarederror`, partially supported by `reg:absoluteerror` and `reg:squaredlogerror`).
+
+For example, exporting the same XGBoost estimator first in native-looking (deep, with maximum metadata) and then in optimized (compacted, without metadata) representations:
+
+```python
+from sklearn2pmml import sklearn2pmml
+from sklearn2pmml.pipeline import PMMLPipeline
+from xgboost import XGBRegressor
+
+pipeline = PMMLPipeline([
+  ("regressor", XGBRegressor(objective = "reg:squarederror"))
+])
+pipeline.fit(X, y)
+
+# Native-looking representation for analysis and interpretation
+pipeline.configure(compact = False)
+sklearn2pmml(pipeline, "XGBoost_native.pmml")
+
+# Optimized representation for scoring
+pipeline.configure(compact = True)
+sklearn2pmml(pipeline, "XGBoost_optimized.pmml")
+```
+
+## Minor improvements and fixes
+
+* Ensured compatibility with Scikit-Learn 1.9.0.
+
+* Made categorical encoders such as `OneHotEncoder` and `TargetEncoder` more lenient towards NumPy scalars in category levels.
+
+* Made discrete domain decorators more lenient towards NumPy scalars in category levels.
+
+
 # 0.130.1 #
 
 ## Breaking changes
@@ -8,7 +50,7 @@ None.
 
 * Aggregated interaction features when encoding linear models.
 
-* Unwrapped the `TreeModel` element when encoding single-segment LightGBM and XGBoost models.
+* Unwrapped the `TreeModel` element when encoding single-segment LightGBM and XGBoost estimators.
 
 ## Minor improvements and fixes
 
@@ -516,7 +558,7 @@ See [JPMML-SkLearn-70](https://github.com/jpmml/jpmml-sklearn/issues/70)
 
 * Refined Java exception types and messages.
 
-* Made `ColumnTransformer` and `DataFrameMapper` converters more lenient towards occasional NumPy scalars.
+* Made `ColumnTransformer` and `DataFrameMapper` converters more lenient towards NumPy scalars.
 
 * Fixed the parsing of Scikit-Learn version strings.
 
@@ -603,7 +645,7 @@ None.
 
 * Improved interaction between `OrdinalEncoder` transformer and XGBoost estimators.
 
-XGBoost estimators now check ordinally encoded features, and exclude the last category value if it matches the `missing` attribute value.
+XGBoost estimators now check ordinally encoded features, and exclude the last category level if it matches the `missing` attribute value.
 Previously, this value was encoded into categorical split elements.
 
 * Improved support for `OneHotEncoder.handle_unknown` attribute.
@@ -1477,7 +1519,7 @@ booster = train(params = {...}, dtrain = dmatrix)
 booster.fmap = fmap
 ```
 
-* Added `input_float` conversion option for XGBoost models.
+* Added `input_float` conversion option for XGBoost estimators.
 
 ## Minor improvements and fixes
 
@@ -2266,7 +2308,7 @@ mapper.fit_transform(iris_X, iris_y)
 
 If the `CastTransformer.dtype` parameter value is "category" (ie. a string literal), then the fit method will auto-detect valid category levels, and will set the `CastTransformer.dtype_` attribute to a `pandas.CategoricalDtype` object instead.
 The subsequent transform method invocations are now guaranteed to exhibit stable transformation behaviour.
-Previously, each method call was computing its own set of valid category values.
+Previously, each method call was computing its own set of valid category levels.
 
 * Added the `Domain` class to the `sklearn.base.OneToOneFeatureMixin` class hierarchy.
 
