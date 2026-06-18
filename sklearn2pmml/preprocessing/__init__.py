@@ -97,6 +97,7 @@ class CastTransformer(BaseEstimator, TransformerMixin, OneToOneFeatureMixin):
 
 	def fit(self, X, y = None):
 		self.dtype_ = _fit_dtype(self.dtype, X)
+		self.n_features_in_ = X.shape[1] if (hasattr(X, "shape") and len(X.shape) > 1) else 1
 		return self
 
 	def transform(self, X):
@@ -186,6 +187,7 @@ class SeriesConstructor(BaseEstimator, StatelessTransformerMixin, OneToOneFeatur
 
 	def fit(self, X, y = None):
 		to_1d(X)
+		self.n_features_in_ = 1
 		return self
 
 	def transform(self, X):

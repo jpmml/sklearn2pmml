@@ -143,6 +143,21 @@ class CastTransformerTest(TransformerTest):
 		transformer.fit(X)
 		self.assertEqual(["a", "b", "c"], transformer.dtype_.categories.tolist())
 
+	def test_get_feature_names_out(self):
+		transformer = CastTransformer(dtype = int)
+		X = numpy.asarray([0.0, 2.0, 1.0])
+		Xt = transformer.fit_transform(X)
+		self.assertEqual([0, 2, 1], Xt.tolist())
+		self.assertEqual(["x0"], transformer.get_feature_names_out().tolist())
+		pipeline = Pipeline([
+			("transformer", transformer)
+		])
+		if hasattr(pipeline, "set_output"):
+			pipeline.set_output(transform = "pandas")
+			Xt = pipeline.fit_transform(X)
+			self.assertIsInstance(Xt, DataFrame)
+			self.assertEqual(["x0"], Xt.columns.tolist())
+
 class MultiCastTransformerTest(TestCase):
 
 	def test_transform(self):
@@ -263,10 +278,11 @@ class SeriesConstructorTest(TestCase):
 			Xt = pipeline.fit_transform(X)
 			self.assertIsInstance(Xt, Series)
 			self.assertEqual(None, Xt.name)
+			self.assertEqual(["x0"], transformer.get_feature_names_out().tolist())
 			pipeline.set_output(transform = "pandas")
 			Xt = pipeline.fit_transform(X)
 			self.assertIsInstance(Xt, DataFrame)
-			self.assertEqual([0], Xt.columns.tolist())
+			self.assertEqual(["x0"], Xt.columns.tolist())
 		transformer = SeriesConstructor(name = "flag", dtype = int)
 		Xt = transformer.fit_transform(X)
 		self.assertIsInstance(Xt, Series)
