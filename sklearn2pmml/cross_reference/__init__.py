@@ -1,7 +1,7 @@
-from pandas import DataFrame
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.pipeline import FeatureUnion
 from sklearn2pmml.preprocessing import IdentityTransformer
+from sklearn2pmml.util import _is_pandas_dataframe
 
 import numpy
 
@@ -20,7 +20,7 @@ class Memory(object):
 		del self.data[key]
 
 	def __len__(self):
-		if isinstance(self.data, DataFrame):
+		if _is_pandas_dataframe(self.data):
 			return self.data.shape[1]
 		return len(self.data)
 
@@ -44,7 +44,7 @@ class Memory(object):
 		self.__dict__.update(state)
 
 	def clear(self):
-		if isinstance(self.data, DataFrame):
+		if _is_pandas_dataframe(self.data):
 			self.data.drop(columns = self.data.columns, inplace = True)
 		else:
 			self.data.clear()
@@ -91,7 +91,7 @@ class Memorizer(_BaseMemoryManager):
 		if X.shape[1] != len(self.names):
 			raise ValueError()
 		for idx, name in enumerate(self.names):
-			if isinstance(X, DataFrame):
+			if _is_pandas_dataframe(X):
 				x = X.iloc[:, idx]
 			else:
 				x = X[:, idx]

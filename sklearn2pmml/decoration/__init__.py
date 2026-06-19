@@ -1,4 +1,4 @@
-from pandas import CategoricalDtype, DataFrame, Series
+from pandas import CategoricalDtype, Series
 from pandas.api.types import is_object_dtype
 from sklearn.base import clone, BaseEstimator, TransformerMixin
 try:
@@ -12,7 +12,7 @@ try:
 except ImportError:
 	pass
 from sklearn2pmml import _is_pandas_categorical, _is_proto_pandas_categorical, StatelessTransformerMixin
-from sklearn2pmml.util import cast, common_dtype, is_1d, to_numpy
+from sklearn2pmml.util import _is_pandas_dataframe, cast, common_dtype, is_1d, to_numpy
 
 import copy
 import itertools
@@ -505,7 +505,7 @@ class MultiDomain(BaseEstimator, TransformerMixin):
 		rows, columns = X.shape
 		if len(self.domains) != columns:
 			raise ValueError("The number of columns {0} is not equal to the number of domain objects {1}".format(columns, len(self.domains)))
-		if isinstance(X, DataFrame):
+		if _is_pandas_dataframe(X):
 			for domain, column in zip(self.domains, X.columns):
 				if domain is not None:
 					domain.fit(X[column])
@@ -520,7 +520,7 @@ class MultiDomain(BaseEstimator, TransformerMixin):
 		rows, columns = X.shape
 		# XXX
 		X = X.copy()
-		if isinstance(X, DataFrame):
+		if _is_pandas_dataframe(X):
 			for domain, column in zip(self.domains, X.columns):
 				if domain is not None:
 					X[column] = domain.transform(X[column])

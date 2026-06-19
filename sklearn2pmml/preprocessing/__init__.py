@@ -18,7 +18,7 @@ from sklearn.exceptions import NotFittedError
 from sklearn.pipeline import Pipeline
 from sklearn2pmml import _is_pandas_categorical, _is_proto_pandas_categorical, StatelessTransformerMixin
 from sklearn2pmml.preprocessing.regex import make_regex_engine
-from sklearn2pmml.util import cast, check_expression, check_predicate, dt_transform, ensure_def, eval_rows, is_1d, to_1d, to_expr_func, to_numpy, Reshaper
+from sklearn2pmml.util import _is_pandas_dataframe, cast, check_expression, check_predicate, dt_transform, ensure_def, eval_rows, is_1d, to_1d, to_expr_func, to_numpy, Reshaper
 
 import numpy
 import pandas
@@ -114,7 +114,7 @@ class MultiCastTransformer(BaseEstimator, TransformerMixin):
 		rows, columns = X.shape
 		if len(self.dtypes) != columns:
 			raise ValueError("The number of columns {0} is not equal to the number of data types {1}".format(columns, len(self.dtypes)))
-		if isinstance(X, DataFrame):
+		if _is_pandas_dataframe(X):
 			dtypes_ = [_fit_dtype(dtype, X[column]) for dtype, column in zip(self.dtypes, X.columns)]
 		else:
 			dtypes_ = [_fit_dtype(dtype, X[:, column]) for dtype, column in zip(self.dtypes, range(0, columns))]
@@ -125,7 +125,7 @@ class MultiCastTransformer(BaseEstimator, TransformerMixin):
 		rows, columns = X.shape
 		# XXX
 		X = X.copy()
-		if isinstance(X, DataFrame):
+		if _is_pandas_dataframe(X):
 			for dtype, column in zip(self.dtypes_, X.columns):
 				X[column] = cast(X[column], dtype)
 		else:

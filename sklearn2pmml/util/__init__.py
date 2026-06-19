@@ -1,6 +1,6 @@
 from datetime import datetime
 from numpy import datetime64
-from pandas import Categorical, DataFrame, Index, Series, Timestamp
+from pandas import Categorical, DataFrame, Index, Timestamp, Series
 from sklearn.base import clone, BaseEstimator, TransformerMixin
 
 import inspect
@@ -17,6 +17,15 @@ try:
 except ValueError:
 	# Pandas 1.X
 	iso8601_format = "%Y-%m-%dT%H:%M:%S.%f"
+
+def _is_pandas_dataframe(X):
+	return isinstance(X, DataFrame)
+
+def _is_pandas_series(X):
+	return isinstance(X, Series)
+
+def _is_pandas_1d(X):
+	return isinstance(X, (Categorical, Series))
 
 def cast(X, dtype):
 	if isinstance(dtype, str) and dtype.startswith("datetime64"):
@@ -61,9 +70,9 @@ def is_1d(X):
 		return False
 
 def to_1d(X):
-	if isinstance(X, (Categorical, Series)):
+	if _is_pandas_1d(X):
 		return X
-	elif isinstance(X, DataFrame):
+	elif _is_pandas_dataframe(X):
 		columns = X.columns
 		if len(columns) == 1:
 			return X[columns[0]]
@@ -77,9 +86,9 @@ def to_1d(X):
 		raise ValueError("Expected 1d array or 2d column vector array, got {0}d array of shape {1}".format(len(shape), str(shape)))
 
 def dt_transform(X, func):
-	if isinstance(X, (Categorical, Series)):
+	if _is_pandas_1d(X):
 		return X.apply(func)
-	elif isinstance(X, DataFrame):
+	elif _is_pandas_dataframe(X):
 		if hasattr(X, "applymap"):
 			return X.applymap(func)
 		else:
@@ -221,7 +230,7 @@ def to_expr_func(expr, modules = ["math", "re", "pcre", "pcre2", "numpy", "panda
 
 def eval_rows(X, func, to_numpy = False, shape = None, dtype = None):
 	if hasattr(X, "apply"):
-		if isinstance(X, Series):
+		if _is_pandas_series(X):
 			Xt = X.apply(func)
 		else:
 			Xt = X.apply(func, axis = 1)
@@ -339,7 +348,7 @@ class Slicer(BaseEstimator, TransformerMixin):
 	def transform(self, X):
 		rows = slice(None, None)
 		columns = slice(self.start, self.stop, self.step)
-		if isinstance(X, DataFrame):
+		if _is_pandas_dataframe(X):
 			return X.iloc[rows, columns]
 		else:
 			return X[rows, columns]
