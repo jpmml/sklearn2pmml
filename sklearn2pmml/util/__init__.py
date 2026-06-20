@@ -63,6 +63,26 @@ def _is_pandas_ordinal(dtype):
 		return dtype.ordered
 	return False
 
+def _get_column_names(X):
+	def _filter_column_names(X):
+		return (numpy.asarray(X)).astype(str)
+
+	if _is_pandas_series(X):
+		return _filter_column_names(X.name)
+	elif _is_pandas_dataframe(X):
+		return _filter_column_names(X.columns.values)
+	# elif isinstance(X, H2OFrame)
+	elif hasattr(X, "names"):
+		return _filter_column_names(X.names)
+	else:
+		return None
+
+def _get_values(X):
+	# if isinstance(X, H2OFrame)
+	if hasattr(X, "as_data_frame"):
+		X = X.as_data_frame()
+	return to_numpy(X)
+
 def cast(X, dtype):
 	if isinstance(dtype, str) and dtype.startswith("datetime64"):
 		func = lambda x: to_pydatetime(x, dtype)

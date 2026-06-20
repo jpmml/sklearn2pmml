@@ -3,23 +3,13 @@ from sklearn.dummy import DummyClassifier, DummyRegressor
 from sklearn.pipeline import FeatureUnion, Pipeline
 from sklearn.preprocessing import FunctionTransformer
 from sklearn.tree import DecisionTreeRegressor
-from sklearn2pmml.pipeline import _get_column_names, PMMLPipeline
+from sklearn2pmml.pipeline import PMMLPipeline
 from sklearn2pmml.util.pmml import Extension
 from unittest import TestCase
 
 import numpy
 
 class PMMLPipelineTest(TestCase):
-
-	def test_get_columns(self):
-		X = DataFrame([[1, 0], [2, 0], [3, 0]], columns = [1, 2])
-		self.assertEqual(["1", "2"], _get_column_names(X).tolist())
-		X.columns = numpy.asarray([1.0, 2.0])
-		self.assertEqual(["1.0", "2.0"], _get_column_names(X).tolist())
-		X = Series([1, 2, 3], name = 1)
-		self.assertEqual("1", _get_column_names(X).tolist())
-		X.name = 1.0
-		self.assertEqual("1.0", _get_column_names(X).tolist())
 
 	def test_predict_transform(self):
 		predict_transformer = FeatureUnion([

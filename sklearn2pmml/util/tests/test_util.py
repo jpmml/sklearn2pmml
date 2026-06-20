@@ -1,5 +1,5 @@
 from pandas import Categorical, CategoricalDtype, DataFrame, Series
-from sklearn2pmml.util import _is_categorical, _is_ordinal, _is_proto_pandas_categorical, check_expression, check_predicate, fqn, sizeof, deep_sizeof, to_expr, to_expr_func, Evaluatable, Expression, Predicate, Slicer, Reshaper
+from sklearn2pmml.util import _is_categorical, _is_ordinal, _is_proto_pandas_categorical, _get_column_names, check_expression, check_predicate, fqn, sizeof, deep_sizeof, to_expr, to_expr_func, Evaluatable, Expression, Predicate, Slicer, Reshaper
 from unittest import TestCase
 
 import inspect
@@ -48,6 +48,18 @@ class DTypeTest(TestCase):
 		x = x.astype(CategoricalDtype(categories = ["True", "False"], ordered = True))
 		self.assertTrue(_is_ordinal(x.dtype))
 		self.assertEqual([0, 1, 0], x.cat.codes.tolist())
+
+class DataContainerTest(TestCase):
+
+	def test_get_columns(self):
+		X = DataFrame([[1, 0], [2, 0], [3, 0]], columns = [1, 2])
+		self.assertEqual(["1", "2"], _get_column_names(X).tolist())
+		X.columns = numpy.asarray([1.0, 2.0])
+		self.assertEqual(["1.0", "2.0"], _get_column_names(X).tolist())
+		X = Series([1, 2, 3], name = 1)
+		self.assertEqual("1", _get_column_names(X).tolist())
+		X.name = 1.0
+		self.assertEqual("1.0", _get_column_names(X).tolist())
 
 class MeasurementTest(TestCase):
 

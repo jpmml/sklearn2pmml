@@ -2,7 +2,7 @@ from sklearn.base import BaseEstimator, ClassifierMixin, RegressorMixin
 from sklearn.pipeline import Pipeline
 from sklearn2pmml.configuration import add_options, clear_options
 from sklearn2pmml.customization import add_customizations, clear_customizations, Customization
-from sklearn2pmml.util import _is_pandas_dataframe, _is_pandas_series, to_numpy
+from sklearn2pmml.util import _get_column_names, _get_values
 
 import numpy
 import warnings
@@ -18,26 +18,6 @@ class _Verification(object):
 			raise ValueError("Zero threshold cannot be negative")
 		self.precision = precision
 		self.zeroThreshold = zeroThreshold
-
-def _get_column_names(X):
-	def _filter_column_names(X):
-		return (numpy.asarray(X)).astype(str)
-
-	if _is_pandas_series(X):
-		return _filter_column_names(X.name)
-	elif _is_pandas_dataframe(X):
-		return _filter_column_names(X.columns.values)
-	# elif isinstance(X, H2OFrame)
-	elif hasattr(X, "names"):
-		return _filter_column_names(X.names)
-	else:
-		return None
-
-def _get_values(X):
-	# if isinstance(X, H2OFrame)
-	if hasattr(X, "as_data_frame"):
-		X = X.as_data_frame()
-	return to_numpy(X)
 
 class PMMLPipeline(Pipeline):
 
