@@ -18,7 +18,7 @@ from sklearn.exceptions import NotFittedError
 from sklearn.pipeline import Pipeline
 from sklearn2pmml import StatelessTransformerMixin
 from sklearn2pmml.preprocessing.regex import make_regex_engine
-from sklearn2pmml.util import _is_pandas_categorical, _is_pandas_dataframe, _is_proto_pandas_categorical, cast, check_expression, check_predicate, dt_transform, ensure_def, eval_rows, is_1d, to_1d, to_expr_func, to_numpy, Reshaper
+from sklearn2pmml.util import _is_pandas_categorical, _is_pandas_dataframe, _is_proto_pandas_categorical, _get_column_count, cast, check_expression, check_predicate, dt_transform, ensure_def, eval_rows, is_1d, to_1d, to_expr_func, to_numpy, Reshaper
 
 import numpy
 import pandas
@@ -97,7 +97,7 @@ class CastTransformer(BaseEstimator, TransformerMixin, OneToOneFeatureMixin):
 
 	def fit(self, X, y = None):
 		self.dtype_ = _fit_dtype(self.dtype, X)
-		self.n_features_in_ = X.shape[1] if (hasattr(X, "shape") and len(X.shape) > 1) else 1
+		self.n_features_in_ = _get_column_count(X)
 		return self
 
 	def transform(self, X):

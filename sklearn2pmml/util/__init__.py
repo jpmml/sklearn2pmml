@@ -63,6 +63,11 @@ def _is_pandas_ordinal(dtype):
 		return dtype.ordered
 	return False
 
+def _get_column_count(X):
+	if hasattr(X, "shape") and len(X.shape) > 1:
+		return X.shape[1]
+	return 1
+
 def _get_column_names(X):
 	def _filter_column_names(X):
 		return (numpy.asarray(X)).astype(str)
