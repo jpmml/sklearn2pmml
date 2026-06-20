@@ -1,7 +1,7 @@
 from datetime import datetime
 from numpy import datetime64
-from pandas import Categorical, CategoricalDtype, DataFrame, Index, Timestamp, Series
-from sklearn.base import clone, BaseEstimator, TransformerMixin
+from pandas import Categorical, CategoricalDtype, DataFrame, Timestamp, Series
+from sklearn.base import BaseEstimator, TransformerMixin
 
 import inspect
 import numpy

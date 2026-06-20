@@ -10,7 +10,7 @@ except ImportError:
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.compose import ColumnTransformer
 from sklearn.exceptions import NotFittedError
-from sklearn.feature_selection import SelectFromModel, SelectorMixin
+from sklearn.feature_selection import SelectorMixin
 from sklearn.pipeline import FeatureUnion, Pipeline
 from sklearn2pmml.resources import _package_classpath
 from subprocess import PIPE, Popen
@@ -20,10 +20,8 @@ import dill
 import joblib
 import numpy
 import os
-import pandas
 import platform
 import re
-import sklearn
 import tempfile
 import warnings
 
