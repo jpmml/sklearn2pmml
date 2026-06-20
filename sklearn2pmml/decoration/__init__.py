@@ -11,8 +11,8 @@ try:
 	from sklearn.utils.validation import _check_feature_names, _check_n_features
 except ImportError:
 	pass
-from sklearn2pmml import _is_pandas_categorical, _is_proto_pandas_categorical, StatelessTransformerMixin
-from sklearn2pmml.util import _is_pandas_dataframe, cast, common_dtype, is_1d, to_numpy
+from sklearn2pmml import StatelessTransformerMixin
+from sklearn2pmml.util import _is_pandas_categorical, _is_pandas_dataframe, _is_proto_pandas_categorical, cast, common_dtype, is_1d, to_numpy
 
 import copy
 import itertools

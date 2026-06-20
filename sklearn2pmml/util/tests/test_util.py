@@ -1,9 +1,53 @@
-from pandas import DataFrame
-from sklearn2pmml.util import check_expression, check_predicate, fqn, sizeof, deep_sizeof, to_expr, to_expr_func, Evaluatable, Expression, Predicate, Slicer, Reshaper
+from pandas import Categorical, CategoricalDtype, DataFrame, Series
+from sklearn2pmml.util import _is_categorical, _is_ordinal, _is_proto_pandas_categorical, check_expression, check_predicate, fqn, sizeof, deep_sizeof, to_expr, to_expr_func, Evaluatable, Expression, Predicate, Slicer, Reshaper
 from unittest import TestCase
 
 import inspect
 import numpy
+
+class DTypeTest(TestCase):
+
+	def test_is_categorical(self):
+		x = Series(["True", "False", "True"], name = "x", dtype = str)
+		self.assertEqual(["True", "False", "True"], x.values.tolist())
+		self.assertTrue(_is_categorical(x.dtype))
+		x = Series([True, False, True], name = "x", dtype = bool)
+		self.assertEqual([True, False, True], x.values.tolist())
+		self.assertTrue(_is_categorical(x.dtype))
+		x = x.astype(float)
+		self.assertEqual([1.0, 0.0, 1.0], x.values.tolist())
+		self.assertFalse(_is_categorical(x.dtype))
+		x = x.astype("category")
+		self.assertEqual([1.0, 0.0, 1.0], x.values.tolist())
+		self.assertTrue(_is_categorical(x.dtype))
+		x = x.astype(int)
+		self.assertEqual([1, 0, 1], x.values.tolist())
+		self.assertFalse(_is_categorical(x.dtype))
+		x = x.astype(CategoricalDtype())
+		self.assertEqual([1, 0, 1], x.values.tolist())
+		self.assertTrue(_is_categorical(x.dtype))
+
+	def test_is_proto_pandas_categorical(self):
+		dtype = "category"
+		self.assertTrue(_is_proto_pandas_categorical(dtype))
+		dtype = CategoricalDtype()
+		self.assertTrue(_is_proto_pandas_categorical(dtype))
+		dtype = CategoricalDtype(categories = [])
+		self.assertFalse(_is_proto_pandas_categorical(dtype))
+		dtype = CategoricalDtype(categories = ["a", "b", "c"])
+		self.assertFalse(_is_proto_pandas_categorical(dtype))
+
+	def test_is_ordinal(self):
+		x = Categorical(["True", "False", "True"], categories = ["True", "False"], ordered = True)
+		self.assertTrue(_is_ordinal(x.dtype))
+		x = Categorical([True, False, True], categories = [True, False], ordered = True)
+		self.assertTrue(_is_ordinal(x.dtype))
+		x = Series(["True", "False", "True"], dtype = "category")
+		self.assertFalse(_is_ordinal(x.dtype))
+		self.assertEqual([1, 0, 1], x.cat.codes.tolist())
+		x = x.astype(CategoricalDtype(categories = ["True", "False"], ordered = True))
+		self.assertTrue(_is_ordinal(x.dtype))
+		self.assertEqual([0, 1, 0], x.cat.codes.tolist())
 
 class MeasurementTest(TestCase):
 

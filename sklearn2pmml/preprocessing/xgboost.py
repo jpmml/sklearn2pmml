@@ -2,8 +2,8 @@ from sklearn_pandas import DataFrameMapper
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import LabelBinarizer, OneHotEncoder, OrdinalEncoder
-from sklearn2pmml import _is_categorical
 from sklearn2pmml.preprocessing import PMMLLabelBinarizer
+from sklearn2pmml.util import _is_categorical
 
 def make_xgboost_dataframe_mapper(dtypes, missing_value_aware = True):
 	"""Construct a DataFrameMapper for feeding complex data into an XGBModel.

@@ -1,61 +1,16 @@
 from dataclasses import asdict, is_dataclass
-from pandas import Categorical, CategoricalDtype, DataFrame, Series
 from sklearn.dummy import DummyRegressor
 from sklearn.feature_selection import f_regression, SelectFromModel, SelectKBest
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.tree import DecisionTreeRegressor
-from sklearn2pmml import _classpath, _escape, _escape_steps, _expand_complex_key, _is_categorical, _is_extension_class, _is_ordinal, _is_proto_pandas_categorical, _java_version, _parse_java_version, _strip_module, load_class_mapping, make_class_mapping_jar, make_pmml_pipeline, EstimatorProxy, SelectorProxy
+from sklearn2pmml import _classpath, _escape, _escape_steps, _expand_complex_key, _is_extension_class, _java_version, _parse_java_version, _strip_module, load_class_mapping, make_class_mapping_jar, make_pmml_pipeline, EstimatorProxy, SelectorProxy
 from sklearn2pmml.pipeline import PMMLPipeline
 from unittest import TestCase
 
 import numpy
 import tempfile
-
-class DTypeTest(TestCase):
-
-	def test_is_categorical(self):
-		x = Series(["True", "False", "True"], name = "x", dtype = str)
-		self.assertEqual(["True", "False", "True"], x.values.tolist())
-		self.assertTrue(_is_categorical(x.dtype))
-		x = Series([True, False, True], name = "x", dtype = bool)
-		self.assertEqual([True, False, True], x.values.tolist())
-		self.assertTrue(_is_categorical(x.dtype))
-		x = x.astype(float)
-		self.assertEqual([1.0, 0.0, 1.0], x.values.tolist())
-		self.assertFalse(_is_categorical(x.dtype))
-		x = x.astype("category")
-		self.assertEqual([1.0, 0.0, 1.0], x.values.tolist())
-		self.assertTrue(_is_categorical(x.dtype))
-		x = x.astype(int)
-		self.assertEqual([1, 0, 1], x.values.tolist())
-		self.assertFalse(_is_categorical(x.dtype))
-		x = x.astype(CategoricalDtype())
-		self.assertEqual([1, 0, 1], x.values.tolist())
-		self.assertTrue(_is_categorical(x.dtype))
-
-	def test_is_proto_pandas_categorical(self):
-		dtype = "category"
-		self.assertTrue(_is_proto_pandas_categorical(dtype))
-		dtype = CategoricalDtype()
-		self.assertTrue(_is_proto_pandas_categorical(dtype))
-		dtype = CategoricalDtype(categories = [])
-		self.assertFalse(_is_proto_pandas_categorical(dtype))
-		dtype = CategoricalDtype(categories = ["a", "b", "c"])
-		self.assertFalse(_is_proto_pandas_categorical(dtype))
-
-	def test_is_ordinal(self):
-		x = Categorical(["True", "False", "True"], categories = ["True", "False"], ordered = True)
-		self.assertTrue(_is_ordinal(x.dtype))
-		x = Categorical([True, False, True], categories = [True, False], ordered = True)
-		self.assertTrue(_is_ordinal(x.dtype))
-		x = Series(["True", "False", "True"], dtype = "category")
-		self.assertFalse(_is_ordinal(x.dtype))
-		self.assertEqual([1, 0, 1], x.cat.codes.tolist())
-		x = x.astype(CategoricalDtype(categories = ["True", "False"], ordered = True))
-		self.assertTrue(_is_ordinal(x.dtype))
-		self.assertEqual([0, 1, 0], x.cat.codes.tolist())
 
 class EstimatorProxyTest(TestCase):
 

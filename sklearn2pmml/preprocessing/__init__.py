@@ -16,9 +16,9 @@ except ImportError:
 	from sklearn.base import _OneToOneFeatureMixin as OneToOneFeatureMixin
 from sklearn.exceptions import NotFittedError
 from sklearn.pipeline import Pipeline
-from sklearn2pmml import _is_pandas_categorical, _is_proto_pandas_categorical, StatelessTransformerMixin
+from sklearn2pmml import StatelessTransformerMixin
 from sklearn2pmml.preprocessing.regex import make_regex_engine
-from sklearn2pmml.util import _is_pandas_dataframe, cast, check_expression, check_predicate, dt_transform, ensure_def, eval_rows, is_1d, to_1d, to_expr_func, to_numpy, Reshaper
+from sklearn2pmml.util import _is_pandas_categorical, _is_pandas_dataframe, _is_proto_pandas_categorical, cast, check_expression, check_predicate, dt_transform, ensure_def, eval_rows, is_1d, to_1d, to_expr_func, to_numpy, Reshaper
 
 import numpy
 import pandas

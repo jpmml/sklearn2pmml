@@ -1,5 +1,5 @@
 from sklearn.base import BaseEstimator, ClassifierMixin, RegressorMixin
-from sklearn2pmml import _is_ordinal
+from sklearn2pmml.util import _is_ordinal
 from statsmodels.base.model import Model
 from statsmodels.tools import add_constant
 

@@ -1,6 +1,6 @@
 from datetime import datetime
 from numpy import datetime64
-from pandas import Categorical, DataFrame, Index, Timestamp, Series
+from pandas import Categorical, CategoricalDtype, DataFrame, Index, Timestamp, Series
 from sklearn.base import clone, BaseEstimator, TransformerMixin
 
 import inspect
@@ -26,6 +26,42 @@ def _is_pandas_series(X):
 
 def _is_pandas_1d(X):
 	return isinstance(X, (Categorical, Series))
+
+def _is_categorical(dtype):
+	if dtype == object or dtype == str or dtype == bool:
+		return True
+	elif _is_pandas_string(dtype):
+		return True
+	elif _is_pandas_categorical(dtype):
+		return True
+	return False
+
+def _is_pandas_string(dtype):
+	if hasattr(dtype, "name"):
+		return dtype.name in ["str", "string"]
+	return False
+
+def _is_pandas_categorical(dtype):
+	if hasattr(dtype, "name"):
+		return dtype.name == "category"
+	return False
+
+def _is_proto_pandas_categorical(dtype):
+	if isinstance(dtype, str) and dtype == "category":
+		return True
+	if isinstance(dtype, CategoricalDtype):
+		return dtype.categories is None
+	return False
+
+def _is_ordinal(dtype):
+	if _is_pandas_ordinal(dtype):
+		return True
+	return False
+
+def _is_pandas_ordinal(dtype):
+	if isinstance(dtype, CategoricalDtype):
+		return dtype.ordered
+	return False
 
 def cast(X, dtype):
 	if isinstance(dtype, str) and dtype.startswith("datetime64"):

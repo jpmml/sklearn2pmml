@@ -1,7 +1,6 @@
 from dataclasses import asdict, is_dataclass
 from datetime import date
 from importlib.metadata import version, PackageNotFoundError
-from pandas import CategoricalDtype
 from pathlib import Path
 try:
 	from sklearn_pandas import DataFrameMapper
@@ -30,42 +29,6 @@ import warnings
 
 from .metadata import __copyright__, __license__, __version__
 from .pipeline import PMMLPipeline
-
-def _is_categorical(dtype):
-	if dtype == object or dtype == str or dtype == bool:
-		return True
-	elif _is_pandas_string(dtype):
-		return True
-	elif _is_pandas_categorical(dtype):
-		return True
-	return False
-
-def _is_pandas_string(dtype):
-	if hasattr(dtype, "name"):
-		return dtype.name in ["str", "string"]
-	return False
-
-def _is_pandas_categorical(dtype):
-	if hasattr(dtype, "name"):
-		return dtype.name == "category"
-	return False
-
-def _is_proto_pandas_categorical(dtype):
-	if isinstance(dtype, str) and dtype == "category":
-		return True
-	if isinstance(dtype, CategoricalDtype):
-		return dtype.categories is None
-	return False
-
-def _is_ordinal(dtype):
-	if _is_pandas_ordinal(dtype):
-		return True
-	return False
-
-def _is_pandas_ordinal(dtype):
-	if isinstance(dtype, CategoricalDtype):
-		return dtype.ordered
-	return False
 
 class StatelessTransformerMixin(TransformerMixin):
 
