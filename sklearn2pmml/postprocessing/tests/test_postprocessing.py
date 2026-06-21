@@ -1,6 +1,7 @@
 from pandas import DataFrame
 from sklearn2pmml.postprocessing import FeatureExporter, BusinessDecisionTransformer
 from sklearn2pmml.preprocessing import ExpressionTransformer
+from sklearn2pmml.util import _to_numpy
 from unittest import TestCase
 
 import numpy
@@ -42,7 +43,7 @@ class FeatureExporterTest(TestCase):
 		Xt = transformer.transform(X)
 		self.assertIsInstance(Xt, DataFrame)
 		self.assertEqual((4, 2), Xt.shape)
-		X = X.to_numpy()
+		X = _to_numpy(X)
 		Xt = transformer.transform(X)
 		self.assertIsInstance(Xt, numpy.ndarray)
 		self.assertEqual((4, 2), Xt.shape)

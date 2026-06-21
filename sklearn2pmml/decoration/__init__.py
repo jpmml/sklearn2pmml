@@ -12,7 +12,7 @@ try:
 except ImportError:
 	pass
 from sklearn2pmml import StatelessTransformerMixin
-from sklearn2pmml.util import _is_pandas_categorical, _is_pandas_dataframe, _is_proto_pandas_categorical, cast, common_dtype, is_1d, to_numpy
+from sklearn2pmml.util import _is_pandas_categorical, _is_pandas_dataframe, _is_proto_pandas_categorical, _to_numpy, cast, common_dtype, is_1d
 
 import copy
 import itertools
@@ -201,7 +201,7 @@ class Domain(BaseEstimator, TransformerMixin, OneToOneFeatureMixin):
 		return X
 
 	def _compute_masks(self, X):
-		X = to_numpy(X)
+		X = _to_numpy(X)
 		missing_mask = self._missing_value_mask(X)
 		nonmissing_mask = ~missing_mask
 		valid_mask = self._valid_value_mask(X, nonmissing_mask)
@@ -283,11 +283,11 @@ class DiscreteDomain(Domain):
 		self.dtype_ = common_dtype(X)
 		if self._empty_fit():
 			return self
-		X = to_numpy(X)
+		X = _to_numpy(X)
 
 		def _cast(x):
 			if self.dtype_ == "Int64":
-				x = to_numpy(Series(x, dtype = self.dtype_))
+				x = _to_numpy(Series(x, dtype = self.dtype_))
 			return x
 
 		if self.with_data:
@@ -395,7 +395,7 @@ class ContinuousDomain(Domain):
 		self.dtype_ = common_dtype(X)
 		if self._empty_fit():
 			return self
-		X = to_numpy(X)
+		X = _to_numpy(X)
 		if self.with_data:
 			dtype = self.dtype_
 			# Unbox Pandas' extension data type to Numpy data type

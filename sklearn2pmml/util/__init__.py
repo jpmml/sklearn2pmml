@@ -98,7 +98,12 @@ def _get_values(X):
 	# if isinstance(X, H2OFrame)
 	if hasattr(X, "as_data_frame"):
 		X = X.as_data_frame()
-	return to_numpy(X)
+	return _to_numpy(X)
+
+def _to_numpy(X):
+	if hasattr(X, "to_numpy"):
+		return X.to_numpy()
+	return X
 
 def cast(X, dtype):
 	if isinstance(dtype, str) and dtype.startswith("datetime64"):
@@ -127,11 +132,6 @@ def common_dtype(X):
 		return next(iter(dtypes))
 	else:
 		raise ValueError()
-
-def to_numpy(X):
-	if hasattr(X, "to_numpy"):
-		return X.to_numpy()
-	return X
 
 def is_1d(X):
 	shape = X.shape

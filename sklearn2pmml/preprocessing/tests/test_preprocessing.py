@@ -18,7 +18,7 @@ from sklearn2pmml.preprocessing import AggregateTransformer, CastTransformer, Co
 from sklearn2pmml.preprocessing.h2o import H2OFrameConstructor, H2OFrameCreator
 from sklearn2pmml.preprocessing.lightgbm import make_lightgbm_column_transformer, make_lightgbm_dataframe_mapper
 from sklearn2pmml.preprocessing.xgboost import make_xgboost_column_transformer, make_xgboost_dataframe_mapper
-from sklearn2pmml.util import to_expr, Expression
+from sklearn2pmml.util import _to_numpy, to_expr, Expression
 from unittest import TestCase
 
 import inspect
@@ -169,7 +169,7 @@ class MultiCastTransformerTest(TestCase):
 		self.assertEqual([int, float], transformer.dtypes_)
 		self.assertIsInstance(Xt, DataFrame)
 		self.assertEqual([[-1, -1.0], [0, 0.0], [1, 1.0]], Xt.values.tolist())
-		X = X.to_numpy()
+		X = _to_numpy(X)
 		Xt = transformer.transform(X)
 		self.assertIsInstance(Xt, numpy.ndarray)
 		self.assertEqual([[-1, -1.0], [0, 0.0], [1, 1.0]], Xt.tolist())

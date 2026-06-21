@@ -10,7 +10,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn2pmml.decoration import Alias, CategoricalDomain, ContinuousDomain, ContinuousDomainEraser, DateDomain, DateTimeDomain, DiscreteDomainEraser, Domain, MultiAlias, MultiDomain
 from sklearn2pmml.preprocessing import ExpressionTransformer
-from sklearn2pmml.util import to_numpy
+from sklearn2pmml.util import _to_numpy
 from sklearn_pandas import DataFrameMapper
 from sklego.preprocessing import IdentityTransformer
 from unittest import TestCase
@@ -96,7 +96,7 @@ class CategoricalDomainTest(TestCase):
 		self.assertEqual([False, True], domain.data_values_.tolist())
 		self.assertEqual([False, pandas.NA, False, True], Xt.tolist())
 		domain = clone(CategoricalDomain())
-		X = to_numpy(X)
+		X = _to_numpy(X)
 		self.assertEqual([False, True, False, False], domain._missing_value_mask(X).tolist())
 		Xt = domain.fit_transform(X)
 		self.assertIsInstance(Xt, numpy.ndarray)
@@ -199,7 +199,7 @@ class CategoricalDomainTest(TestCase):
 			self.assertIsInstance(data_value, (int, numpy.int64))
 		self.assertEqual([-1, pandas.NA, 1, 2, -1], Xt.tolist())
 		domain = clone(CategoricalDomain())
-		X = to_numpy(X)
+		X = _to_numpy(X)
 		self.assertEqual([False, True, False, False, False], domain._missing_value_mask(X).tolist())
 		Xt = domain.fit_transform(X)
 		self.assertIsInstance(Xt, numpy.ndarray)

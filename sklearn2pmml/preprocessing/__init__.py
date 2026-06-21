@@ -18,7 +18,7 @@ from sklearn.exceptions import NotFittedError
 from sklearn.pipeline import Pipeline
 from sklearn2pmml import StatelessTransformerMixin
 from sklearn2pmml.preprocessing.regex import make_regex_engine
-from sklearn2pmml.util import _is_pandas_categorical, _is_pandas_dataframe, _is_proto_pandas_categorical, _get_column_count, cast, check_expression, check_predicate, dt_transform, eval_rows, is_1d, to_1d, to_expr_func, to_numpy
+from sklearn2pmml.util import _is_pandas_categorical, _is_pandas_dataframe, _is_proto_pandas_categorical, _get_column_count, _to_numpy, cast, check_expression, check_predicate, dt_transform, eval_rows, is_1d, to_1d, to_expr_func
 
 import numpy
 import pandas
@@ -82,7 +82,7 @@ def _check_dtype(dtype):
 
 def _fit_dtype(dtype, X):
 	if _is_proto_pandas_categorical(dtype):
-		X = to_numpy(X)
+		X = _to_numpy(X)
 		return CategoricalDtype(categories = _unique(X), ordered = False)
 	else:
 		return dtype
@@ -155,7 +155,7 @@ class CutTransformer(BaseEstimator, TransformerMixin):
 			return Xt
 		else:
 			if _is_pandas_categorical(Xt.dtype):
-				Xt = to_numpy(Xt)
+				Xt = _to_numpy(Xt)
 			return Xt.reshape(X.shape)
 
 class DataFrameConstructor(BaseEstimator, StatelessTransformerMixin):
@@ -932,7 +932,7 @@ class WordCountTransformer(StringTransformer):
 	def transform(self, X):
 		X1d = to_1d(X)
 		# The expression "X]0]" assumes a two-dimensional array
-		X1d = to_numpy(X1d).reshape((-1, 1))
+		X1d = _to_numpy(X1d).reshape((-1, 1))
 		return self.pipeline_.transform(X1d)
 
 def _to_sparse(X, step_mask, step_result):
