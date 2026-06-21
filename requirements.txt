@@ -14,6 +14,9 @@ pcre2==0.5.2; python_version >= '3.9'
 pandas==2.0.3; python_version == '3.8'
 pandas==2.3.3; python_version >= '3.9' and python_version < '3.12'
 pandas==3.0.0; python_version >= '3.12'
+polars==1.8.0; python_version == '3.8'
+polars==1.36.1; python_version == '3.9'
+polars==1.41.2; python_version >= '3.10'
 scikit-learn>=1.0,<=1.8.0
 scikit-lego==0.9.4
 scikit-tree==0.8.0; python_version >= '3.9'

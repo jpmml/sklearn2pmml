@@ -27,6 +27,14 @@ def _is_pandas_series(X):
 def _is_pandas_1d(X):
 	return isinstance(X, (Categorical, Series))
 
+def _is_polars_dataframe(X):
+	polars = sys.modules.get("polars")
+	return polars is not None and isinstance(X, polars.DataFrame)
+
+def _is_polars_series(X):
+	polars = sys.modules.get("polars")
+	return polars is not None and isinstance(X, polars.Series)
+
 def _is_categorical(dtype):
 	if dtype == object or dtype == str or dtype == bool:
 		return True
@@ -76,6 +84,10 @@ def _get_column_names(X):
 		return _filter_column_names(X.name)
 	elif _is_pandas_dataframe(X):
 		return _filter_column_names(X.columns.values)
+	elif _is_polars_series(X):
+		return _filter_column_names(X.name)
+	elif _is_polars_dataframe(X):
+		return _filter_column_names(X.columns)
 	# elif isinstance(X, H2OFrame)
 	elif hasattr(X, "names"):
 		return _filter_column_names(X.names)

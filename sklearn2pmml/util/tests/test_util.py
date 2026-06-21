@@ -4,6 +4,7 @@ from unittest import TestCase
 
 import inspect
 import numpy
+import polars
 
 class DTypeTest(TestCase):
 
@@ -53,19 +54,16 @@ class ContainerTest(TestCase):
 
 	def test_column_count(self):
 		self.assertEqual(1, _get_column_count([0, 2, 1]))
-
 		X = numpy.asarray([0, 2, 1])
 		self.assertEqual(1, _get_column_count(X))
 		X = numpy.asarray([[0, -1], [2, 0], [1, 1]])
 		self.assertEqual(2, _get_column_count(X))
 		X = numpy.asarray([[0], [2], [1]])
 		self.assertEqual(1, _get_column_count(X))
-
 		X = Categorical(["a", "b", "c"])
 		self.assertEqual(1, _get_column_count(X))
 		X = Series([0, 2, 1])
 		self.assertEqual(1, _get_column_count(X))
-
 		X = DataFrame([[0], [2], [1]], columns = ["a"])
 		self.assertEqual(1, _get_column_count(X))
 		X = DataFrame([[0, False], [2, True], [1, True]], columns = ["a", "b"])
@@ -80,6 +78,12 @@ class ContainerTest(TestCase):
 		self.assertEqual("1", _get_column_names(X).tolist())
 		X.name = 1.0
 		self.assertEqual("1.0", _get_column_names(X).tolist())
+
+	def test_polars_column_names(self):
+		X = polars.DataFrame([[1, 0], [2, 0], [3, 0]], schema = ["1", "2"], orient = "row")
+		self.assertEqual(["1", "2"], _get_column_names(X).tolist())
+		X = polars.Series(name = "1", values = [1, 2, 3])
+		self.assertEqual("1", _get_column_names(X).tolist())
 
 class MeasurementTest(TestCase):
 

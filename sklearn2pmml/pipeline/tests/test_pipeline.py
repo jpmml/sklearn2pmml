@@ -8,6 +8,7 @@ from sklearn2pmml.util.pmml import Extension
 from unittest import TestCase
 
 import numpy
+import polars
 
 class PMMLPipelineTest(TestCase):
 
@@ -57,6 +58,17 @@ class PMMLPipelineTest(TestCase):
 		X.columns = ["x2", "x1"]
 		with self.assertRaises(ValueError):
 			pipeline.verify(X.sample(2)) 
+
+	def test_polars_fit_verify(self):
+		pipeline = PMMLPipeline([("estimator", DummyRegressor())])
+		X = polars.DataFrame([[1, 0], [2, 0], [3, 0]], schema = ["X1", "X2"], orient = "row")
+		y = polars.Series(name = "y", values = [0.5, 1.0, 1.5])
+		pipeline.fit(X, y)
+		self.assertEqual(["X1", "X2"], pipeline.active_fields.tolist())
+		self.assertEqual("y", pipeline.target_fields.tolist())
+		pipeline.verify(X.sample(2))
+		self.assertEqual(2, len(pipeline.verification.active_values))
+		self.assertEqual(2, len(pipeline.verification.target_values))
 
 	def test_configure(self):
 		regressor = DecisionTreeRegressor()
