@@ -102,6 +102,17 @@ def _is_polars_ordinal(dtype):
 		return isinstance(dtype, polars.Enum)
 	return False
 
+def _get_categories(dtype):
+	if isinstance(dtype, CategoricalDtype):
+		return numpy.asarray(dtype.categories) if dtype.categories is not None else None
+	polars = sys.modules.get("polars")
+	if polars is not None:
+		if isinstance(dtype, polars.Categorical):
+			return None
+		elif isinstance(dtype, polars.Enum):
+			return numpy.asarray(dtype.categories)
+	return None
+
 def _get_column_count(X):
 	if hasattr(X, "shape") and len(X.shape) > 1:
 		return X.shape[1]
@@ -150,16 +161,23 @@ def cast(X, dtype):
 		func = lambda x: to_pydatetime(x, dtype)
 		return dt_transform(X, func)
 	else:
-		if not hasattr(X, "astype"):
+		if _is_pandas_series(X) or _is_pandas_dataframe(X):
+			Xt = X.astype(dtype)
+		elif _is_polars_series(X) or _is_polars_dataframe(X):
+			Xt = X.cast(dtype)
+		else:
 			X = numpy.asarray(X)
-		Xt = X.astype(dtype)
+			Xt = X.astype(dtype)
 		if dtype in (str, "unicode"):
-			mask = pandas.isnull(X)
-			if numpy.any(mask):
-				if hasattr(Xt, "where"):
-					Xt = Xt.where(~mask, X)
-				else:
-					Xt = numpy.where(~mask, Xt, X)
+			if _is_polars_series(X) or _is_polars_dataframe(X):
+				pass
+			else:
+				mask = pandas.isnull(X)
+				if numpy.any(mask):
+					if hasattr(Xt, "where"):
+						Xt = Xt.where(~mask, X)
+					else:
+						Xt = numpy.where(~mask, Xt, X)
 		return Xt
 
 def common_dtype(X):

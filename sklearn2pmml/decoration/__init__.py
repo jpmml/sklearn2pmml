@@ -12,7 +12,7 @@ try:
 except ImportError:
 	pass
 from sklearn2pmml import StatelessTransformerMixin
-from sklearn2pmml.util import _is_pandas_categorical, _is_pandas_dataframe, _is_proto_pandas_categorical, _to_numpy, _to_numpy_dtype, cast, common_dtype, is_1d
+from sklearn2pmml.util import _is_categorical, _is_ordinal, _is_pandas_categorical, _is_pandas_dataframe, _is_proto_pandas_categorical, _get_categories, _to_numpy, _to_numpy_dtype, cast, common_dtype, is_1d
 
 import copy
 import itertools
@@ -232,7 +232,8 @@ class DiscreteDomain(Domain):
 		if data_values:
 			if not with_data:
 				raise ValueError("Valid values require with_data attribute")
-			if isinstance(dtype, CategoricalDtype) and data_values != (dtype.categories).tolist():
+			categories = _get_categories(dtype)
+			if categories is not None and data_values != categories.tolist():
 				raise ValueError("Valid values are invalid")
 		self.data_values = data_values
 
@@ -242,10 +243,8 @@ class DiscreteDomain(Domain):
 	def _valid_value_mask(self, X, where):
 		if hasattr(self, "data_values_"):
 			data_values = self.data_values_
-		elif _is_pandas_categorical(self.dtype_):
-			data_values = self.dtype_.categories
 		else:
-			data_values = None
+			data_values = _get_categories(self.dtype_)
 		if data_values is not None:
 			def _isin_mask(x, values):
 				if hasattr(x, "isin"):
@@ -298,16 +297,16 @@ class DiscreteDomain(Domain):
 				_check_cols(X, self.data_values)
 			if is_1d(X):
 				if self.data_values is None:
-					if _is_pandas_categorical(self.dtype_):
-						data_values = self.dtype_.categories
-					else:
+					data_values = _get_categories(self.dtype_)
+					if data_values is None:
 						data_values = numpy.unique(X[nonmissing_mask])
 				else:
 					data_values = numpy.asarray(self.data_values)
 				self.data_values_ = _cast(data_values)
 			else:
 				if self.data_values is None:
-					if _is_pandas_categorical(self.dtype_):
+					data_values = _get_categories(self.dtype_)
+					if data_values is not None:
 						raise ValueError()
 				self.data_values_ = []
 				for col in range(X.shape[1]):
@@ -338,7 +337,7 @@ class CategoricalDomain(DiscreteDomain):
 
 	def __init__(self, missing_values = None, missing_value_treatment = "as_is", missing_value_replacement = None, invalid_value_treatment = "return_invalid", invalid_value_replacement = None, with_data = True, with_statistics = False, dtype = None, display_name = None, data_values = None):
 		super(CategoricalDomain, self).__init__(missing_values = missing_values, missing_value_treatment = missing_value_treatment, missing_value_replacement = missing_value_replacement, invalid_value_treatment = invalid_value_treatment, invalid_value_replacement = invalid_value_replacement, with_data = with_data, with_statistics = with_statistics, dtype = dtype, display_name = display_name, data_values = data_values)
-		if isinstance(dtype, CategoricalDtype) and dtype.ordered:
+		if _is_ordinal(dtype):
 			raise ValueError()
 
 	def _is_ordered(self):
@@ -348,7 +347,7 @@ class OrdinalDomain(DiscreteDomain):
 
 	def __init__(self, missing_values = None, missing_value_treatment = "as_is", missing_value_replacement = None, invalid_value_treatment = "return_invalid", invalid_value_replacement = None, with_data = True, with_statistics = False, dtype = None, display_name = None, data_values = None):
 		super(OrdinalDomain, self).__init__(missing_values = missing_values, missing_value_treatment = missing_value_treatment, missing_value_replacement = missing_value_replacement, invalid_value_treatment = invalid_value_treatment, invalid_value_replacement = invalid_value_replacement, with_data = with_data, with_statistics = with_statistics, dtype = dtype, display_name = display_name, data_values = data_values)
-		if isinstance(dtype, CategoricalDtype) and not dtype.ordered:
+		if _is_categorical(dtype) and not _is_ordered(dtype):
 			raise ValueError()
 
 	def _is_ordered(self):

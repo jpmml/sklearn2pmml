@@ -1,5 +1,5 @@
 from sklearn.base import BaseEstimator, ClassifierMixin, RegressorMixin
-from sklearn2pmml.util import _is_ordinal
+from sklearn2pmml.util import _is_ordinal, _get_categories
 from statsmodels.base.model import Model
 from statsmodels.tools import add_constant
 
@@ -104,7 +104,7 @@ class StatsModelsOrdinalClassifier(StatsModelsEstimator):
 		dtype = y.dtype
 		if not _is_ordinal(dtype):
 			raise TypeError()
-		self.classes_ = numpy.asarray(dtype.categories)
+		self.classes_ = _get_categories(dtype)
 		super(StatsModelsOrdinalClassifier, self).fit(X = X, y = y, **fit_params)
 		return self
 
