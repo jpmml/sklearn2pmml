@@ -1,5 +1,5 @@
 from pandas import Categorical, CategoricalDtype, DataFrame, Series
-from sklearn2pmml.util import _is_categorical, _is_ordinal, _is_proto_pandas_categorical, _get_column_count, _get_column_names, check_expression, check_predicate, fqn, sizeof, deep_sizeof, to_1d, to_expr, to_expr_func, Evaluatable, Expression, Predicate, Slicer, Reshaper
+from sklearn2pmml.util import _is_categorical, _is_ordinal, _is_pandas_proto_categorical, _get_column_count, _get_column_names, check_expression, check_predicate, fqn, sizeof, deep_sizeof, to_1d, to_expr, to_expr_func, Evaluatable, Expression, Predicate, Slicer, Reshaper
 from unittest import TestCase
 
 import inspect
@@ -83,15 +83,15 @@ class DTypeTest(TestCase):
 		self.assertEqual([1, 0, 1], x.values.tolist())
 		self.assertTrue(_is_categorical(x.dtype))
 
-	def test_is_proto_pandas_categorical(self):
+	def test_is_pandas_proto_categorical(self):
 		dtype = "category"
-		self.assertTrue(_is_proto_pandas_categorical(dtype))
+		self.assertTrue(_is_pandas_proto_categorical(dtype))
 		dtype = CategoricalDtype()
-		self.assertTrue(_is_proto_pandas_categorical(dtype))
+		self.assertTrue(_is_pandas_proto_categorical(dtype))
 		dtype = CategoricalDtype(categories = [])
-		self.assertFalse(_is_proto_pandas_categorical(dtype))
+		self.assertFalse(_is_pandas_proto_categorical(dtype))
 		dtype = CategoricalDtype(categories = ["a", "b", "c"])
-		self.assertFalse(_is_proto_pandas_categorical(dtype))
+		self.assertFalse(_is_pandas_proto_categorical(dtype))
 
 	def test_is_ordinal(self):
 		x = Categorical(["True", "False", "True"], categories = ["True", "False"], ordered = True)

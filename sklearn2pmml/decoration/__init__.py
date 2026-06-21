@@ -12,7 +12,7 @@ try:
 except ImportError:
 	pass
 from sklearn2pmml import StatelessTransformerMixin
-from sklearn2pmml.util import _is_categorical, _is_ordinal, _is_pandas_categorical, _is_pandas_dataframe, _is_proto_pandas_categorical, _get_categories, _to_numpy, _to_numpy_dtype, cast, common_dtype, is_1d
+from sklearn2pmml.util import _is_categorical, _is_ordinal, _is_pandas_categorical, _is_pandas_dataframe, _is_pandas_proto_categorical, _get_categories, _to_numpy, _to_numpy_dtype, cast, common_dtype, is_1d
 
 import copy
 import itertools
@@ -271,7 +271,7 @@ class DiscreteDomain(Domain):
 	def fit(self, X, y = None):
 		_check_input(self, X, reset = True)
 		if self.dtype is not None:
-			if _is_proto_pandas_categorical(self.dtype):
+			if _is_pandas_proto_categorical(self.dtype):
 				if self.data_values is not None:
 					dtype = CategoricalDtype(list(itertools.chain.from_iterable(self.data_values)), ordered = self._is_ordered())
 				else:

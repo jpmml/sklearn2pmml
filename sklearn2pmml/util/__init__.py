@@ -65,7 +65,7 @@ def _is_pandas_categorical(dtype):
 		return dtype.name == "category"
 	return False
 
-def _is_proto_pandas_categorical(dtype):
+def _is_pandas_proto_categorical(dtype):
 	if isinstance(dtype, str) and dtype == "category":
 		return True
 	if isinstance(dtype, CategoricalDtype):
