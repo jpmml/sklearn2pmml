@@ -29,11 +29,15 @@ def _is_pandas_1d(X):
 
 def _is_polars_dataframe(X):
 	polars = sys.modules.get("polars")
-	return polars is not None and isinstance(X, polars.DataFrame)
+	if polars is not None:
+		return isinstance(X, polars.DataFrame)
+	return False
 
 def _is_polars_series(X):
 	polars = sys.modules.get("polars")
-	return polars is not None and isinstance(X, polars.Series)
+	if polars is not None:
+		return isinstance(X, polars.Series)
+	return False
 
 def _is_polars_1d(X):
 	return _is_polars_series(X)
@@ -44,6 +48,10 @@ def _is_categorical(dtype):
 	elif _is_pandas_string(dtype):
 		return True
 	elif _is_pandas_categorical(dtype):
+		return True
+	elif _is_polars_string(dtype):
+		return True
+	elif _is_polars_categorical(dtype):
 		return True
 	return False
 
@@ -64,14 +72,34 @@ def _is_proto_pandas_categorical(dtype):
 		return dtype.categories is None
 	return False
 
+def _is_polars_string(dtype):
+	polars = sys.modules.get("polars")
+	if polars is not None:
+		return dtype == polars.String
+	return False
+
+def _is_polars_categorical(dtype):
+	polars = sys.modules.get("polars")
+	if polars is not None:
+		return isinstance(dtype, (polars.Categorical, polars.Enum))
+	return False
+
 def _is_ordinal(dtype):
 	if _is_pandas_ordinal(dtype):
+		return True
+	elif _is_polars_ordinal(dtype):
 		return True
 	return False
 
 def _is_pandas_ordinal(dtype):
 	if isinstance(dtype, CategoricalDtype):
 		return dtype.ordered
+	return False
+
+def _is_polars_ordinal(dtype):
+	polars = sys.modules.get("polars")
+	if polars is not None:
+		return isinstance(dtype, polars.Enum)
 	return False
 
 def _get_column_count(X):
@@ -107,6 +135,15 @@ def _to_numpy(X):
 	if hasattr(X, "to_numpy"):
 		return X.to_numpy()
 	return X
+
+def _to_numpy_dtype(dtype):
+	if hasattr(dtype, "numpy_dtype"):
+		return dtype.numpy_dtype
+	polars = sys.modules.get("polars")
+	if polars is not None:
+		if isinstance(dtype, polars.DataType):
+			return numpy.dtype(dtype.to_python())
+	return dtype
 
 def cast(X, dtype):
 	if isinstance(dtype, str) and dtype.startswith("datetime64"):

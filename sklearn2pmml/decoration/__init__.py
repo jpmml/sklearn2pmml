@@ -12,7 +12,7 @@ try:
 except ImportError:
 	pass
 from sklearn2pmml import StatelessTransformerMixin
-from sklearn2pmml.util import _is_pandas_categorical, _is_pandas_dataframe, _is_proto_pandas_categorical, _to_numpy, cast, common_dtype, is_1d
+from sklearn2pmml.util import _is_pandas_categorical, _is_pandas_dataframe, _is_proto_pandas_categorical, _to_numpy, _to_numpy_dtype, cast, common_dtype, is_1d
 
 import copy
 import itertools
@@ -397,10 +397,7 @@ class ContinuousDomain(Domain):
 			return self
 		X = _to_numpy(X)
 		if self.with_data:
-			dtype = self.dtype_
-			# Unbox Pandas' extension data type to Numpy data type
-			if hasattr(dtype, "numpy_dtype"):
-				dtype = dtype.numpy_dtype
+			dtype = _to_numpy_dtype(self.dtype_)
 			if issubclass(dtype.type, numbers.Integral):
 				info = numpy.iinfo(dtype)
 			else:
