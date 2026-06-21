@@ -35,6 +35,9 @@ def _is_polars_series(X):
 	polars = sys.modules.get("polars")
 	return polars is not None and isinstance(X, polars.Series)
 
+def _is_polars_1d(X):
+	return _is_polars_series(X)
+
 def _is_categorical(dtype):
 	if dtype == object or dtype == str or dtype == bool:
 		return True
@@ -143,9 +146,9 @@ def is_1d(X):
 		return False
 
 def to_1d(X):
-	if _is_pandas_1d(X):
+	if _is_pandas_1d(X) or _is_polars_1d(X):
 		return X
-	elif _is_pandas_dataframe(X):
+	elif _is_pandas_dataframe(X) or _is_polars_dataframe(X):
 		columns = X.columns
 		if len(columns) == 1:
 			return X[columns[0]]
@@ -302,6 +305,8 @@ def to_expr_func(expr, modules = ["math", "re", "pcre", "pcre2", "numpy", "panda
 		raise TypeError()
 
 def eval_rows(X, func, to_numpy = False, shape = None, dtype = None):
+	if _is_polars_dataframe(X):
+		X = X.to_pandas()
 	if hasattr(X, "apply"):
 		if _is_pandas_series(X):
 			Xt = X.apply(func)

@@ -1,10 +1,65 @@
 from pandas import Categorical, CategoricalDtype, DataFrame, Series
-from sklearn2pmml.util import _is_categorical, _is_ordinal, _is_proto_pandas_categorical, _get_column_count, _get_column_names, check_expression, check_predicate, fqn, sizeof, deep_sizeof, to_expr, to_expr_func, Evaluatable, Expression, Predicate, Slicer, Reshaper
+from sklearn2pmml.util import _is_categorical, _is_ordinal, _is_proto_pandas_categorical, _get_column_count, _get_column_names, check_expression, check_predicate, fqn, sizeof, deep_sizeof, to_1d, to_expr, to_expr_func, Evaluatable, Expression, Predicate, Slicer, Reshaper
 from unittest import TestCase
 
 import inspect
 import numpy
 import polars
+
+class ContainerTest(TestCase):
+
+	def test_column_count(self):
+		self.assertEqual(1, _get_column_count([0, 2, 1]))
+		X = numpy.asarray([0, 2, 1])
+		self.assertEqual(1, _get_column_count(X))
+		X = numpy.asarray([[0, -1], [2, 0], [1, 1]])
+		self.assertEqual(2, _get_column_count(X))
+		X = numpy.asarray([[0], [2], [1]])
+		self.assertEqual(1, _get_column_count(X))
+		X = Categorical(["a", "b", "c"])
+		self.assertEqual(1, _get_column_count(X))
+		X = Series([0, 2, 1])
+		self.assertEqual(1, _get_column_count(X))
+		X = DataFrame([[0], [2], [1]], columns = ["a"])
+		self.assertEqual(1, _get_column_count(X))
+		X = DataFrame([[0, False], [2, True], [1, True]], columns = ["a", "b"])
+		self.assertEqual(2, _get_column_count(X))
+
+	def test_column_names(self):
+		X = DataFrame([[1, 0], [2, 0], [3, 0]], columns = [1, 2])
+		self.assertEqual(["1", "2"], _get_column_names(X).tolist())
+		X.columns = numpy.asarray([1.0, 2.0])
+		self.assertEqual(["1.0", "2.0"], _get_column_names(X).tolist())
+		X = Series([1, 2, 3], name = 1)
+		self.assertEqual("1", _get_column_names(X).tolist())
+		X.name = 1.0
+		self.assertEqual("1.0", _get_column_names(X).tolist())
+
+	def test_polars_column_names(self):
+		X = polars.DataFrame([[1, 0], [2, 0], [3, 0]], schema = ["1", "2"], orient = "row")
+		self.assertEqual(["1", "2"], _get_column_names(X).tolist())
+		X = polars.Series(name = "1", values = [1, 2, 3])
+		self.assertEqual("1", _get_column_names(X).tolist())
+
+	def test_to_1d(self):
+		X = Series([1, 2, 3])
+		Xt = to_1d(X)
+		self.assertIs(X, Xt)
+		X = DataFrame([[1], [2], [3]], columns = ["a"])
+		self.assertEqual((3, 1), X.shape)
+		Xt = to_1d(X)
+		self.assertIsInstance(Xt, Series)
+		self.assertEqual([1, 2, 3], Xt.tolist())
+
+	def test_polars_to_1d(self):
+		X = polars.Series(name = "a", values = [1, 2, 3])
+		Xt = to_1d(X)
+		self.assertIs(X, Xt)
+		X = polars.DataFrame([[1], [2], [3]], schema = ["a"], orient = "row")
+		self.assertEqual((3, 1), X.shape)
+		Xt = to_1d(X)
+		self.assertIsInstance(Xt, polars.Series)
+		self.assertEqual([1, 2, 3], Xt.to_list())
 
 class DTypeTest(TestCase):
 
@@ -49,41 +104,6 @@ class DTypeTest(TestCase):
 		x = x.astype(CategoricalDtype(categories = ["True", "False"], ordered = True))
 		self.assertTrue(_is_ordinal(x.dtype))
 		self.assertEqual([0, 1, 0], x.cat.codes.tolist())
-
-class ContainerTest(TestCase):
-
-	def test_column_count(self):
-		self.assertEqual(1, _get_column_count([0, 2, 1]))
-		X = numpy.asarray([0, 2, 1])
-		self.assertEqual(1, _get_column_count(X))
-		X = numpy.asarray([[0, -1], [2, 0], [1, 1]])
-		self.assertEqual(2, _get_column_count(X))
-		X = numpy.asarray([[0], [2], [1]])
-		self.assertEqual(1, _get_column_count(X))
-		X = Categorical(["a", "b", "c"])
-		self.assertEqual(1, _get_column_count(X))
-		X = Series([0, 2, 1])
-		self.assertEqual(1, _get_column_count(X))
-		X = DataFrame([[0], [2], [1]], columns = ["a"])
-		self.assertEqual(1, _get_column_count(X))
-		X = DataFrame([[0, False], [2, True], [1, True]], columns = ["a", "b"])
-		self.assertEqual(2, _get_column_count(X))
-
-	def test_column_names(self):
-		X = DataFrame([[1, 0], [2, 0], [3, 0]], columns = [1, 2])
-		self.assertEqual(["1", "2"], _get_column_names(X).tolist())
-		X.columns = numpy.asarray([1.0, 2.0])
-		self.assertEqual(["1.0", "2.0"], _get_column_names(X).tolist())
-		X = Series([1, 2, 3], name = 1)
-		self.assertEqual("1", _get_column_names(X).tolist())
-		X.name = 1.0
-		self.assertEqual("1.0", _get_column_names(X).tolist())
-
-	def test_polars_column_names(self):
-		X = polars.DataFrame([[1, 0], [2, 0], [3, 0]], schema = ["1", "2"], orient = "row")
-		self.assertEqual(["1", "2"], _get_column_names(X).tolist())
-		X = polars.Series(name = "1", values = [1, 2, 3])
-		self.assertEqual("1", _get_column_names(X).tolist())
 
 class MeasurementTest(TestCase):
 
