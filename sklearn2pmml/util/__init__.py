@@ -359,28 +359,69 @@ def to_expr_func(expr, modules = ["math", "re", "pcre", "pcre2", "numpy", "panda
 	else:
 		raise TypeError()
 
+class DataFrameApplier:
+
+	def __init__(self, X):
+		if not _is_pandas_dataframe(X) and not _is_polars_dataframe(X):
+			raise TypeError()
+		self.X = X
+		self.column_indexes = {column: index for index, column in enumerate(X.columns)}
+		self._values = None
+
+	def __array__(self, dtype = None):
+		return numpy.asarray(self._values, dtype = dtype)
+
+	def __getitem__(self, key):
+		if isinstance(key, str):
+			key = self.column_indexes[key]
+		return self._values[key]
+
+	def apply(self, func):
+		X = self.X
+		nrow = X.shape[0]
+		Xt = numpy.empty(shape = (nrow, ), dtype = object)
+		if _is_pandas_dataframe(X):
+			rows = X.itertuples(index = False, name = None)
+		elif _is_polars_dataframe(X):
+			rows = X.iter_rows(named = False)
+		for index, values in enumerate(rows):
+			self._values = values
+			Xt[index] = func(self)
+		self._values = None
+		if _is_pandas_dataframe(X):
+			return Series(Xt)
+		elif _is_polars_dataframe(X):
+			polars = sys.modules.get("polars")
+			return polars.Series(Xt)
+
 def eval_rows(X, func, to_numpy = False, shape = None, dtype = None):
-	if _is_polars_dataframe(X):
-		X = X.to_pandas()
-	if hasattr(X, "apply"):
-		if _is_pandas_series(X):
-			Xt = X.apply(func)
-		else:
-			Xt = X.apply(func, axis = 1)
+	Xt = None
+	if _is_pandas_series(X):
+		Xt = X.apply(func)
+	elif _is_pandas_dataframe(X):
+		Xt = DataFrameApplier(X).apply(func)
+	elif _is_polars_series(X):
+		Xt = X.map_elements(func, skip_nulls = False)
+	elif _is_polars_dataframe(X):
+		Xt = DataFrameApplier(X).apply(func)
+	if Xt is not None:
 		if dtype is not None:
-			Xt = Xt.astype(dtype)
+			Xt = cast(Xt, dtype)
 		if to_numpy:
-			Xt = Xt.to_numpy()
+			Xt = _to_numpy(Xt)
 			if shape is not None:
 				Xt = Xt.reshape(shape)
+		return Xt
 	else:
 		nrow = X.shape[0]
-		Xt = numpy.empty(shape = (nrow, ), dtype = (dtype if dtype is not None else object))
+		Xt = numpy.empty(shape = (nrow, ), dtype = object)
 		for i in range(0, nrow):
 			Xt[i] = func(X[i])
+		if dtype is not None:
+			Xt = cast(Xt, dtype)
 		if shape is not None:
 			Xt = Xt.reshape(shape)
-	return Xt
+		return Xt
 
 def fqn(obj):
 	clazz = obj if inspect.isclass(obj) else obj.__class__
