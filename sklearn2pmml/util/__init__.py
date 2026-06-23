@@ -42,18 +42,14 @@ def _is_polars_series(X):
 def _is_polars_1d(X):
 	return _is_polars_series(X)
 
-def _is_categorical(dtype):
-	if dtype == object or dtype == str or dtype == bool:
-		return True
-	elif _is_pandas_string(dtype):
-		return True
-	elif _is_pandas_categorical(dtype):
-		return True
-	elif _is_polars_string(dtype):
-		return True
-	elif _is_polars_categorical(dtype):
-		return True
-	return False
+def _is_series(X):
+	return _is_pandas_series(X) or _is_polars_series(X)
+
+def _is_dataframe(X):
+	return _is_pandas_dataframe(X) or _is_polars_dataframe(X)
+
+def _is_1d(X):
+	return _is_pandas_1d(X) or _is_polars_1d(X)
 
 def _is_pandas_string(dtype):
 	if hasattr(dtype, "name"):
@@ -84,10 +80,16 @@ def _is_polars_categorical(dtype):
 		return isinstance(dtype, (polars.Categorical, polars.Enum))
 	return False
 
-def _is_ordinal(dtype):
-	if _is_pandas_ordinal(dtype):
+def _is_categorical(dtype):
+	if dtype == object or dtype == str or dtype == bool:
 		return True
-	elif _is_polars_ordinal(dtype):
+	elif _is_pandas_string(dtype):
+		return True
+	elif _is_pandas_categorical(dtype):
+		return True
+	elif _is_polars_string(dtype):
+		return True
+	elif _is_polars_categorical(dtype):
 		return True
 	return False
 
@@ -100,6 +102,13 @@ def _is_polars_ordinal(dtype):
 	polars = sys.modules.get("polars")
 	if polars is not None:
 		return isinstance(dtype, polars.Enum)
+	return False
+
+def _is_ordinal(dtype):
+	if _is_pandas_ordinal(dtype):
+		return True
+	elif _is_polars_ordinal(dtype):
+		return True
 	return False
 
 def _get_categories(dtype):
@@ -201,9 +210,9 @@ def is_1d(X):
 		return False
 
 def to_1d(X):
-	if _is_pandas_1d(X) or _is_polars_1d(X):
+	if _is_1d(X):
 		return X
-	elif _is_pandas_dataframe(X) or _is_polars_dataframe(X):
+	elif _is_dataframe(X):
 		columns = X.columns
 		if len(columns) == 1:
 			return X[columns[0]]
@@ -359,10 +368,26 @@ def to_expr_func(expr, modules = ["math", "re", "pcre", "pcre2", "numpy", "panda
 	else:
 		raise TypeError()
 
+class SeriesApplier:
+
+	def __init__(self, X):
+		if not _is_series(X):
+			raise TypeError()
+		self.X = X
+
+	def apply(self, func):
+		X = self.X
+		if _is_pandas_series(X):
+			return X.apply(func)
+		elif _is_polars_series(X):
+			return X.map_elements(func, skip_nulls = False)
+		else:
+			raise TypeError()
+
 class DataFrameApplier:
 
 	def __init__(self, X):
-		if not _is_pandas_dataframe(X) and not _is_polars_dataframe(X):
+		if not _is_dataframe(X):
 			raise TypeError()
 		self.X = X
 		self.column_indexes = {column: index for index, column in enumerate(X.columns)}
@@ -384,6 +409,8 @@ class DataFrameApplier:
 			rows = X.itertuples(index = False, name = None)
 		elif _is_polars_dataframe(X):
 			rows = X.iter_rows(named = False)
+		else:
+			raise TypeError()
 		for index, values in enumerate(rows):
 			self._values = values
 			Xt[index] = func(self)
@@ -393,16 +420,14 @@ class DataFrameApplier:
 		elif _is_polars_dataframe(X):
 			polars = sys.modules.get("polars")
 			return polars.Series(Xt)
+		else:
+			raise TypeError()
 
 def eval_rows(X, func, to_numpy = False, shape = None, dtype = None):
 	Xt = None
-	if _is_pandas_series(X):
-		Xt = X.apply(func)
-	elif _is_pandas_dataframe(X):
-		Xt = DataFrameApplier(X).apply(func)
-	elif _is_polars_series(X):
-		Xt = X.map_elements(func, skip_nulls = False)
-	elif _is_polars_dataframe(X):
+	if _is_series(X):
+		Xt = SeriesApplier(X).apply(func)
+	elif _is_dataframe(X):
 		Xt = DataFrameApplier(X).apply(func)
 	if Xt is not None:
 		if dtype is not None:
