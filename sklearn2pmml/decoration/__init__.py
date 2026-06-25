@@ -12,7 +12,7 @@ try:
 except ImportError:
 	pass
 from sklearn2pmml import StatelessTransformerMixin
-from sklearn2pmml.util import _is_categorical, _is_ordinal, _is_pandas_categorical, _is_pandas_dataframe, _is_pandas_proto_categorical, _get_categories, _to_numpy, _to_numpy_dtype, cast, common_dtype, is_1d
+from sklearn2pmml.util import _copy, _get_categories, _get_column, _get_columns, _is_categorical, _is_ordinal, _is_pandas_categorical, _is_pandas_proto_categorical, _to_numpy, _to_numpy_dtype, _set_column, cast, common_dtype, is_1d
 
 import copy
 import itertools
@@ -219,7 +219,7 @@ class Domain(BaseEstimator, TransformerMixin, OneToOneFeatureMixin):
 			X = cast(X, self.dtype)
 		missing_mask, valid_mask, invalid_mask = self._compute_masks(X)
 		if self._should_make_copy(X, missing_mask, valid_mask, invalid_mask):
-			X = X.copy()
+			X = _copy(X)
 		X = self._transform_missing_values(X, missing_mask)
 		X = self._transform_valid_values(X, valid_mask)
 		X = self._transform_invalid_values(X, invalid_mask)
@@ -501,29 +501,18 @@ class MultiDomain(BaseEstimator, TransformerMixin):
 		rows, columns = X.shape
 		if len(self.domains) != columns:
 			raise ValueError("The number of columns {0} is not equal to the number of domain objects {1}".format(columns, len(self.domains)))
-		if _is_pandas_dataframe(X):
-			for domain, column in zip(self.domains, X.columns):
-				if domain is not None:
-					domain.fit(X[column])
-		else:
-			for domain, column in zip(self.domains, range(0, columns)):
-				if domain is not None:
-					domain.fit(X[:, column])
+		for domain, column in zip(self.domains, _get_columns(X)):
+			if domain is not None:
+				domain.fit(_get_column(X, column))
 		return self
 
 	def transform(self, X):
 		_check_input(self, X, reset = False)
-		rows, columns = X.shape
-		# XXX
-		X = X.copy()
-		if _is_pandas_dataframe(X):
-			for domain, column in zip(self.domains, X.columns):
-				if domain is not None:
-					X[column] = domain.transform(X[column])
-		else:
-			for domain, column in zip(self.domains, range(0, columns)):
-				if domain is not None:
-					X[:, column] = domain.transform(X[:, column])
+		X = _copy(X)
+		for domain, column in zip(self.domains, _get_columns(X)):
+			if domain is not None:
+				x = domain.transform(_get_column(X, column))
+				X = _set_column(X, column, x)
 		return X
 
 class DomainEraser(BaseEstimator, StatelessTransformerMixin):

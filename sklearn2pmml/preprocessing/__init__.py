@@ -18,7 +18,7 @@ from sklearn.exceptions import NotFittedError
 from sklearn.pipeline import Pipeline
 from sklearn2pmml import StatelessTransformerMixin
 from sklearn2pmml.preprocessing.regex import make_regex_engine
-from sklearn2pmml.util import _is_pandas_categorical, _is_pandas_dataframe, _is_pandas_proto_categorical, _get_column_count, _to_numpy, cast, check_expression, check_predicate, dt_transform, eval_rows, is_1d, to_1d, to_expr_func
+from sklearn2pmml.util import _copy, _get_column_count, _get_column, _get_columns, _is_pandas_categorical, _is_pandas_proto_categorical, _to_numpy, _set_column, cast, check_expression, check_predicate, dt_transform, eval_rows, is_1d, to_1d, to_expr_func
 
 import numpy
 import pandas
@@ -113,23 +113,14 @@ class MultiCastTransformer(BaseEstimator, TransformerMixin):
 		rows, columns = X.shape
 		if len(self.dtypes) != columns:
 			raise ValueError("The number of columns {0} is not equal to the number of data types {1}".format(columns, len(self.dtypes)))
-		if _is_pandas_dataframe(X):
-			dtypes_ = [_fit_dtype(dtype, X[column]) for dtype, column in zip(self.dtypes, X.columns)]
-		else:
-			dtypes_ = [_fit_dtype(dtype, X[:, column]) for dtype, column in zip(self.dtypes, range(0, columns))]
-		self.dtypes_ = dtypes_
+		self.dtypes_ = [_fit_dtype(dtype, _get_column(X, column)) for dtype, column in zip(self.dtypes, _get_columns(X))]
 		return self
 
 	def transform(self, X):
-		rows, columns = X.shape
-		# XXX
-		X = X.copy()
-		if _is_pandas_dataframe(X):
-			for dtype, column in zip(self.dtypes_, X.columns):
-				X[column] = cast(X[column], dtype)
-		else:
-			for dtype, column in zip(self.dtypes_, range(0, columns)):
-				X[:, column] = cast(X[:, column], dtype)
+		X = _copy(X)
+		for dtype, column in zip(self.dtypes_, _get_columns(X)):
+			x = cast(_get_column(X, column), dtype)
+			X = _set_column(X, column, x)
 		return X
 
 class CutTransformer(BaseEstimator, TransformerMixin):

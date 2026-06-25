@@ -122,6 +122,12 @@ def _get_categories(dtype):
 			return numpy.asarray(dtype.categories)
 	return None
 
+def _get_columns(X):
+	if _is_dataframe(X):
+		return X.columns
+	else:
+		return range(0, _get_column_count(X))
+
 def _get_column_count(X):
 	if hasattr(X, "shape") and len(X.shape) > 1:
 		return X.shape[1]
@@ -144,6 +150,43 @@ def _get_column_names(X):
 		return _filter_column_names(X.names)
 	else:
 		return None
+
+def _get_column(X, column):
+	if _is_pandas_dataframe(X):
+		return X[column] if isinstance(column, str) else X.iloc[:, column]
+	elif _is_polars_dataframe(X):
+		return X[column] if isinstance(column, str) else X.to_series(column)
+	else:
+		return X[:, column]
+
+def _set_column(X, column, x):
+	if _is_pandas_dataframe(X):
+		X[column] = x
+		return X
+	elif _is_polars_dataframe(X):
+		polars = sys.modules.get("polars")
+		x = polars.Series(column if isinstance(column, str) else X.columns[column], x)
+		return X.with_columns(x)
+	else:
+		X[:, column] = x
+		return X
+
+def _copy(X):
+	if _is_polars_series(X) or _is_polars_dataframe(X):
+		return X.clone()
+	else:
+		return X.copy()
+
+def _clear(X):
+	if _is_pandas_dataframe(X):
+		X.drop(index = X.index, inplace = True)
+		X.drop(columns = X.columns, inplace = True)
+		return X
+	elif _is_polars_dataframe(X):
+		return X.drop(X.columns)
+	else:
+		X.clear()
+		return X
 
 def _get_values(X):
 	# if isinstance(X, H2OFrame)

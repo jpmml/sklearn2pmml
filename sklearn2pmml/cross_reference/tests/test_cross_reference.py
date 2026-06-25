@@ -3,6 +3,7 @@ from sklearn.base import clone
 from sklearn.pipeline import make_pipeline
 from sklearn2pmml.cross_reference import make_memorizer_union, make_recaller_union, Memory, Memorizer, Recaller
 from sklearn2pmml.preprocessing import IdentityTransformer
+from sklearn2pmml.util import _is_pandas_dataframe, _is_polars_dataframe
 from unittest import TestCase
 
 import copy
@@ -34,7 +35,14 @@ class MemoryTest(TestCase):
 		self.assertEqual(1, len(memory))
 		memory.clear()
 		self.assertEqual(0, len(memory))
-		self.assertIs(data, memory.data)
+		if _is_pandas_dataframe(data):
+			self.assertIs(data, memory.data)
+			self.assertEqual((0, 0), data.shape)
+		elif _is_polars_dataframe(data):
+			self.assertEqual((0, 0), memory.data.shape)
+		else:
+			self.assertIs(data, memory.data)
+			self.assertEqual(0, len(data))
 
 	def test_dict_workflow(self):
 		data = dict()
