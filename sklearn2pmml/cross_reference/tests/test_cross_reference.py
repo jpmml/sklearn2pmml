@@ -12,6 +12,11 @@ import pickle
 
 class MemoryTest(TestCase):
 
+	def test_init(self):
+		left = Memory()
+		right = Memory()
+		self.assertIsNot(left.data, right.data)
+
 	def _workflow(self, data):
 		memory = Memory(data)
 		self.assertIs(data, memory.data)

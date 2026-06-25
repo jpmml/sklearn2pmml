@@ -7,7 +7,9 @@ import numpy
 
 class Memory(object):
 
-	def __init__(self, data = dict()):
+	def __init__(self, data = None):
+		if data is None:
+			data = dict()
 		self.data = data
 
 	def __getitem__(self, key):
