@@ -12,7 +12,7 @@ try:
 except ImportError:
 	pass
 from sklearn2pmml import StatelessTransformerMixin
-from sklearn2pmml.util import _copy, _get_categories, _get_column, _get_columns, _is_categorical, _is_ordinal, _is_pandas_categorical, _is_pandas_proto_categorical, _to_numpy, _to_numpy_dtype, _set_column, cast, common_dtype, is_1d
+from sklearn2pmml.util import _copy, _get_categories, _get_column, _get_columns, _is_categorical, _is_ordinal, _is_pandas_categorical, _is_pandas_proto_categorical, _to_numpy, _to_numpy_dtype, _set_column, _set_values, cast, common_dtype, is_1d
 
 import copy
 import itertools
@@ -86,10 +86,6 @@ def _check_cols(X, values):
 	else:
 		if X.shape[1] != len(values):
 			raise ValueError()
-
-def _set_values(X, where, values):
-	X[where] = values
-	return X
 
 def _count(missing_mask, valid_mask, invalid_mask):
 	missing_freq = sum(missing_mask)

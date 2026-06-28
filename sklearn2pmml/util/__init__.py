@@ -171,6 +171,29 @@ def _set_column(X, column, x):
 		X[:, column] = x
 		return X
 
+def _set_values(X, where, values):
+	if _is_polars_series(X):
+		if not _is_polars_series(where):
+			polars = sys.modules.get("polars")
+			where = polars.Series(where)
+		return X.set(where, values)
+	elif _is_polars_dataframe(X):
+		polars = sys.modules.get("polars")
+		exprs = []
+		for idx, column in enumerate(X.columns):
+			column_mask = where[:, idx] if where.ndim > 1 else where
+			if not column_mask.any():
+				continue
+			if not _is_polars_series(column_mask):
+				column_mask = polars.Series(column_mask)
+			exprs.append(polars.when(column_mask).then(polars.lit(values)).otherwise(polars.col(column)).alias(column))
+		if exprs:
+			return X.with_columns(exprs)
+		return X
+	else:
+		X[where] = values
+		return X
+
 def _copy(X):
 	if _is_polars_series(X) or _is_polars_dataframe(X):
 		return X.clone()

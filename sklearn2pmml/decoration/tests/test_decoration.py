@@ -18,6 +18,7 @@ from unittest import TestCase
 import math
 import numpy
 import pandas
+import polars
 
 def _list_equal(left, right):
 	left = DataFrame(left, dtype = object)
@@ -237,6 +238,17 @@ class CategoricalDomainTest(TestCase):
 		self.assertEqual(["-1", "0", "1"], Xt.iloc[:, 0].tolist())
 		self.assertTrue(_list_equal([float("NaN"), float("NaN"), float("NaN")], Xt.iloc[:, 1].tolist()))
 
+	def test_polars_fit_string(self):
+		domain = clone(CategoricalDomain(with_statistics = True, missing_values = None))
+		X = polars.DataFrame({"x" : ["1", "3", "2", "2"]})
+		Xt = domain.fit_transform(X)
+		self.assertIsInstance(Xt, polars.DataFrame)
+		self.assertEqual(1, domain.n_features_in_)
+		self.assertEqual(["1", "2", "3"], domain.data_values_.tolist())
+		self.assertEqual({"totalFreq" : 4, "missingFreq" : 0, "invalidFreq" : 0}, domain.counts_)
+		self.assertEqual({"1" : 1, "2" : 2, "3" : 1}, _value_count(domain.discr_stats_))
+		self.assertEqual(["1", "3", "2", "2"], Xt["x"].to_list())
+
 	def test_fit_string_missing(self):
 		domain = clone(CategoricalDomain(with_statistics = True, missing_values = ["NA", "N/A"], missing_value_replacement = "0", invalid_value_treatment = "as_value", invalid_value_replacement = "1"))
 		self.assertEqual(["NA", "N/A"], domain.missing_values)
@@ -264,6 +276,21 @@ class CategoricalDomainTest(TestCase):
 		self.assertEqual((3, 2), Xt.shape)
 		self.assertEqual(["0", "0", "1"], Xt[:, 0].tolist())
 		self.assertEqual(["one", "two", "0"], Xt[:, 1].tolist())
+
+	def test_polars_fit_string_missing(self):
+		domain = clone(CategoricalDomain(with_statistics = True, missing_values = ["NA", "N/A"], missing_value_replacement = "0"))
+		X = polars.DataFrame({"int" : ["1", "NA", "3", "2", "N/A", "2"], "str" : ["NA", "one", "two", "N/A", "NA", "three"]})
+		Xt = domain.fit_transform(X)
+		self.assertIsInstance(Xt, polars.DataFrame)
+		self.assertEqual(2, domain.n_features_in_)
+		self.assertEqual(["1", "2", "3"], domain.data_values_[0].tolist())
+		self.assertEqual(["one", "three", "two"], domain.data_values_[1].tolist())
+		self.assertEqual({"totalFreq" : [6, 6], "missingFreq" : [2, 3], "invalidFreq" : [0, 0]}, _array_to_list(domain.counts_))
+		self.assertEqual(2, len(domain.discr_stats_))
+		self.assertEqual({"1" : 1, "2" : 2, "3" : 1}, _value_count(domain.discr_stats_[0]))
+		self.assertEqual({"one" : 1, "two" : 1, "three" : 1}, _value_count(domain.discr_stats_[1]))
+		self.assertEqual(["1", "0", "3", "2", "0", "2"], Xt["int"].to_list())
+		self.assertEqual(["0", "one", "two", "0", "0", "three"], Xt["str"].to_list())
 
 	def test_fit_string_valid(self):
 		domain = clone(CategoricalDomain(with_statistics = True, data_values = [["1", "2", "3"], ["zero", "one", "two"]], invalid_value_treatment = "as_missing"))
@@ -374,6 +401,18 @@ class ContinuousDomainTest(TestCase):
 		Xt = domain.transform(X)
 		self.assertEqual([[0.0], [0.0], [0.0]], Xt.tolist())
 
+	def test_polars_fit_float_missing(self):
+		domain = clone(ContinuousDomain(with_statistics = True, missing_values = [-999.0, -1.0], missing_value_treatment = "as_value", missing_value_replacement = 0.0, invalid_value_treatment = "as_missing"))
+		X = polars.DataFrame({"x" : [1.0, -999.0, 3.0, -1.0, 2.0, -1.0, 2.0]})
+		Xt = domain.fit_transform(X)
+		self.assertIsInstance(Xt, polars.DataFrame)
+		self.assertEqual(1, domain.n_features_in_)
+		self.assertEqual(1.0, domain.data_min_)
+		self.assertEqual(3.0, domain.data_max_)
+		self.assertEqual({"totalFreq" : 7, "missingFreq" : 3, "invalidFreq" : 0}, domain.counts_)
+		self.assertEqual({"minimum" : [1.0], "maximum" : [3.0], "mean" : [2.0], "standardDeviation" : [0.7071067811865476], "median" : [2.0], "interQuartileRange" : [0.5]}, _array_to_list(domain.numeric_info_))
+		self.assertEqual([1.0, 0.0, 3.0, 0.0, 2.0, 0.0, 2.0], Xt["x"].to_list())
+
 	def test_fit_float_invalid(self):
 		domain = clone(ContinuousDomain(with_statistics = True, data_min = [-1, -2], data_max = [1, 2], invalid_value_treatment = "as_missing"))
 		X = DataFrame([[-2.0, -2.0], [-1.0, float("NaN")], [0.0, 0.0], [1.0, 1.0], [2.0, float("NaN")], [3.0, 3.0]])
@@ -392,6 +431,16 @@ class ContinuousDomainTest(TestCase):
 		total_mask = (missing_mask | valid_mask | invalid_mask)
 		self.assertEqual([6, 6], sum(total_mask).tolist())
 		self.assertEqual({"totalFreq" : [6, 6], "missingFreq" : [0, 2], "invalidFreq" : [3, 1]}, _array_to_list(domain.counts_))
+
+	def test_polars_fit_float_invalid(self):
+		domain = clone(ContinuousDomain(with_statistics = True, data_min = [-1, -2], data_max = [1, 2], invalid_value_treatment = "as_value", invalid_value_replacement = 0.0))
+		X = polars.DataFrame({"a" : [-2.0, -1.0, 0.0, 1.0, 2.0, 3.0], "b" : [-2.0, -1.0, 0.0, 1.0, 2.0, 3.0]})
+		Xt = domain.fit_transform(X)
+		self.assertIsInstance(Xt, polars.DataFrame)
+		self.assertEqual(2, domain.n_features_in_)
+		self.assertEqual({"totalFreq" : [6, 6], "missingFreq" : [0, 0], "invalidFreq" : [3, 1]}, _array_to_list(domain.counts_))
+		self.assertEqual([0.0, -1.0, 0.0, 1.0, 0.0, 0.0], Xt["a"].to_list())
+		self.assertEqual([-2.0, -1.0, 0.0, 1.0, 2.0, 0.0], Xt["b"].to_list())
 
 	def test_fit_float_outlier(self):
 		domain = clone(ContinuousDomain(missing_values = float("NaN"), missing_value_replacement = 1.0, outlier_treatment = "as_missing_values", low_value = 0.0, high_value = 3.0))
@@ -422,6 +471,16 @@ class ContinuousDomainTest(TestCase):
 		self.assertFalse(hasattr(domain, "feature_names_in_"))
 		self.assertEqual([0.0, 2.0, -1.0], Xt[0].tolist())
 		self.assertEqual([-1.0, 3.0, 0.0], Xt[1].tolist())
+
+	def test_polars_fit_float_outlier(self):
+		domain = clone(ContinuousDomain(with_statistics = True, outlier_treatment = "as_extreme_values", low_value = 0.0, high_value = 3.0, missing_values = -1.0))
+		X = polars.DataFrame({"a" : [-2.0, 2.0, -1.0], "b" : [-1.0, 4.0, 0.0]})
+		Xt = domain.fit_transform(X)
+		self.assertIsInstance(Xt, polars.DataFrame)
+		self.assertEqual(2, domain.n_features_in_)
+		self.assertEqual({"totalFreq" : [3, 3], "missingFreq" : [1, 1], "invalidFreq" : [0, 0]}, _array_to_list(domain.counts_))
+		self.assertEqual([0.0, 2.0, -1.0], Xt["a"].to_list())
+		self.assertEqual([-1.0, 3.0, 0.0], Xt["b"].to_list())
 
 	def test_fit_int(self):
 		domain = clone(ContinuousDomain(with_statistics = True, missing_values = -1))
