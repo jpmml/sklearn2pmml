@@ -18,13 +18,14 @@ from sklearn2pmml.preprocessing import AggregateTransformer, CastTransformer, Co
 from sklearn2pmml.preprocessing.h2o import H2OFrameConstructor, H2OFrameCreator
 from sklearn2pmml.preprocessing.lightgbm import make_lightgbm_column_transformer, make_lightgbm_dataframe_mapper
 from sklearn2pmml.preprocessing.xgboost import make_xgboost_column_transformer, make_xgboost_dataframe_mapper
-from sklearn2pmml.util import _to_numpy, to_expr, Expression
+from sklearn2pmml.util import _is_pandas_series, _is_polars_series, _to_numpy, to_expr, Expression
 from unittest import TestCase
 
 import inspect
 import math
 import numpy
 import pandas
+import polars
 import pcre2
 import scipy
 
@@ -35,19 +36,23 @@ def _list_equal(left, right):
 
 class TransformerTest(TestCase):
 
-	def _fit_transform1d(self, transformer, X):
+	def _fit_transform1d(self, transformer, X, check_numpy = True):
 		transformer = transformer.fit(X)
-		return self._transform1d(transformer, X)
+		return self._transform1d(transformer, X, check_numpy = check_numpy)
 
-	def _transform1d(self, transformer, X):
-		self.assertIsInstance(X, Series)
-		X_ndarray = X.values
-		self.assertIsInstance(X_ndarray, (numpy.ndarray, ArrowStringArray, StringArray))
+	def _transform1d(self, transformer, X, check_numpy = True):
+		self.assertIsInstance(X, (Series, polars.Series))
 		Xt = transformer.transform(X)
-		Xt_ndarray = transformer.transform(X_ndarray)
-		self.assertIsInstance(Xt, Series)
-		self.assertIsInstance(Xt_ndarray, (numpy.ndarray, ArrowStringArray, StringArray))
-		self.assertTrue(_list_equal(Xt.tolist(), Xt_ndarray.tolist()))
+		self.assertIsInstance(Xt, type(X))
+		if check_numpy:
+			X_ndarray = _to_numpy(X)
+			self.assertIsInstance(X_ndarray, (numpy.ndarray, ArrowStringArray, StringArray))
+			Xt_ndarray = transformer.transform(X_ndarray)
+			self.assertIsInstance(Xt_ndarray, (numpy.ndarray, ArrowStringArray, StringArray))
+			if _is_pandas_series(X):
+				self.assertTrue(_list_equal(Xt.tolist(), Xt_ndarray.tolist()))
+			elif _is_polars_series(X):
+				self.assertTrue(_list_equal(Xt.to_list(), Xt_ndarray.tolist()))
 		return Xt
 
 class AggregateTransformerTest(TestCase): 
@@ -115,6 +120,16 @@ class CastTransformerTest(TransformerTest):
 		transformer = CastTransformer(dtype = bool)
 		self.assertEqual([False, True, True, False], self._fit_transform1d(transformer, X).tolist())
 
+	def test_polars_transform(self):
+		X = polars.Series([0, 1], dtype = polars.Int32)
+		transformer = CastTransformer(dtype = str)
+		self.assertEqual(["0", "1"], self._fit_transform1d(transformer, X).to_list())
+		transformer = CastTransformer(dtype = polars.String)
+		self.assertEqual(["0", "1"], self._fit_transform1d(transformer, X, check_numpy = False).to_list())
+		X = polars.Series([0, 1, None], dtype = polars.Int32)
+		transformer = CastTransformer(dtype = polars.String)
+		self.assertEqual(["0", "1", None], self._fit_transform1d(transformer, X, check_numpy = False).to_list())
+
 	def test_transform_datetime(self):
 		X = Series(["1969-07-16T13:32:00Z".replace("Z", ""), datetime.fromisoformat("1969-07-20T20:17:40Z".replace("Z", "")), Timestamp("1969-07-21T17:54:01Z").tz_localize(None), "1969-07-24T16:50:35Z".replace("Z", "")], dtype = str)
 		transformer = CastTransformer(dtype = "datetime64[D]")
@@ -173,6 +188,17 @@ class MultiCastTransformerTest(TestCase):
 		Xt = transformer.transform(X)
 		self.assertIsInstance(Xt, numpy.ndarray)
 		self.assertEqual([[-1, -1.0], [0, 0.0], [1, 1.0]], Xt.tolist())
+
+	def test_polars_transform(self):
+		X = polars.DataFrame({"int" : ["-1", "0", "1"], "float" : ["-1.0", "0.0", "1.0"]})
+		transformer = MultiCastTransformer(dtypes = [polars.Int32, polars.Float64])
+		self.assertEqual([polars.Int32, polars.Float64], transformer.dtypes)
+		self.assertFalse(hasattr(transformer, "dtypes_"))
+		Xt = transformer.fit_transform(X)
+		self.assertEqual([polars.Int32, polars.Float64], transformer.dtypes_)
+		self.assertIsInstance(Xt, polars.DataFrame)
+		self.assertEqual([-1, 0, 1], Xt["int"].to_list())
+		self.assertEqual([-1.0, 0.0, 1.0], Xt["float"].to_list())
 
 	def test_transform_categorical(self):
 		X = DataFrame([["apple", "green"], ["cherry", "red"], ["apple", "red"], ["banana", "yellow"], ["avocado", "green"]], columns = ["fruit", "color"])
@@ -405,7 +431,7 @@ class ExpressionTransformerTest(TestCase):
 		self.assertEqual(None, transformer.dtype)
 		self.assertEqual(None, transformer.dtype_)
 		self.assertIsInstance(Xt, numpy.ndarray)
-		self.assertEqual([[1], [3]], Xt.tolist())
+		self.assertEqual([[1.0], [3.0]], Xt.tolist())
 		transformer = ExpressionTransformer("X[0] - X[1]")
 		self.assertEqual([[0.0], [-1.0]], transformer.fit_transform(X).tolist())
 		transformer = ExpressionTransformer("X[0] * X[1]")
@@ -426,6 +452,22 @@ class ExpressionTransformerTest(TestCase):
 		self.assertEqual([[-1], [13]], transformer.transform(X).tolist())
 		end_err_state = numpy.geterr()
 		self.assertEqual(begin_err_state, end_err_state)
+
+	def test_polars_transform(self):
+		transformer = ExpressionTransformer("X['a'] + X['b']", dtype = float)
+		X = polars.DataFrame({"a" : [0.5, 1.0], "b" : [0.5, 2.0]})
+		Xt = transformer.fit_transform(X)
+		self.assertEqual(float, transformer.dtype)
+		self.assertEqual(float, transformer.dtype_)
+		self.assertIsInstance(Xt, numpy.ndarray)
+		self.assertEqual(float, Xt.dtype)
+		self.assertEqual([[1.0], [3.0]], Xt.tolist())
+		transformer = ExpressionTransformer("X[0] + X[1]")
+		Xt = transformer.fit_transform(X)
+		self.assertEqual(None, transformer.dtype)
+		self.assertEqual(None, transformer.dtype_)
+		self.assertIsInstance(Xt, numpy.ndarray)
+		self.assertEqual([[1.0], [3.0]], Xt.tolist())
 
 	def test_category_transform(self):
 		begin_err_state = numpy.geterr()
@@ -568,6 +610,18 @@ class LookupTransformerTest(TransformerTest):
 		transformer = LookupTransformer(mapping, "(other)")
 		self.assertEqual([[None], ["(other)"]], transformer.transform(X).tolist())
 
+	def test_polars_transform_string(self):
+		mapping = {
+			"one" : "ein",
+			"two" : "zwei",
+			"three" : "drei"
+		}
+		transformer = LookupTransformer(mapping, None)
+		X = polars.Series(["one", "two", "three"])
+		Xt = transformer.fit_transform(X)
+		self.assertIsInstance(Xt, polars.Series)
+		self.assertEqual(["ein", "zwei", "drei"], Xt.to_list())
+
 	def test_transform_categorical(self):
 		X = Series(["one", "two", "three"])
 		mapping = {
@@ -625,6 +679,17 @@ class MultiLookupTransformerTest(TestCase):
 		transformer = MultiLookupTransformer(mapping, None)
 		X = DataFrame([[1, 0], [1, 1], [2, 0], [2, 1], [2, 2], [3, 0], [3, 1], [3, 2], [3, 3]])
 		self.assertTrue(_list_equal([[None], ["one"], [None], [None], ["two"], [None], [None], [None], ["three"]], transformer.transform(X).tolist()))
+
+	def test_polars_transform_int(self):
+		mapping = {
+			(1, 1) : "one",
+			(2, 2) : "two",
+			(3, 3) : "three"
+		}
+		transformer = MultiLookupTransformer(mapping, None)
+		X = polars.DataFrame({"a" : [1, 1, 2, 2, 3], "b" : [0, 1, 0, 2, 3]})
+		Xt = transformer.transform(X)
+		self.assertTrue(_list_equal([[None], ["one"], [None], ["two"], ["three"]], Xt.tolist()))
 
 	def test_transform_object(self):
 		mapping = {
