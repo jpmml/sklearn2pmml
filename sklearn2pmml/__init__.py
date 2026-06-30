@@ -220,7 +220,7 @@ def _python_version():
 	return platform.python_version()
 
 def _package_versions():
-	pkgs = ["Boruta", "category_encoders", "CHAID", "dill", "h2o", "hyperopt", "imbalanced-learn", "interpret", "joblib", "lightgbm", "mlxtend", "numpy", "optbinning", "pandas", "pycaret", "scikit-learn", "scikit-lego", "sklearn2pmml", "statsmodels", "tpot", "treeple", "xgboost"]
+	pkgs = ["Boruta", "category_encoders", "CHAID", "dill", "h2o", "hyperopt", "imbalanced-learn", "interpret", "joblib", "lightgbm", "mlxtend", "numpy", "optbinning", "pandas", "polars", "pyarrow", "pycaret", "scikit-learn", "scikit-lego", "sklearn2pmml", "statsmodels", "tpot", "treeple", "xgboost"]
 
 	result = dict()
 	for pkg in pkgs:
