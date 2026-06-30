@@ -1,3 +1,87 @@
+# 0.132.0 #
+
+## Breaking changes
+
+None.
+
+## New features
+
+* Added [Polars](https://pola.rs/) support.
+
+The SkLearn2PMML package aims to support NumPy, Pandas and Polars at the same level.
+The `PMMLPipeline` class, and all custom transformer and estimator classes should be able to automatically detect and adapt to whatever data representation is used.
+
+The `polars.Series` and `polars.DataFrame` classes are the direct analogues of the `pandas.Series` and `pandas.DataFrame` classes, respectively.
+They are typically chosen for performance and resource efficiency reasons.
+
+Transformers that operate on Polars data containers support Polars data types for type hints (eg. the `dtype` attribute).
+When dealing with discrete data, consider using `polars.Categorical` (categorical) or `polars.Enum` (ordinal) data types over the plain `polars.String` data type.
+
+Polars differs from NumPy (and classical Pandas) in that the `NaN` value is a regular floating-point value rather than a marker for missingness.
+Therefore, in Polars-oriented pipelines, missing values should be represented using the `None` constant.
+
+```python
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import make_pipeline
+from sklearn2pmml.decoration import CategoricalDomain, ContinuousDomain
+from sklearn2pmml.pipeline import PMMLPipeline
+
+import polars
+
+cat_cols = [...]
+cont_cols = [...]
+
+df = polars.read_csv(...)
+
+X = df[cat_cols + cont_cols]
+y = df["y"]
+
+transformer = ColumnTransformer([
+  ("cat", make_pipeline(CategoricalDomain(missing_values = None), ...), cat_cols),
+  ("cont", make_pipeline(ContinuousDomain(missing_values = None), ...), cont_cols)
+])
+# Preserve transformation result as Polars dataframe
+transformer.set_output(transform = "polars")
+
+pipeline = PMMLPipeline([
+  ("transformer", transformer),
+  ("estimator", ...)
+])
+pipeline.fit(X, y)
+pipeline.verify(X.sample(n = 10))
+```
+
+## Minor improvements and fixes
+
+* Fixed the `ExpressionTransformer.transform(X)` method for Pandas 3.X.
+
+Pandas 3.0 disallowed referencing dataframe columns by integer indices (ie. expecting all `X[<int>]` constructs to be replaced with `X.iloc[:, <int>]` constructs).
+That notation is too verbose for inline expressions, and is not supported by the underlying Python-to-PMML translator.
+
+The fix involves iterating over dataframe rows using a helper component, which provides unified (both name-based and positional) column referencing syntax across all versions of Pandas' and Polars' data container classes.
+
+```python
+from sklearn.compose import ColumnTransformer
+from sklearn2pmml.decoration import Alias
+from sklearn2pmml.preprocessing import ExpressionTransformer
+
+transformer = ColumnTransformer([
+  # Select columns by name from the original dataframe into a two-column temporary dataframe.
+  # During expression transform, reference the cells of row vectors by position (rather than by name) for maximum brevity.
+  ("hourly_income", Alias(ExpressionTransformer("X[0] / (X[1] * 52)"), name = "Hourly_Income"), ["Income", "Hours"])
+])
+```
+
+* Fixed the `Memory` constructor.
+
+The default constructor now allocates a new `dict` object for data storage.
+
+Previously, all default-constructed `Memory` objects shared one and the same `dict` object, which was causing silent data overwrites in case of colliding data keys.
+
+* Improved compatibility with Scikit-Learn 1.9.0.
+
+Custom transformers without explicit fitted state (eg. `CastTransformer`) are required to set the `n_features_in_` attribute upon fitting.
+
 # 0.131.0 #
 
 ## Breaking changes
