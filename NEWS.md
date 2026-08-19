@@ -1,3 +1,135 @@
+# 0.133.0 #
+
+## Breaking changes
+
+* Refactored the representation of tree models.
+
+This refactoring has two parts.
+First, downcasting tree split values from `double` to `float` data type, eliminating the need for the "inner layer" (eg. the `double(float(x))` field becoming `float(x)`) of feature value casts.
+Second, activating the `input_float` tree conversion option, eliminating the "outer layer" (eg. the `float(x)` field becoming `x`) of feature value casts.
+
+These two parts together eliminate up to two `DerivedField` elements per feature, reducing the size of tree and tree ensemble model PMML documents by up to 50%, and improving their evaluation performance.
+
+Old representation of an iris decision tree:
+
+```xml
+<DataDictionary>
+  <DataField name="Petal.Length" optype="continuous" dataType="float"/>
+  <DataField name="Petal.Width" optype="continuous" dataType="float"/>
+</DataDictionary>
+<TreeModel functionName="classification">
+  <LocalTransformations>
+    <DerivedField name="double(Petal.Length)" optype="continuous" dataType="double">
+      <FieldRef field="Petal.Length"/>
+    </DerivedField>
+    <DerivedField name="double(Petal.Width)" optype="continuous" dataType="double">
+      <FieldRef field="Petal.Width"/>
+    </DerivedField>
+  </LocalTransformations>
+  <Node>
+    <True/>
+    <Node score="setosa">
+      <SimplePredicate field="double(Petal.Length)" operator="lessOrEqual" value="2.449999988079071"/>
+    </Node>
+    <Node>
+      <SimplePredicate field="double(Petal.Length)" operator="greaterThan" value="2.449999988079071"/>
+      <Node score="versicolor">
+        <SimplePredicate field="double(Petal.Width)" operator="lessOrEqual" value="1.75"/>
+      </Node>
+      <Node score="virginica">
+        <SimplePredicate field="double(Petal.Width)" operator="greaterThan" value="1.75"/>
+      </Node>
+    </Node>
+  </Node>
+</TreeModel>
+```
+
+New representation of the same:
+
+```xml
+<DataDictionary>
+  <DataField name="Petal.Length" optype="continuous" dataType="float"/>
+  <DataField name="Petal.Width" optype="continuous" dataType="float"/>
+</DataDictionary>
+<TreeModel functionName="classification">
+  <Node>
+    <True/>
+    <Node score="setosa">
+      <SimplePredicate field="Petal.Length" operator="lessOrEqual" value="2.4499998"/>
+    </Node>
+    <Node>
+      <SimplePredicate field="Petal.Length" operator="greaterThan" value="2.4499998"/>
+      <Node score="versicolor">
+        <SimplePredicate field="Petal.Width" operator="lessOrEqual" value="1.75"/>
+      </Node>
+      <Node score="virginica">
+        <SimplePredicate field="Petal.Width" operator="greaterThan" value="1.75"/>
+      </Node>
+    </Node>
+  </Node>
+</TreeModel>
+```
+
+This refactoring does not alter the actual splitting behaviour in any way (neither in relation to Scikit-Learn, nor to existing versions of SkLearn2PMML).
+It is marked as "breaking" just to draw attention to the fact that SkLearn2PMML has been emitting sub-optimal PMML markup for over a decade in such an important area.
+
+The activation of `input_float` conversion option should not have any side effects for linear pipelines.
+It may need explicit de-activation for non-linear pipelines, where one and the same feature is inputted to two or more distinct elementary estimators.
+
+For example, de-activating `input_float` conversion option for meta-estimators that mix tree and non-tree models:
+
+```python
+from sklearn.ensemble import VotingClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn2pmml.pipeline import PMMLPipeline
+
+classifier = VotingClassifier([
+  ("tree", DecisionTreeClassifier()), # Supports input_float = True
+  ("linear", LogisticRegression()) # Does NOT support input_float = True
+], voting = "soft")
+
+pipeline = PMMLPipeline([
+  ("classifier", classifier)
+])
+pipeline.fit(X, y)
+
+# Fall back to the value that both member estimators support
+pipeline.configure(input_float = False)
+```
+
+The same `input_float` conversion option affects XGBoost models.
+
+* Fixed the representation of k-nearest neighbor (KNN) models.
+
+Removed an unnecessary and unexplained cast operation from `KNeighborsClassifier`, `KNeighborsRegressor`, `NearestCentroid` and `NearestNeighbors` converters, which downcasted feature values from `double` to `float` data type.
+
+This eliminated a layer of `DerivedField` elements from the generated PMML document.
+
+## New features
+
+* Added support for conversion option inheritance.
+
+The look-up of conversion options now ascends the estimator hierarchy.
+The search starts at the current estimator, and if unsuccessful, continues with the enclosing estimator.
+
+Previously, conversion options had to be set on each child-most estimator individually.
+
+## Minor improvements and fixes
+
+* Improved support for high-cardinality splits in histogram-based GBDT estimators.
+
+* Added support for `huber` and `quantile` (aka pinball) loss functions in GBDT estimators.
+
+* Ensured compatibility with XGBoost 3.3.0.
+
+XGBoost 3.3.0 changed the identification of DART boosters in JSON bundles.
+
+SkLearn2PMML 0.132.0 and older fail to recognize XGBoost 3.3.0 DART boosters (weighted ensembles) as such, and silently fall back to encoding them as default GBTree boosters (unweighted ensembles).
+
+* Ensured compatibility with LightGBM 4.7.0.
+
+
 # 0.132.0 #
 
 ## Breaking changes
