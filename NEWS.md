@@ -1,3 +1,57 @@
+# 0.133.1 #
+
+## Breaking changes
+
+* Made abstract decorator classes like `Domain`, `DiscreteDomain`, `TemporalDomain` and `TransformerWrapper` non-instantiable.
+
+These classes implement fit-transform logic, and were directly usable in Python workflows.
+However, they lack functional Java counterparts.
+
+This change intends to prevent such functionally divergent pipelines from being constructed in the first place.
+
+## New features
+
+* Added support for `reg:expectileerror` objective function in XGBoost regressors.
+
+## Minor improvements and fixes
+
+* Fixed support for `SimpleImputer.missing_values` attribute.
+
+The `SimpleImputer` can be (mis-)used as a value filtering transformer, by activating the `constant` strategy, and setting both `missing_values` and `fill_value` parameters to valid values.
+In such a case, missing values (eg. `numpy.nan`) are passed through unchanged.
+
+The `SimpleImputer` converter also filled in the same constant value for missing values.
+
+As part of this fix, the converter now checks that sentinel values are not reused between value spaces.
+In Scikit-Learn, a domain decorator step can assign a sentinel value from valid to missing value space, and the subsequent imputer step can do the opposite.
+However, in PMML, assignments to value spaces are effectively final.
+
+Declaring the same sentinel value in different roles in different steps is considered an error.
+It can appear in the domain decorator step, or in the imputer step, but not in both.
+
+For all sorts of filtering transformations it is much better to use the `sklearn2pmml.preprocessing.ExpressionTransformer` transformer instead.
+
+See [SkLearn2PMML-473](https://github.com/jpmml/sklearn2pmml/issues/473)
+
+* Added support for `SimpleImputer.keep_empty_features` attribute.
+
+The `SimpleImputer.transform(X)` method drops all-missing value columns from the dataset by default.
+It is possible to stop this behaviour by setting the `keep_empty_features` parameter to `True`, which causes these columns to be filled with constant values (either `0` or user-specified sentinel).
+
+The `SimpleImputer` converter did not support the column dropping behaviour at all.
+This may have led to obscure conversion errors, where the step immediately following the imputer step in the pipeline complains that the input dataset contains more columns than expected (eg. `org.jpmml.converter.SchemaException: Expected 46 features, got 47`).
+
+* Improved record counts and intermediate leaf scores for XGBoost estimators.
+
+* Improved support for `CountVectorizer.vocabulary_` attribute.
+
+* Ensured compatibility with XGBoost 3.4.1.
+
+XGBoost 3.4.X changed the identification of DART boosters in JSON bundles once again.
+
+* Ensured compatibility with Category Encoders 2.10.0, CausalML 0.17.0, FLAML 2.6.0 and StatsModels 0.14.6.
+
+
 # 0.133.0 #
 
 ## Breaking changes
@@ -123,7 +177,7 @@ Previously, conversion options had to be set on each child-most estimator indivi
 
 * Ensured compatibility with XGBoost 3.3.0.
 
-XGBoost 3.3.0 changed the identification of DART boosters in JSON bundles.
+XGBoost 3.3.X changed the identification of DART boosters in JSON bundles.
 
 SkLearn2PMML 0.132.0 and older fail to recognize XGBoost 3.3.0 DART boosters (weighted ensembles) as such, and silently fall back to encoding them as default GBTree boosters (unweighted ensembles).
 
