@@ -8,7 +8,7 @@ from sklearn.base import clone
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
-from sklearn2pmml.decoration import Alias, CategoricalDomain, ContinuousDomain, ContinuousDomainEraser, DateDomain, DateTimeDomain, DiscreteDomain, DiscreteDomainEraser, Domain, MultiAlias, MultiDomain, OrdinalDomain, TemporalDomain
+from sklearn2pmml.decoration import Alias, CategoricalDomain, ContinuousDomain, ContinuousDomainEraser, DateDomain, DateTimeDomain, DiscreteDomain, DiscreteDomainEraser, Domain, MultiAlias, MultiDomain, OrdinalDomain, TemporalDomain, TransformerWrapper
 from sklearn2pmml.preprocessing import ExpressionTransformer
 from sklearn2pmml.util import _to_numpy
 from sklearn_pandas import DataFrameMapper
@@ -24,6 +24,15 @@ def _list_equal(left, right):
 	left = DataFrame(left, dtype = object)
 	right = DataFrame(right, dtype = object)
 	return left.equals(right)
+
+class TransformerWrapperTest(TestCase):
+
+	def test_init_abstract(self):
+		with self.assertRaises(TypeError):
+			TransformerWrapper(StandardScaler())
+
+		Alias(StandardScaler(), "alias")
+		MultiAlias(StandardScaler(), ["alias"])
 
 class AliasTest(TestCase):
 

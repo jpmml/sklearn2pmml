@@ -23,6 +23,8 @@ import pandas
 class TransformerWrapper(BaseEstimator, TransformerMixin):
 
 	def __init__(self, transformer, prefit = False):
+		if type(self) is TransformerWrapper:
+			raise TypeError("Transformer wrapper (class {0}) is not instantiable".format(fqn(TransformerWrapper)))
 		self.transformer = transformer
 		self.prefit = prefit
 		if prefit:
