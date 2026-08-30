@@ -12,7 +12,7 @@ try:
 except ImportError:
 	pass
 from sklearn2pmml import StatelessTransformerMixin
-from sklearn2pmml.util import _copy, _get_categories, _get_column, _get_columns, _is_categorical, _is_ordinal, _is_pandas_categorical, _is_pandas_proto_categorical, _to_numpy, _to_numpy_dtype, _set_column, _set_values, cast, common_dtype, is_1d
+from sklearn2pmml.util import _copy, _get_categories, _get_column, _get_columns, _is_categorical, _is_ordinal, _is_pandas_categorical, _is_pandas_proto_categorical, _to_numpy, _to_numpy_dtype, _set_column, _set_values, cast, common_dtype, fqn, is_1d
 
 import copy
 import itertools
@@ -99,7 +99,12 @@ def _count(missing_mask, valid_mask, invalid_mask):
 
 class Domain(BaseEstimator, TransformerMixin, OneToOneFeatureMixin):
 
+	def _check_subclass(self, clazz):
+		if type(self) is clazz:
+			raise TypeError("Abstract decorator (class {0}) is not instantiable".format(fqn(clazz)))
+
 	def __init__(self, missing_values = None, missing_value_treatment = "as_is", missing_value_replacement = None, invalid_value_treatment = "return_invalid", invalid_value_replacement = None, with_data = True, with_statistics = False, dtype = None, display_name = None):
+		self._check_subclass(Domain)
 		self.missing_values = missing_values
 		missing_value_treatments = ["as_is", "as_mean", "as_mode", "as_median", "as_value", "return_invalid"]
 		if missing_value_treatment not in missing_value_treatments:
@@ -224,6 +229,7 @@ class Domain(BaseEstimator, TransformerMixin, OneToOneFeatureMixin):
 class DiscreteDomain(Domain):
 
 	def __init__(self, missing_values = None, missing_value_treatment = "as_is", missing_value_replacement = None, invalid_value_treatment = "return_invalid", invalid_value_replacement = None, with_data = True, with_statistics = False, dtype = None, display_name = None, data_values = None):
+		self._check_subclass(DiscreteDomain)
 		super(DiscreteDomain, self).__init__(missing_values = missing_values, missing_value_treatment = missing_value_treatment, missing_value_replacement = missing_value_replacement, invalid_value_treatment = invalid_value_treatment, invalid_value_replacement = invalid_value_replacement, with_data = with_data, with_statistics = with_statistics, dtype = dtype, display_name = display_name)
 		if data_values:
 			if not with_data:
@@ -467,6 +473,7 @@ class ContinuousDomain(Domain):
 class TemporalDomain(Domain):
 
 	def __init__(self, missing_values = None, missing_value_treatment = "as_is", missing_value_replacement = None, invalid_value_treatment = "return_invalid", invalid_value_replacement = None, dtype = None, display_name = None):
+		self._check_subclass(TemporalDomain)
 		super(TemporalDomain, self).__init__(missing_values = missing_values, missing_value_treatment = missing_value_treatment, missing_value_replacement = missing_value_replacement, invalid_value_treatment = invalid_value_treatment, invalid_value_replacement = invalid_value_replacement, with_data = False, with_statistics = False, dtype = dtype, display_name = display_name)
 		dtypes = ["datetime64[D]", "datetime64[s]"]
 		if (not isinstance(dtype, str)) or (dtype not in dtypes):

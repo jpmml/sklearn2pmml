@@ -8,7 +8,7 @@ from sklearn.base import clone
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
-from sklearn2pmml.decoration import Alias, CategoricalDomain, ContinuousDomain, ContinuousDomainEraser, DateDomain, DateTimeDomain, DiscreteDomainEraser, Domain, MultiAlias, MultiDomain
+from sklearn2pmml.decoration import Alias, CategoricalDomain, ContinuousDomain, ContinuousDomainEraser, DateDomain, DateTimeDomain, DiscreteDomain, DiscreteDomainEraser, Domain, MultiAlias, MultiDomain, OrdinalDomain, TemporalDomain
 from sklearn2pmml.preprocessing import ExpressionTransformer
 from sklearn2pmml.util import _to_numpy
 from sklearn_pandas import DataFrameMapper
@@ -73,15 +73,33 @@ def _value_count(stats):
 def _array_to_list(info):
 	return dict((k, v.tolist()) for k, v in info.items())
 
+class UserDefinedDomain(Domain):
+	pass
+
 class DomainTest(TestCase):
+
+	def test_init_abstract(self):
+		with self.assertRaises(TypeError):
+			Domain()
+
+		UserDefinedDomain()
 
 	def test_init(self):
 		with self.assertRaises(ValueError):
-			Domain(missing_value_treatment = "return_invalid", missing_value_replacement = 0)
+			UserDefinedDomain(missing_value_treatment = "return_invalid", missing_value_replacement = 0)
 		with self.assertRaises(ValueError):
-			Domain(invalid_value_replacement = 0)
+			UserDefinedDomain(invalid_value_replacement = 0)
 		with self.assertRaises(ValueError):
-			Domain(invalid_value_treatment = "return_invalid", invalid_value_replacement = 0)
+			UserDefinedDomain(invalid_value_treatment = "return_invalid", invalid_value_replacement = 0)
+
+class DiscreteDomainTest(TestCase):
+
+	def test_init_abstract(self):
+		with self.assertRaises(TypeError):
+			DiscreteDomain()
+
+		CategoricalDomain()
+		OrdinalDomain()
 
 class CategoricalDomainTest(TestCase):
 
@@ -522,6 +540,13 @@ class ContinuousDomainTest(TestCase):
 		self.assertEqual([3.0, 3.5], domain.data_max_.tolist())
 
 class TemporalDomainTest(TestCase):
+
+	def test_init_abstract(self):
+		with self.assertRaises(TypeError):
+			TemporalDomain(dtype = "datetime64[D]")
+
+		DateDomain()
+		DateTimeDomain()
 
 	def test_fit_transform(self):
 		X = DataFrame([["1959-12-31", "1959-12-31T23:59:59"], ["1960-01-01", "1960-01-01T01:01:10"], ["2003-04-01", "2003-04-01T05:16:27"]], columns = ["date", "datetime"])
