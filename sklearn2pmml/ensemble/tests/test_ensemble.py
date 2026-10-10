@@ -126,6 +126,8 @@ class SelectFirstClassifierTest(TestCase):
 		self.assertEqual([-1, 0, -1, 1, -1], pred.tolist())
 		pred_proba = classifier.predict_proba(X)
 		self.assertEqual((5, 2), pred_proba.shape)
+		pred = classifier.predict(X.set_index(X.index + 100))
+		self.assertEqual([-1, 0, -1, 1, -1], pred.tolist())
 		X = X.values
 		classifier = SelectFirstClassifier([
 			("negative", DummyClassifier(strategy = "most_frequent"), "X[:, 0] < 0"),

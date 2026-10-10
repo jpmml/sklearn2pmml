@@ -482,7 +482,7 @@ class DataFrameApplier:
 			Xt[index] = func(self)
 		self._values = None
 		if _is_pandas_dataframe(X):
-			return Series(Xt)
+			return Series(Xt, index = X.index)
 		elif _is_polars_dataframe(X):
 			polars = sys.modules.get("polars")
 			return polars.Series(Xt)
