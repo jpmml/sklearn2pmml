@@ -6,12 +6,7 @@ try:
 	from sklearn.base import OneToOneFeatureMixin
 except ImportError:
 	from sklearn.base import _OneToOneFeatureMixin as OneToOneFeatureMixin
-try:
-	# SkLearn 1.7.0+
-	from sklearn.utils.validation import _check_feature_names, _check_n_features
-except ImportError:
-	pass
-from sklearn2pmml.base import StatelessTransformerMixin
+from sklearn2pmml.base import FeaturesInMixin, StatelessTransformerMixin
 from sklearn2pmml.util import _copy, _get_categories, _get_column, _get_columns, _is_categorical, _is_ordinal, _is_pandas_categorical, _is_pandas_proto_categorical, _to_numpy, _to_numpy_dtype, _set_column, _set_values, cast, common_dtype, fqn, is_1d
 
 import copy
@@ -70,17 +65,6 @@ class MultiAlias(TransformerWrapper):
 	def get_feature_names_out(self, input_features = None):
 		return numpy.asarray(self.names)
 
-def _check_input(estimator, X, reset):
-	# SkLearn 1.6.1
-	if hasattr(estimator, "_check_feature_names") and hasattr(estimator, "_check_n_features"):
-		estimator._check_n_features(X, reset = reset)
-		estimator._check_feature_names(X, reset = reset)
-	# SkLearn 1.7.0+
-	else:
-		_check_n_features(estimator, X, reset = reset)
-		_check_feature_names(estimator, X, reset = reset)
-	return X
-
 def _check_cols(X, values):
 	if is_1d(X):
 		if hasattr(values, "__len__") and len(values) > 1:
@@ -99,7 +83,7 @@ def _count(missing_mask, valid_mask, invalid_mask):
 		"invalidFreq" : invalid_freq
 	}
 
-class Domain(BaseEstimator, TransformerMixin, OneToOneFeatureMixin):
+class Domain(BaseEstimator, FeaturesInMixin, TransformerMixin, OneToOneFeatureMixin):
 
 	def _check_subclass(self, clazz):
 		if type(self) is clazz:
@@ -217,7 +201,7 @@ class Domain(BaseEstimator, TransformerMixin, OneToOneFeatureMixin):
 		return False
 
 	def transform(self, X):
-		_check_input(self, X, reset = False)
+		self._check_features_in(X, reset = False)
 		if self.dtype is not None:
 			X = cast(X, self.dtype)
 		missing_mask, valid_mask, invalid_mask = self._compute_masks(X)
@@ -273,7 +257,7 @@ class DiscreteDomain(Domain):
 		return super(DiscreteDomain, self)._valid_value_mask(X, where)
 
 	def fit(self, X, y = None):
-		_check_input(self, X, reset = True)
+		self._check_features_in(X, reset = True)
 		if self.dtype is not None:
 			if _is_pandas_proto_categorical(self.dtype):
 				if self.data_values is not None:
@@ -392,7 +376,7 @@ class ContinuousDomain(Domain):
 		return super(ContinuousDomain, self)._valid_value_mask(X, where)
 
 	def fit(self, X, y = None):
-		_check_input(self, X, reset = True)
+		self._check_features_in(X, reset = True)
 		if self.dtype is not None:
 			X = cast(X, self.dtype)
 		self.dtype_ = common_dtype(X)
@@ -482,7 +466,7 @@ class TemporalDomain(Domain):
 			raise ValueError("Temporal data type {0} not in {1}".format(dtype, dtypes))
 
 	def fit(self, X, y = None):
-		_check_input(self, X, reset = True)
+		self._check_features_in(X, reset = True)
 		self.dtype_ = common_dtype(X)
 		return self
 
@@ -496,13 +480,13 @@ class DateTimeDomain(TemporalDomain):
 	def __init__(self, missing_values = None, missing_value_treatment = "as_is", missing_value_replacement = None, invalid_value_treatment = "return_invalid", invalid_value_replacement = None, display_name = None):
 		super(DateTimeDomain, self).__init__(missing_values = missing_values, missing_value_treatment = missing_value_treatment, missing_value_replacement = missing_value_replacement, invalid_value_treatment = invalid_value_treatment, invalid_value_replacement = invalid_value_replacement, dtype = "datetime64[s]", display_name = display_name)
 
-class MultiDomain(BaseEstimator, TransformerMixin):
+class MultiDomain(BaseEstimator, FeaturesInMixin, TransformerMixin):
 
 	def __init__(self, domains):
 		self.domains = domains
 
 	def fit(self, X, y = None):
-		_check_input(self, X, reset = True)
+		self._check_features_in(X, reset = True)
 		rows, columns = X.shape
 		if len(self.domains) != columns:
 			raise ValueError("The number of columns {0} is not equal to the number of domain objects {1}".format(columns, len(self.domains)))
@@ -512,7 +496,7 @@ class MultiDomain(BaseEstimator, TransformerMixin):
 		return self
 
 	def transform(self, X):
-		_check_input(self, X, reset = False)
+		self._check_features_in(X, reset = False)
 		X = _copy(X)
 		for domain, column in zip(self.domains, _get_columns(X)):
 			if domain is not None:
