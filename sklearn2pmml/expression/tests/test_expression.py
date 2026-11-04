@@ -1,5 +1,6 @@
 from pandas import DataFrame
 from scipy.special import expit
+from sklearn.utils.validation import check_is_fitted
 from sklearn2pmml.expression import ExpressionClassifier, ExpressionRegressor
 from sklearn2pmml.util import Expression
 from unittest import TestCase
@@ -16,6 +17,7 @@ class ExpressionRegressorTest(TestCase):
 
 	def test_predict(self):
 		regressor = ExpressionRegressor(Expression("_relu(X['a'])", function_defs = [_relu]), normalization_method = "none")
+		check_is_fitted(regressor)
 		X = DataFrame([-2.5, -1.5, -0.5, 0.5, 1.5, 2.5], columns = ["a"])
 		pred = regressor.predict(X)
 		self.assertEqual([0.0, 0.0, 0.0, 0.5, 1.5, 2.5], pred.tolist())

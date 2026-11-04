@@ -1,4 +1,5 @@
 from pandas import DataFrame
+from sklearn.utils.validation import check_is_fitted
 from sklearn2pmml.ruleset import RuleSetClassifier
 from unittest import TestCase
 
@@ -11,6 +12,7 @@ class RuleSetClassifierTest(TestCase):
 			("X[0] < 0", "negative"),
 			("X[0] > 0", "positive")
 		], default_score = "zero")
+		check_is_fitted(classifier)
 		X = numpy.array([[0.0], [1.0], [-1.0]])
 		pred = classifier.predict(X)
 		self.assertEqual(["zero", "positive", "negative"], pred.tolist())

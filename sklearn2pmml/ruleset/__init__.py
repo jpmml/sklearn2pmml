@@ -1,7 +1,8 @@
 from sklearn.base import BaseEstimator, ClassifierMixin
+from sklearn2pmml.base import StatelessEstimatorMixin
 from sklearn2pmml.util import check_predicate, eval_rows, to_expr_func
 
-class RuleSetClassifier(BaseEstimator, ClassifierMixin):
+class RuleSetClassifier(BaseEstimator, StatelessEstimatorMixin, ClassifierMixin):
 
 	def __init__(self, rules, default_score = None):
 		for rule in rules:

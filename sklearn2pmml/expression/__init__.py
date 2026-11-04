@@ -1,11 +1,12 @@
 from scipy.special import expit, softmax
 from sklearn.preprocessing import normalize
 from sklearn.base import BaseEstimator, ClassifierMixin, RegressorMixin
+from sklearn2pmml.base import StatelessEstimatorMixin
 from sklearn2pmml.util import check_expression, eval_rows, to_expr_func
 
 import numpy
 
-class ExpressionRegressor(BaseEstimator, RegressorMixin):
+class ExpressionRegressor(BaseEstimator, StatelessEstimatorMixin, RegressorMixin):
 
 	def __init__(self, expr, normalization_method):
 		self.expr = check_expression(expr)
