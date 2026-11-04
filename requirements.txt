@@ -8,7 +8,8 @@ lxml==5.3.1
 numpy==1.24.4; python_version == '3.8'
 numpy==2.0.2; python_version == '3.9'
 numpy==2.2.3; python_version >= '3.10'
-optbinning==0.20.1
+optbinning==0.20.1; python_version < '3.13'
+optbinning==1.0.0; python_version >= '3.13'
 pcre2==0.4.0; python_version == '3.8'
 pcre2==0.5.2; python_version >= '3.9'
 pandas==2.0.3; python_version == '3.8'
@@ -17,11 +18,11 @@ pandas==3.0.0; python_version >= '3.12'
 polars==1.8.0; python_version == '3.8'
 polars==1.36.1; python_version == '3.9'
 polars==1.41.2; python_version >= '3.10'
-scikit-learn>=1.0,<=1.9.0
+scikit-learn>=1.0,<=1.9.1
 scikit-lego==0.9.4
-scikit-tree==0.8.0; python_version >= '3.9'
+scikit-tree==0.8.0; python_version >= '3.9' and python_version < '3.13'
 scipy<=1.15.3
-sklearn-compat==0.1.5
+sklearn-compat==0.1.6
 sklearn-pandas==2.2.0
 statsmodels==0.14.1; python_version == '3.8'
 statsmodels==0.14.6; python_version >= '3.9'
