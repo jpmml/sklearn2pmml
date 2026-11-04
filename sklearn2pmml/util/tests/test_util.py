@@ -1,4 +1,5 @@
 from pandas import Categorical, CategoricalDtype, DataFrame, Series
+from sklearn.utils.validation import check_is_fitted
 from sklearn2pmml.util import _is_categorical, _is_ordinal, _is_pandas_proto_categorical, _get_column_count, _get_column_names, check_expression, check_predicate, eval_rows, fqn, sizeof, deep_sizeof, to_1d, to_expr, to_expr_func, Evaluatable, Expression, Predicate, Slicer, Reshaper
 from unittest import TestCase
 
@@ -288,6 +289,7 @@ class ReshaperTest(TestCase):
 
 	def test_transform(self):
 		transformer = Reshaper((1, 6))
+		check_is_fitted(transformer)
 		X = numpy.asarray([[0, "zero"], [1, "one"], [2, "two"]], dtype = object)
 		Xt = transformer.fit_transform(X)
 		self.assertEqual([[0, "zero", 1, "one", 2, "two"]], Xt.tolist())
@@ -299,6 +301,7 @@ class SlicerTest(TestCase):
 
 	def test_transform(self):
 		transformer = Slicer()
+		check_is_fitted(transformer)
 		X = DataFrame([[1.5, False, 0], [1.0, True, 1], [0.5, False, 0]], columns = ["a", "b", "c"])
 		Xt = transformer.fit_transform(X)
 		self.assertEqual((3, 3), Xt.shape)

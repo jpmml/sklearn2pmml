@@ -1,7 +1,8 @@
 from datetime import datetime
 from numpy import datetime64
 from pandas import Categorical, CategoricalDtype, DataFrame, Timestamp, Series
-from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.base import BaseEstimator
+from sklearn2pmml.base import StatelessTransformerMixin
 
 import inspect
 import numpy
@@ -587,7 +588,7 @@ def deep_sizeof(obj, with_overhead = False, verbose = False):
 					print("| {} | {} | {} |".format(name, v_type, v_sizeof))
 		return sum
 
-class Reshaper(BaseEstimator, TransformerMixin):
+class Reshaper(BaseEstimator, StatelessTransformerMixin):
 
 	def __init__(self, newshape):
 		self.newshape = newshape
@@ -598,7 +599,7 @@ class Reshaper(BaseEstimator, TransformerMixin):
 	def transform(self, X):
 		return X.reshape(self.newshape)
 
-class Slicer(BaseEstimator, TransformerMixin):
+class Slicer(BaseEstimator, StatelessTransformerMixin):
 
 	def __init__(self, start = None, stop = None, step = None):
 		self.start = start

@@ -2,11 +2,12 @@ try:
 	from h2o.frame import H2OFrame
 except ImportError:
 	pass
-from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.base import BaseEstimator
+from sklearn2pmml.base import StatelessTransformerMixin
 
 import warnings
 
-class H2OFrameConstructor(BaseEstimator, TransformerMixin):
+class H2OFrameConstructor(BaseEstimator, StatelessTransformerMixin):
 
 	def __init__(self, column_names = None, column_types = None):
 		self.column_names = column_names

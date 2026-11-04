@@ -1,6 +1,7 @@
 from pandas import DataFrame
 from sklearn.base import clone
 from sklearn.pipeline import make_pipeline
+from sklearn.utils.validation import check_is_fitted
 from sklearn2pmml.cross_reference import make_memorizer_union, make_recaller_union, Memory, Memorizer, Recaller
 from sklearn2pmml.preprocessing import IdentityTransformer
 from sklearn2pmml.util import _is_pandas_dataframe, _is_polars_dataframe
@@ -70,6 +71,7 @@ class MemorizerTest(TestCase):
 		memory = dict()
 		self.assertEqual(0, len(memory))
 		memorizer = Memorizer(memory, ["int"])
+		check_is_fitted(memorizer)
 		X = numpy.asarray([[-1], [1]])
 		memorizer.fit(X)
 		self.assertEqual(0, len(memory))
@@ -112,6 +114,7 @@ class RecallerTest(TestCase):
 			"int": [-1, 1]
 		}
 		recaller = Recaller(memory, ["int"])
+		check_is_fitted(recaller)
 		X = numpy.empty((2, 1), dtype = str)
 		recaller.fit(X)
 		self.assertEqual(1, len(memory))

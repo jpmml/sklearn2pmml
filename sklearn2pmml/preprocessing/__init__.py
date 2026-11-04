@@ -41,7 +41,7 @@ def _aggregate_fun(function):
 	else:
 		raise ValueError(function)
 
-class AggregateTransformer(BaseEstimator, TransformerMixin):
+class AggregateTransformer(BaseEstimator, StatelessTransformerMixin):
 	"""Aggregate continuous data."""
 
 	def __init__(self, function):
@@ -58,7 +58,7 @@ class AggregateTransformer(BaseEstimator, TransformerMixin):
 		Xt = fun(X, axis = 1)
 		return Xt.reshape((-1, 1))
 
-class BSplineTransformer(BaseEstimator, TransformerMixin):
+class BSplineTransformer(BaseEstimator, StatelessTransformerMixin):
 
 	def __init__(self, bspline):
 		if not isinstance(bspline, BSpline):
@@ -123,7 +123,7 @@ class MultiCastTransformer(BaseEstimator, TransformerMixin):
 			X = _set_column(X, column, x)
 		return X
 
-class CutTransformer(BaseEstimator, TransformerMixin):
+class CutTransformer(BaseEstimator, StatelessTransformerMixin):
 	"""Bin continuous data to categorical."""
 
 	def __init__(self, bins, right = True, labels = None, include_lowest = True, dtype = None):
@@ -190,7 +190,7 @@ def _int(X):
 	else:
 		return cast(X, int)
 
-class DurationTransformer(BaseEstimator, TransformerMixin):
+class DurationTransformer(BaseEstimator, StatelessTransformerMixin):
 	"""Calculate time difference."""
 
 	def __init__(self, year):
@@ -230,7 +230,7 @@ class SecondsSinceYearTransformer(DurationTransformer):
 	def _to_duration(self, td):
 		return td.total_seconds()
 
-class SecondsSinceMidnightTransformer(BaseEstimator, TransformerMixin):
+class SecondsSinceMidnightTransformer(BaseEstimator, StatelessTransformerMixin):
 	"""Calculate the number of seconds since midnight."""
 
 	def __init__(self):
@@ -351,7 +351,7 @@ class IdentityTransformer(BaseEstimator, StatelessTransformerMixin, OneToOneFeat
 	def get_feature_names_out(self, input_features = None):
 		return input_features
 
-class DateTimeFormatter(BaseEstimator, TransformerMixin):
+class DateTimeFormatter(BaseEstimator, StatelessTransformerMixin):
 	"""Formats dates, times and datetimes according to a pattern. Analogous to C's strftime() function.
 
 	Parameters:
@@ -376,7 +376,7 @@ class DateTimeFormatter(BaseEstimator, TransformerMixin):
 		Xt = eval_rows(X1d, func, shape = X.shape)
 		return Xt
 
-class NumberFormatter(BaseEstimator, TransformerMixin):
+class NumberFormatter(BaseEstimator, StatelessTransformerMixin):
 	"""Formats numbers according to a pattern. Analogous to C's printf() function.
 
 	Parameters:
@@ -403,7 +403,7 @@ class NumberFormatter(BaseEstimator, TransformerMixin):
 		Xt = eval_rows(X1d, func, shape = X.shape)
 		return Xt
 
-class LookupTransformer(BaseEstimator, TransformerMixin):
+class LookupTransformer(BaseEstimator, StatelessTransformerMixin):
 	"""Re-map 1D categorical data.
 
 	If the mapping is not found, returns `default_value`.
@@ -648,7 +648,7 @@ def _ndarray_apply_blockwise(X, block_indicators, fun):
 		fun(X, Xt, row_indices, column_indices)
 	return Xt
 
-class LagTransformer(BaseEstimator, TransformerMixin):
+class LagTransformer(BaseEstimator, StatelessTransformerMixin):
 
 	def __init__(self, n, block_indicators = None):
 		if not isinstance(n, int):
@@ -696,7 +696,7 @@ class LagTransformer(BaseEstimator, TransformerMixin):
 				_shift(X, Xt)
 				return Xt
 
-class RollingAggregateTransformer(BaseEstimator, TransformerMixin):
+class RollingAggregateTransformer(BaseEstimator, StatelessTransformerMixin):
 
 	def __init__(self, function, n, block_indicators = None):
 		functions = ["avg", "min", "max", "mean", "prod", "product", "sum"]
@@ -756,7 +756,7 @@ class RollingAggregateTransformer(BaseEstimator, TransformerMixin):
 				_rolling_apply(X, Xt)
 				return Xt
 
-class ConcatTransformer(BaseEstimator, TransformerMixin):
+class ConcatTransformer(BaseEstimator, StatelessTransformerMixin):
 	"""Concat data to string."""
 
 	def __init__(self, separator = ""):
@@ -770,7 +770,7 @@ class ConcatTransformer(BaseEstimator, TransformerMixin):
 		Xt = eval_rows(X, func, to_numpy = True)
 		return Xt.reshape((-1, 1))
 
-class RegExTransformer(BaseEstimator, TransformerMixin):
+class RegExTransformer(BaseEstimator, StatelessTransformerMixin):
 
 	def __init__(self, pattern, re_flavour):
 		super(RegExTransformer, self).__init__()

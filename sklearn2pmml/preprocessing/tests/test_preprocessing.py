@@ -65,6 +65,7 @@ class AggregateTransformerTest(TestCase):
 	def test_avg_float(self):
 		X = numpy.asarray([1.0, float("NaN"), 2.0])
 		transformer = AggregateTransformer(function = "avg")
+		check_is_fitted(transformer)
 		X = X.reshape((-1, 3))
 		self.assertEqual(1.5, transformer.transform(X))
 
@@ -219,6 +220,7 @@ class CutTransformerTest(TestCase):
 		X = DataFrame([[-25], [-1], [5], [25]], columns = ["a"])
 		bins = [-100, -10, 0, 10, 100]
 		transformer = CutTransformer(bins, labels = ["x-neg", "neg", "pos", "x-pos"], dtype = "category")
+		check_is_fitted(transformer)
 		Xt = transformer.fit_transform(X)
 		self.assertIsInstance(Xt, Series)
 		self.assertEqual(["x-neg", "neg", "pos", "x-pos"], Xt.tolist())
@@ -335,6 +337,7 @@ class DurationTransformerTest(TestCase):
 	def test_days_transform(self):
 		X = numpy.array([datetime(1960, 1, 1), datetime(1960, 1, 2), datetime(1960, 2, 1), datetime(1959, 12, 31), datetime(2003, 4, 1)])
 		transformer = DaysSinceYearTransformer(year = 1960)
+		check_is_fitted(transformer)
 		self.assertEqual([0, 1, 31, -1, 15796], transformer.transform(X).tolist())
 
 	def test_seconds_transform(self):
@@ -541,6 +544,7 @@ class DateTimeFormatterTest(TransformerTest):
 
 	def test_transform(self):
 		transformer = DateTimeFormatter(pattern = "%m/%d/%y")
+		check_is_fitted(transformer)
 		self.assertTrue(hasattr(transformer, "pattern"))
 		X = DataFrame(["2004-08-20", "2004-08-21T03:15:00"], columns = ["timestamp"])
 		mapper = DataFrameMapper([
@@ -553,6 +557,7 @@ class NumberFormatterTest(TransformerTest):
 
 	def test_transform(self):
 		transformer = NumberFormatter(pattern = "%3d")
+		check_is_fitted(transformer)
 		self.assertTrue(hasattr(transformer, "pattern"))
 		X = Series([-1, 0, 1.5])
 		self.assertEqual([" -1", "  0", "  1"], self._transform1d(transformer, X).tolist())
@@ -589,6 +594,7 @@ class LookupTransformerTest(TransformerTest):
 		with self.assertRaises(TypeError):
 			LookupTransformer(mapping, int(0))
 		transformer = LookupTransformer(mapping, float("NaN"))
+		check_is_fitted(transformer)
 		X = Series([0.0, 45.0, 90.0])
 		self.assertEqual([math.cos(0.0), math.cos(45.0), math.cos(90.0)], self._transform1d(transformer, X).tolist())
 		X = numpy.array([float("NaN"), 180.0])
@@ -657,6 +663,7 @@ class FilterLookupTransformerTest(TransformerTest):
 			FilterLookupTransformer(mapping)
 		mapping.pop(1)
 		transformer = FilterLookupTransformer(mapping)
+		check_is_fitted(transformer)
 		X = Series([0, -1, 3, 2])
 		self.assertEqual([1, -1, 3, 1], self._transform1d(transformer, X).tolist())
 
@@ -681,6 +688,7 @@ class MultiLookupTransformerTest(TestCase):
 			(3, 3) : "three"
 		}
 		transformer = MultiLookupTransformer(mapping, None)
+		check_is_fitted(transformer)
 		X = DataFrame([[1, 0], [1, 1], [2, 0], [2, 1], [2, 2], [3, 0], [3, 1], [3, 2], [3, 3]])
 		self.assertTrue(_list_equal([[None], ["one"], [None], [None], ["two"], [None], [None], [None], ["three"]], transformer.transform(X).tolist()))
 
@@ -835,6 +843,7 @@ class LagTransformerTest(TestCase):
 	def test_transform(self):
 		X = Series([-1, 0, 1, 2, 3])
 		transformer = LagTransformer(n = 2)
+		check_is_fitted(transformer)
 		Xt = transformer.transform(X)
 		self.assertIsInstance(Xt, Series)
 		self.assertNotEqual(X.dtype, Xt.dtype)
@@ -911,6 +920,7 @@ class RollingAggregateTransformerTest(TestCase):
 	def test_avg(self):
 		X = Series([1, 2, 3, 4, 5])
 		transformer = RollingAggregateTransformer(function = "avg", n = 2)
+		check_is_fitted(transformer)
 		Xt = self._transform1d(transformer, X)
 		self.assertTrue(_list_equal([float("NaN"), 1.0, 1.5, 2.5, 3.5], Xt.tolist()))
 
@@ -976,6 +986,7 @@ class ConcatTransformerTest(TestCase):
 	def test_transform(self):
 		X = numpy.asarray([["A", 1, "C"], [1, 2, 3], ["x", "y", "z"]])
 		transformer = ConcatTransformer()
+		check_is_fitted(transformer)
 		self.assertEqual([["A1C"], ["123"], ["xyz"]], transformer.transform(X).tolist())
 		X = DataFrame([["L", -1], ["R", 1]], columns = ["left", "right"])
 		transformer = ConcatTransformer("/")
@@ -986,6 +997,7 @@ class MatchesTransformerTest(TransformerTest):
 	def test_transform(self):
 		X = Series(["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"])
 		transformer = MatchesTransformer("ar?y")
+		check_is_fitted(transformer)
 		self.assertEqual([True, True, False, False, True, False, False, False, False, False, False, False], self._transform1d(transformer, X).tolist())
 
 class ReplaceTransformerTest(TransformerTest):
@@ -993,6 +1005,7 @@ class ReplaceTransformerTest(TransformerTest):
 	def test_transform(self):
 		X = Series(["A", "B", "BA", "BB", "BAB", "ABBA", "BBBB"])
 		transformer = ReplaceTransformer("B+", "c")
+		check_is_fitted(transformer)
 		self.assertEqual(["A", "c", "cA", "c", "cAc", "AcA", "c"], self._transform1d(transformer, X).tolist())
 		vectorizer = CountVectorizer(token_pattern = r"\w+")
 		pipeline = make_pipeline(transformer, vectorizer)
