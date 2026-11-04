@@ -504,12 +504,13 @@ class MultiDomain(BaseEstimator, FeaturesInMixin, TransformerMixin):
 				X = _set_column(X, column, x)
 		return X
 
-class DomainEraser(BaseEstimator, StatelessTransformerMixin):
+class DomainEraser(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin):
 
 	def __init__(self):
 		pass
 
 	def fit(self, X, y = None):
+		self._check_features_in(X, reset = True)
 		return self
 
 	def transform(self, X):

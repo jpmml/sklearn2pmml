@@ -1,4 +1,5 @@
 from pandas import DataFrame
+from sklearn.utils.validation import check_is_fitted
 from sklearn2pmml.feature_selection import SelectUnique
 from unittest import TestCase
 
@@ -10,6 +11,8 @@ class SelectUniqueTest(TestCase):
 		selector = SelectUnique()
 		X = numpy.asarray([[0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0], [1, -1, 1, 1, -1, 1, -1]])
 		Xt = selector.fit_transform(X)
+		check_is_fitted(selector)
+		self.assertEqual(7, selector.n_features_in_)
 		self.assertEqual([True, True, False, True, False, False, True], selector.support_mask_.tolist())
 		self.assertEqual([[0.0, 0.0, 1.0, 1.0], [1, -1, 1, -1]], Xt.tolist())
 		X = DataFrame([[1, 1, 0, 1, 0], [True, True, True, True, True]], columns = ["A", "B", "C", "D", "E"])

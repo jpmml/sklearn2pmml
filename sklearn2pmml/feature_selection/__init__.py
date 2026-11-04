@@ -1,11 +1,12 @@
 from sklearn.base import BaseEstimator
 from sklearn.feature_selection import SelectorMixin
 from sklearn.utils.validation import check_is_fitted
+from sklearn2pmml.base import FeaturesInMixin
 from sklearn2pmml.util import _to_numpy
 
 import numpy
 
-class SelectUnique(BaseEstimator, SelectorMixin):
+class SelectUnique(BaseEstimator, FeaturesInMixin, SelectorMixin):
 
 	def __init__(self):
 		pass
@@ -15,6 +16,7 @@ class SelectUnique(BaseEstimator, SelectorMixin):
 		return self.support_mask_
 
 	def fit(self, X, y = None):
+		self._check_features_in(X, reset = True)
 		X = _to_numpy(X)
 		rows, cols = X.shape
 		mask = numpy.full((cols), fill_value = True)

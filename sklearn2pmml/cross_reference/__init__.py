@@ -1,6 +1,6 @@
 from sklearn.base import BaseEstimator
 from sklearn.pipeline import FeatureUnion
-from sklearn2pmml.base import StatelessTransformerMixin
+from sklearn2pmml.base import FeaturesInMixin, StatelessTransformerMixin
 from sklearn2pmml.preprocessing import IdentityTransformer
 from sklearn2pmml.util import _is_dataframe, _clear, _copy, _get_column_count, _get_column
 
@@ -73,7 +73,7 @@ def make_recaller_union(memory, names, position = "first"):
 	transformers = _set_position(transformers, position = position)
 	return FeatureUnion(transformers)
 
-class _BaseMemoryManager(BaseEstimator, StatelessTransformerMixin):
+class _BaseMemoryManager(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin):
 
 	def __init__(self, memory, names):
 		self.memory = memory
@@ -99,6 +99,7 @@ class Memorizer(_BaseMemoryManager):
 		return numpy.asarray([])
 
 	def fit(self, X, y = None):
+		self._check_features_in(X, reset = True)
 		if not self.transform_only:
 			self.memorize(X)
 		return self
@@ -125,6 +126,7 @@ class Recaller(_BaseMemoryManager):
 		return numpy.asarray(self.names)
 
 	def fit(self, X, y = None):
+		self._check_features_in(X, reset = True)
 		return self
 
 	def transform(self, X):

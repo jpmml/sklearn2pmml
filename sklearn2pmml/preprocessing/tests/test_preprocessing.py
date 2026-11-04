@@ -113,6 +113,8 @@ class CastTransformerTest(TransformerTest):
 		X = Series([False, "1", float(1.0), 0], dtype = object)
 		transformer = CastTransformer(dtype = str)
 		self.assertEqual(["False", "1", "1.0", "0"], self._fit_transform1d(transformer, X).tolist())
+		check_is_fitted(transformer)
+		self.assertEqual(1, transformer.n_features_in_)
 		transformer = CastTransformer(dtype = int)
 		self.assertEqual([0, 1, 1, 0], self._fit_transform1d(transformer, X).tolist())
 		transformer = CastTransformer(dtype = float)
@@ -183,6 +185,8 @@ class MultiCastTransformerTest(TestCase):
 		self.assertEqual([int, float], transformer.dtypes)
 		self.assertFalse(hasattr(transformer, "dtypes_"))
 		Xt = transformer.fit_transform(X)
+		check_is_fitted(transformer)
+		self.assertEqual(2, transformer.n_features_in_)
 		self.assertEqual([int, float], transformer.dtypes_)
 		self.assertIsInstance(Xt, DataFrame)
 		self.assertEqual([[-1, -1.0], [0, 0.0], [1, 1.0]], Xt.values.tolist())
@@ -222,6 +226,7 @@ class CutTransformerTest(TestCase):
 		transformer = CutTransformer(bins, labels = ["x-neg", "neg", "pos", "x-pos"], dtype = "category")
 		check_is_fitted(transformer)
 		Xt = transformer.fit_transform(X)
+		self.assertEqual(1, transformer.n_features_in_)
 		self.assertIsInstance(Xt, Series)
 		self.assertEqual(["x-neg", "neg", "pos", "x-pos"], Xt.tolist())
 		transformer = CutTransformer(bins, labels = ["x-neg", "neg", "pos", "x-pos"])
@@ -257,6 +262,7 @@ class DataFrameConstructorTest(TestCase):
 		check_is_fitted(transformer)
 		X = numpy.asarray([[1, "one"], [2, "two"], [3, "three"]])
 		Xt = transformer.fit_transform(X)
+		self.assertEqual(2, transformer.n_features_in_)
 		self.assertIsInstance(Xt, DataFrame)
 		self.assertEqual(["int", "str"], Xt.columns.values.tolist())
 		self.assertEqual(object, Xt["int"].dtype)
@@ -282,6 +288,7 @@ class SeriesConstructorTest(TestCase):
 		check_is_fitted(transformer)
 		X = numpy.asarray(["one", "two", "three", "one", "three"])
 		Xt = transformer.fit_transform(X)
+		self.assertEqual(1, transformer.n_features_in_)
 		self.assertIsInstance(Xt, Series)
 		self.assertEqual("x", Xt.name)
 		self.assertIn(str(Xt.dtype), ["object", "string"])
@@ -404,6 +411,8 @@ class ExpressionTransformerTest(TestCase):
 		transformer = ExpressionTransformer("X['a'] + X['b']", map_missing_to = -1, dtype = int)
 		X = DataFrame([[0, 1], [1, 2]], columns = ["a", "b"])
 		Xt = transformer.fit_transform(X)
+		check_is_fitted(transformer)
+		self.assertEqual(2, transformer.n_features_in_)
 		self.assertEqual(int, transformer.dtype)
 		self.assertEqual(int, transformer.dtype_)
 		self.assertIsInstance(Xt, numpy.ndarray)
@@ -563,6 +572,7 @@ class NumberFormatterTest(TransformerTest):
 		self.assertEqual([" -1", "  0", "  1"], self._transform1d(transformer, X).tolist())
 		X = numpy.asarray([[-1], [0], [1.5]])
 		Xt = transformer.fit_transform(X)
+		self.assertEqual(1, transformer.n_features_in_)
 		self.assertIsInstance(Xt, numpy.ndarray)
 		self.assertEqual([[" -1"], ["  0"], ["  1"]], Xt.tolist())
 
@@ -573,6 +583,7 @@ class IdentityTransformerTest(TestCase):
 		check_is_fitted(transformer)
 		X = DataFrame(["A", "B", "C"])
 		Xt = transformer.fit_transform(X)
+		self.assertEqual(1, transformer.n_features_in_)
 		self.assertIsInstance(Xt, DataFrame)
 		self.assertEqual([["A"], ["B"], ["C"]], Xt.values.tolist())
 
@@ -629,6 +640,7 @@ class LookupTransformerTest(TransformerTest):
 		transformer = LookupTransformer(mapping, None)
 		X = polars.Series(["one", "two", "three"])
 		Xt = transformer.fit_transform(X)
+		self.assertEqual(1, transformer.n_features_in_)
 		self.assertIsInstance(Xt, polars.Series)
 		self.assertEqual(["ein", "zwei", "drei"], Xt.to_list())
 
@@ -733,6 +745,7 @@ class MultiLookupTransformerTest(TestCase):
 		}
 		transformer = MultiLookupTransformer(mapping, None)
 		Xt = transformer.fit_transform(X)
+		self.assertEqual(2, transformer.n_features_in_)
 		self.assertIsInstance(Xt, numpy.ndarray)
 		self.assertIn(str(Xt.dtype), ["object", "string"])
 		self.assertTrue(_list_equal([float("NaN"), False, True], Xt.tolist()))
@@ -750,6 +763,8 @@ class PMMLLabelBinarizerTest(TestCase):
 		labels = [1.0, 2.0, 3.0]
 		binarizer = PMMLLabelBinarizer()
 		binarizer.fit(X)
+		check_is_fitted(binarizer)
+		self.assertEqual(1, binarizer.n_features_in_)
 		self.assertEqual(labels, binarizer.classes_.tolist())
 
 	def test_fit_string(self):
@@ -798,6 +813,8 @@ class PMMLLabelEncoderTest(TestCase):
 		encoder = PMMLLabelEncoder(missing_values = -999)
 		self.assertEqual(-999, encoder.missing_values)
 		encoder.fit(X)
+		check_is_fitted(encoder)
+		self.assertEqual(1, encoder.n_features_in_)
 		self.assertEqual(labels, encoder.classes_.tolist())
 
 	def test_fit_string(self):
@@ -975,6 +992,7 @@ class RollingAggregateTransformerTest(TestCase):
 		X = X.values
 		transformer = RollingAggregateTransformer(function = "sum", n = 2, block_indicators = [1])
 		Xt = transformer.fit_transform(X)
+		self.assertEqual(2, transformer.n_features_in_)
 		self.assertTrue(_list_equal([float("NaN"), -1, float("NaN"), 1, -1, 3, 3], Xt[:, 0].tolist()))
 
 	def test_get_feature_names_out(self):

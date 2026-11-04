@@ -5,9 +5,15 @@ try:
 except ImportError:
 	pass
 
+import numpy
+
 class FeaturesInMixin:
 
 	def _check_features_in(self, X, reset):
+		if len(numpy.shape(X)) == 1:
+			if reset:
+				self.n_features_in_ = 1
+			return
 		# SkLearn 1.6.1
 		if hasattr(self, "_check_feature_names") and hasattr(self, "_check_n_features"):
 			self._check_n_features(X, reset = reset)

@@ -16,9 +16,9 @@ except ImportError:
 	from sklearn.base import _OneToOneFeatureMixin as OneToOneFeatureMixin
 from sklearn.exceptions import NotFittedError
 from sklearn.pipeline import Pipeline
-from sklearn2pmml.base import StatelessTransformerMixin
+from sklearn2pmml.base import FeaturesInMixin, StatelessTransformerMixin
 from sklearn2pmml.preprocessing.regex import make_regex_engine
-from sklearn2pmml.util import _copy, _get_column_count, _get_column, _get_columns, _is_pandas_categorical, _is_pandas_proto_categorical, _to_numpy, _set_column, cast, check_expression, check_predicate, dt_transform, eval_rows, is_1d, to_1d, to_expr_func
+from sklearn2pmml.util import _copy, _get_column, _get_columns, _is_pandas_categorical, _is_pandas_proto_categorical, _to_numpy, _set_column, cast, check_expression, check_predicate, dt_transform, eval_rows, is_1d, to_1d, to_expr_func
 
 import numpy
 import pandas
@@ -41,7 +41,7 @@ def _aggregate_fun(function):
 	else:
 		raise ValueError(function)
 
-class AggregateTransformer(BaseEstimator, StatelessTransformerMixin):
+class AggregateTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin):
 	"""Aggregate continuous data."""
 
 	def __init__(self, function):
@@ -51,6 +51,7 @@ class AggregateTransformer(BaseEstimator, StatelessTransformerMixin):
 		self.function = function
 
 	def fit(self, X, y = None):
+		self._check_features_in(X, reset = True)
 		return self
 
 	def transform(self, X):
@@ -58,7 +59,7 @@ class AggregateTransformer(BaseEstimator, StatelessTransformerMixin):
 		Xt = fun(X, axis = 1)
 		return Xt.reshape((-1, 1))
 
-class BSplineTransformer(BaseEstimator, StatelessTransformerMixin):
+class BSplineTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin):
 
 	def __init__(self, bspline):
 		if not isinstance(bspline, BSpline):
@@ -66,6 +67,7 @@ class BSplineTransformer(BaseEstimator, StatelessTransformerMixin):
 		self.bspline = bspline
 
 	def fit(self, X, y = None):
+		self._check_features_in(X, reset = True)
 		to_1d(X)
 		return self
 
@@ -87,7 +89,7 @@ def _fit_dtype(dtype, X):
 	else:
 		return dtype
 
-class CastTransformer(BaseEstimator, TransformerMixin, OneToOneFeatureMixin):
+class CastTransformer(BaseEstimator, FeaturesInMixin, TransformerMixin, OneToOneFeatureMixin):
 	"""Change data type."""
 
 	def __init__(self, dtype):
@@ -95,14 +97,14 @@ class CastTransformer(BaseEstimator, TransformerMixin, OneToOneFeatureMixin):
 		self.dtype = dtype
 
 	def fit(self, X, y = None):
+		self._check_features_in(X, reset = True)
 		self.dtype_ = _fit_dtype(self.dtype, X)
-		self.n_features_in_ = _get_column_count(X)
 		return self
 
 	def transform(self, X):
 		return cast(X, self.dtype_)
 
-class MultiCastTransformer(BaseEstimator, TransformerMixin):
+class MultiCastTransformer(BaseEstimator, FeaturesInMixin, TransformerMixin):
 
 	def __init__(self, dtypes):
 		for dtype in dtypes:
@@ -110,6 +112,7 @@ class MultiCastTransformer(BaseEstimator, TransformerMixin):
 		self.dtypes = dtypes
 
 	def fit(self, X, y = None):
+		self._check_features_in(X, reset = True)
 		rows, columns = X.shape
 		if len(self.dtypes) != columns:
 			raise ValueError("The number of columns {0} is not equal to the number of data types {1}".format(columns, len(self.dtypes)))
@@ -123,7 +126,7 @@ class MultiCastTransformer(BaseEstimator, TransformerMixin):
 			X = _set_column(X, column, x)
 		return X
 
-class CutTransformer(BaseEstimator, StatelessTransformerMixin):
+class CutTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin):
 	"""Bin continuous data to categorical."""
 
 	def __init__(self, bins, right = True, labels = None, include_lowest = True, dtype = None):
@@ -136,6 +139,7 @@ class CutTransformer(BaseEstimator, StatelessTransformerMixin):
 		self.dtype = dtype
 
 	def fit(self, X, y = None):
+		self._check_features_in(X, reset = True)
 		to_1d(X)
 		return self
 
@@ -149,7 +153,7 @@ class CutTransformer(BaseEstimator, StatelessTransformerMixin):
 				Xt = _to_numpy(Xt)
 			return Xt.reshape(X.shape)
 
-class DataFrameConstructor(BaseEstimator, StatelessTransformerMixin):
+class DataFrameConstructor(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin):
 
 	def __init__(self, columns, dtype):
 		self.columns = columns
@@ -159,12 +163,13 @@ class DataFrameConstructor(BaseEstimator, StatelessTransformerMixin):
 		return numpy.asarray(self.columns)
 
 	def fit(self, X, y = None):
+		self._check_features_in(X, reset = True)
 		return self
 
 	def transform(self, X):
 		return DataFrame(X, columns = self.columns, dtype = self.dtype)
 
-class SeriesConstructor(BaseEstimator, StatelessTransformerMixin, OneToOneFeatureMixin):
+class SeriesConstructor(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin, OneToOneFeatureMixin):
 
 	def __init__(self, name, dtype):
 		self.name = name
@@ -176,8 +181,8 @@ class SeriesConstructor(BaseEstimator, StatelessTransformerMixin, OneToOneFeatur
 		return super(SeriesConstructor, self).get_feature_names_out(input_features = input_features)
 
 	def fit(self, X, y = None):
+		self._check_features_in(X, reset = True)
 		to_1d(X)
-		self.n_features_in_ = 1
 		return self
 
 	def transform(self, X):
@@ -190,7 +195,7 @@ def _int(X):
 	else:
 		return cast(X, int)
 
-class DurationTransformer(BaseEstimator, StatelessTransformerMixin):
+class DurationTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin):
 	"""Calculate time difference."""
 
 	def __init__(self, year):
@@ -203,6 +208,7 @@ class DurationTransformer(BaseEstimator, StatelessTransformerMixin):
 		raise NotImplementedError()
 
 	def fit(self, X, y = None):
+		self._check_features_in(X, reset = True)
 		return self
 
 	def transform(self, X):
@@ -230,7 +236,7 @@ class SecondsSinceYearTransformer(DurationTransformer):
 	def _to_duration(self, td):
 		return td.total_seconds()
 
-class SecondsSinceMidnightTransformer(BaseEstimator, StatelessTransformerMixin):
+class SecondsSinceMidnightTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin):
 	"""Calculate the number of seconds since midnight."""
 
 	def __init__(self):
@@ -240,6 +246,7 @@ class SecondsSinceMidnightTransformer(BaseEstimator, StatelessTransformerMixin):
 		return td.seconds
 
 	def fit(self, X, y = None):
+		self._check_features_in(X, reset = True)
 		return self
 
 	def transform(self, X):
@@ -250,7 +257,7 @@ class SecondsSinceMidnightTransformer(BaseEstimator, StatelessTransformerMixin):
 
 		return dt_transform(X, to_int_duration)
 
-class ExpressionTransformer(BaseEstimator, TransformerMixin):
+class ExpressionTransformer(BaseEstimator, FeaturesInMixin, TransformerMixin):
 	"""Transform data using a Python expression.
 
 	Parameters:
@@ -302,6 +309,7 @@ class ExpressionTransformer(BaseEstimator, TransformerMixin):
 		return Xt
 
 	def fit(self, X, y = None):
+		self._check_features_in(X, reset = True)
 		if _is_pandas_proto_categorical(self.dtype):
 			Xt = self._eval(X)
 			Xt = cast(Xt, self.dtype)
@@ -324,6 +332,7 @@ class ExpressionTransformer(BaseEstimator, TransformerMixin):
 		return Xt
 
 	def fit_transform(self, X, y = None):
+		self._check_features_in(X, reset = True)
 		Xt = self._eval(X)
 		if self.dtype is not None:
 			Xt = cast(Xt, self.dtype)
@@ -336,13 +345,14 @@ class ExpressionTransformer(BaseEstimator, TransformerMixin):
 		self.dtype_ = dtype
 		return Xt
 
-class IdentityTransformer(BaseEstimator, StatelessTransformerMixin, OneToOneFeatureMixin):
+class IdentityTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin, OneToOneFeatureMixin):
 	"""Passes data through as-is."""
 
 	def __init__(self):
 		pass
 
 	def fit(self, X, y = None):
+		self._check_features_in(X, reset = True)
 		return self
 
 	def transform(self, X):
@@ -351,7 +361,7 @@ class IdentityTransformer(BaseEstimator, StatelessTransformerMixin, OneToOneFeat
 	def get_feature_names_out(self, input_features = None):
 		return input_features
 
-class DateTimeFormatter(BaseEstimator, StatelessTransformerMixin):
+class DateTimeFormatter(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin):
 	"""Formats dates, times and datetimes according to a pattern. Analogous to C's strftime() function.
 
 	Parameters:
@@ -367,6 +377,7 @@ class DateTimeFormatter(BaseEstimator, StatelessTransformerMixin):
 		return x.strftime(self.pattern)
 
 	def fit(self, X):
+		self._check_features_in(X, reset = True)
 		to_1d(X)
 		return self
 
@@ -376,7 +387,7 @@ class DateTimeFormatter(BaseEstimator, StatelessTransformerMixin):
 		Xt = eval_rows(X1d, func, shape = X.shape)
 		return Xt
 
-class NumberFormatter(BaseEstimator, StatelessTransformerMixin):
+class NumberFormatter(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin):
 	"""Formats numbers according to a pattern. Analogous to C's printf() function.
 
 	Parameters:
@@ -394,6 +405,7 @@ class NumberFormatter(BaseEstimator, StatelessTransformerMixin):
 			return buffer.getvalue()
 
 	def fit(self, X):
+		self._check_features_in(X, reset = True)
 		to_1d(X)
 		return self
 
@@ -403,7 +415,7 @@ class NumberFormatter(BaseEstimator, StatelessTransformerMixin):
 		Xt = eval_rows(X1d, func, shape = X.shape)
 		return Xt
 
-class LookupTransformer(BaseEstimator, StatelessTransformerMixin):
+class LookupTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin):
 	"""Re-map 1D categorical data.
 
 	If the mapping is not found, returns `default_value`.
@@ -450,6 +462,7 @@ class LookupTransformer(BaseEstimator, StatelessTransformerMixin):
 		return transform_dict
 
 	def fit(self, X, y = None):
+		self._check_features_in(X, reset = True)
 		to_1d(X)
 		return self
 
@@ -518,6 +531,7 @@ class MultiLookupTransformer(LookupTransformer):
 					raise TypeError("Key is not a tuple of {0}", ", ".join(e.__name__ for e in k_type))
 
 	def fit(self, X, y = None):
+		self._check_features_in(X, reset = True)
 		return self
 
 	def transform(self, X):
@@ -546,13 +560,14 @@ def _make_index(values):
 		raise ValueError()
 	return result
 
-class PMMLLabelBinarizer(BaseEstimator, TransformerMixin):
+class PMMLLabelBinarizer(BaseEstimator, FeaturesInMixin, TransformerMixin):
 	"""Binarize categorical data in a missing value-aware way."""
 
 	def __init__(self, sparse_output = False):
 		self.sparse_output = sparse_output
 
 	def fit(self, X, y = None):
+		self._check_features_in(X, reset = True)
 		X1d = to_1d(X)
 		self.classes_ = _unique(X1d)
 		return self
@@ -571,13 +586,14 @@ class PMMLLabelBinarizer(BaseEstimator, TransformerMixin):
 			Xt = Xt.tocsr()
 		return Xt
 
-class PMMLLabelEncoder(BaseEstimator, TransformerMixin):
+class PMMLLabelEncoder(BaseEstimator, FeaturesInMixin, TransformerMixin):
 	"""Encode categorical data in a missing value-aware way."""
 
 	def __init__(self, missing_values = None):
 		self.missing_values = missing_values
 
 	def fit(self, X, y = None):
+		self._check_features_in(X, reset = True)
 		X1d = to_1d(X)
 		self.classes_ = _unique(X1d)
 		return self
@@ -588,7 +604,7 @@ class PMMLLabelEncoder(BaseEstimator, TransformerMixin):
 		Xt = numpy.array([self.missing_values if pandas.isnull(v) else mapping.get(v, self.missing_values) for v in X1d])
 		return Xt.reshape((-1, 1))
 
-class PowerFunctionTransformer(BaseEstimator, StatelessTransformerMixin):
+class PowerFunctionTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin):
 	"""Raise numeric data to power."""
 
 	def __init__(self, power):
@@ -597,6 +613,7 @@ class PowerFunctionTransformer(BaseEstimator, StatelessTransformerMixin):
 		self.power = power
 
 	def fit(self, X, y = None):
+		self._check_features_in(X, reset = True)
 		return self
 
 	def transform(self, X):
@@ -648,7 +665,7 @@ def _ndarray_apply_blockwise(X, block_indicators, fun):
 		fun(X, Xt, row_indices, column_indices)
 	return Xt
 
-class LagTransformer(BaseEstimator, StatelessTransformerMixin):
+class LagTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin):
 
 	def __init__(self, n, block_indicators = None):
 		if not isinstance(n, int):
@@ -665,6 +682,7 @@ class LagTransformer(BaseEstimator, StatelessTransformerMixin):
 		return numpy.asarray(_map_feature_names(input_features, self.block_indicators, _format_name))
 
 	def fit(self, X, y = None):
+		self._check_features_in(X, reset = True)
 		return self
 
 	def transform(self, X):
@@ -696,7 +714,7 @@ class LagTransformer(BaseEstimator, StatelessTransformerMixin):
 				_shift(X, Xt)
 				return Xt
 
-class RollingAggregateTransformer(BaseEstimator, StatelessTransformerMixin):
+class RollingAggregateTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin):
 
 	def __init__(self, function, n, block_indicators = None):
 		functions = ["avg", "min", "max", "mean", "prod", "product", "sum"]
@@ -717,6 +735,7 @@ class RollingAggregateTransformer(BaseEstimator, StatelessTransformerMixin):
 		return numpy.asarray(_map_feature_names(input_features, self.block_indicators, _format_name))
 
 	def fit(self, X, y = None):
+		self._check_features_in(X, reset = True)
 		return self
 
 	def transform(self, X):
@@ -756,13 +775,14 @@ class RollingAggregateTransformer(BaseEstimator, StatelessTransformerMixin):
 				_rolling_apply(X, Xt)
 				return Xt
 
-class ConcatTransformer(BaseEstimator, StatelessTransformerMixin):
+class ConcatTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin):
 	"""Concat data to string."""
 
 	def __init__(self, separator = ""):
 		self.separator = separator
 
 	def fit(self, X, y = None):
+		self._check_features_in(X, reset = True)
 		return self
 
 	def transform(self, X):
@@ -770,7 +790,7 @@ class ConcatTransformer(BaseEstimator, StatelessTransformerMixin):
 		Xt = eval_rows(X, func, to_numpy = True)
 		return Xt.reshape((-1, 1))
 
-class RegExTransformer(BaseEstimator, StatelessTransformerMixin):
+class RegExTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin):
 
 	def __init__(self, pattern, re_flavour):
 		super(RegExTransformer, self).__init__()
@@ -784,6 +804,7 @@ class RegExTransformer(BaseEstimator, StatelessTransformerMixin):
 		raise NotImplementedError()
 
 	def fit(self, X, y = None):
+		self._check_features_in(X, reset = True)
 		to_1d(X)
 		return self
 
@@ -819,12 +840,13 @@ class ReplaceTransformer(RegExTransformer):
 
 		return replace
 
-class StringTransformer(BaseEstimator, StatelessTransformerMixin):
+class StringTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin):
 
 	def __init__(self):
 		pass
 
 	def fit(self, X, y = None):
+		self._check_features_in(X, reset = True)
 		to_1d(X)
 		return self
 

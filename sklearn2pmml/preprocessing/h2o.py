@@ -3,17 +3,18 @@ try:
 except ImportError:
 	pass
 from sklearn.base import BaseEstimator
-from sklearn2pmml.base import StatelessTransformerMixin
+from sklearn2pmml.base import FeaturesInMixin, StatelessTransformerMixin
 
 import warnings
 
-class H2OFrameConstructor(BaseEstimator, StatelessTransformerMixin):
+class H2OFrameConstructor(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin):
 
 	def __init__(self, column_names = None, column_types = None):
 		self.column_names = column_names
 		self.column_types = column_types
 
 	def fit(self, X, y = None):
+		self._check_features_in(X, reset = True)
 		return self
 
 	def transform(self, X):
