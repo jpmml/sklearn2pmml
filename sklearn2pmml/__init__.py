@@ -276,7 +276,6 @@ def _print_banner():
 	print("Recommended PMML deployment tools:")
 
 	tools = [
-		("MS Excel", "https://xlsboost.com"),
 		("Java", "https://github.com/jpmml/jpmml-evaluator"),
 		("Python", "https://github.com/jpmml/jpmml-evaluator-python"),
 		("R", "https://github.com/jpmml/jpmml-evaluator-r"),
