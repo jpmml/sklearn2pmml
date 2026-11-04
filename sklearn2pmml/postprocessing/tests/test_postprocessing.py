@@ -1,4 +1,5 @@
 from pandas import DataFrame
+from sklearn.utils.validation import check_is_fitted
 from sklearn2pmml.postprocessing import FeatureExporter, BusinessDecisionTransformer
 from sklearn2pmml.preprocessing import ExpressionTransformer
 from sklearn2pmml.util import _to_numpy
@@ -39,6 +40,7 @@ class FeatureExporterTest(TestCase):
 	def test_transform(self):
 		X = DataFrame([["a", 1], ["b", 2], ["c", 3], ["d", 4]], columns = ["x1", "x2"])
 		transformer = FeatureExporter(names = ["x(1)", "x(2)"])
+		check_is_fitted(transformer)
 		self.assertEqual(["x1", "x2"], transformer.get_feature_names_out(X.columns).tolist())
 		Xt = transformer.transform(X)
 		self.assertIsInstance(Xt, DataFrame)

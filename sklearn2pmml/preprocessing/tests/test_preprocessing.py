@@ -13,6 +13,7 @@ from sklearn.impute import SimpleImputer
 from sklearn.pipeline import make_pipeline
 from sklearn.pipeline import FeatureUnion, Pipeline
 from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder
+from sklearn.utils.validation import check_is_fitted
 from sklearn2pmml.decoration import Alias, DateDomain, DateTimeDomain
 from sklearn2pmml.preprocessing import AggregateTransformer, CastTransformer, ConcatTransformer, CutTransformer, DataFrameConstructor, DateTimeFormatter, DaysSinceYearTransformer, ExpressionTransformer, FilterLookupTransformer, IdentityTransformer, LagTransformer, LookupTransformer, MatchesTransformer, MultiCastTransformer, MultiLookupTransformer, NumberFormatter, PMMLLabelBinarizer, PMMLLabelEncoder, PowerFunctionTransformer, ReplaceTransformer, RollingAggregateTransformer, SecondsSinceMidnightTransformer, SecondsSinceYearTransformer, SelectFirstTransformer, SeriesConstructor, StringLengthTransformer, StringNormalizer, SubstringTransformer, WordCountTransformer
 from sklearn2pmml.preprocessing.h2o import H2OFrameConstructor, H2OFrameCreator
@@ -251,6 +252,7 @@ class DataFrameConstructorTest(TestCase):
 
 	def test_fit_transform(self):
 		transformer = DataFrameConstructor(columns = ["int", "str"], dtype = object)
+		check_is_fitted(transformer)
 		X = numpy.asarray([[1, "one"], [2, "two"], [3, "three"]])
 		Xt = transformer.fit_transform(X)
 		self.assertIsInstance(Xt, DataFrame)
@@ -275,6 +277,7 @@ class SeriesConstructorTest(TestCase):
 
 	def test_fit_transform(self):
 		transformer = SeriesConstructor(name = "x", dtype = object)
+		check_is_fitted(transformer)
 		X = numpy.asarray(["one", "two", "three", "one", "three"])
 		Xt = transformer.fit_transform(X)
 		self.assertIsInstance(Xt, Series)
@@ -562,6 +565,7 @@ class IdentityTransformerTest(TestCase):
 
 	def test_transform(self):
 		transformer = IdentityTransformer()
+		check_is_fitted(transformer)
 		X = DataFrame(["A", "B", "C"])
 		Xt = transformer.fit_transform(X)
 		self.assertIsInstance(Xt, DataFrame)
@@ -819,6 +823,7 @@ class PowerFunctionTransformerTest(TestCase):
 	def test_transform(self):
 		X = numpy.asarray([-2, -1, 0, 1, 2])
 		transformer = PowerFunctionTransformer(power = 1)
+		check_is_fitted(transformer)
 		self.assertEqual(X.tolist(), transformer.transform(X).tolist())
 		transformer = PowerFunctionTransformer(power = 2)
 		self.assertEqual([4, 1, 0, 1, 4], transformer.transform(X).tolist())
@@ -1002,6 +1007,7 @@ class StringLengthTransformerTest(TransformerTest):
 	def test_transform(self):
 		X = Series(["one", "two", "three", "four", "five"])
 		transformer = StringLengthTransformer()
+		check_is_fitted(transformer)
 		self.assertEqual([3, 3, 5, 4, 4], self._transform1d(transformer, X).tolist())
 
 class StringNormalizerTest(TransformerTest):
@@ -1009,6 +1015,7 @@ class StringNormalizerTest(TransformerTest):
 	def test_transform(self):
 		X = Series([" One", " two ", "THRee "])
 		transformer = StringNormalizer(function = None)
+		check_is_fitted(transformer)
 		self.assertEqual(["One", "two", "THRee"], self._transform1d(transformer, X).tolist())
 		transformer = StringNormalizer(function = "uppercase", trim_blanks = False)
 		self.assertEqual([" ONE", " TWO ", "THREE "], self._transform1d(transformer, X).tolist())
@@ -1032,6 +1039,7 @@ class SubstringTransformerTest(TransformerTest):
 	def test_transform(self):
 		X = Series(["", "a", "aB", "aBc", "aBc9", "aBc9x"])
 		transformer = SubstringTransformer(1, 4)
+		check_is_fitted(transformer)
 		self.assertEqual(["", "", "B", "Bc", "Bc9", "Bc9"], self._transform1d(transformer, X).tolist())
 		vectorizer = CountVectorizer(token_pattern = r"\w+")
 		pipeline = make_pipeline(transformer, vectorizer)
@@ -1046,6 +1054,7 @@ class WordCountTransformerTest(TransformerTest):
 	def test_transform(self):
 		X = Series(["", "Hellow World", "Happy New Year", "!?"])
 		transformer = WordCountTransformer()
+		check_is_fitted(transformer)
 		self.assertEqual([[0], [2], [3], [0]], transformer.transform(X).tolist())
 		X = X.values
 		self.assertEqual([[0], [2], [3], [0]], transformer.transform(X).tolist())
