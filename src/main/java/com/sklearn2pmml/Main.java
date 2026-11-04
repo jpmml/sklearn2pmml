@@ -28,6 +28,7 @@ import java.text.DecimalFormatSymbols;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +45,7 @@ import org.dmg.pmml.PMML;
 import org.dmg.pmml.Version;
 import org.jpmml.converter.Application;
 import org.jpmml.converter.LoggingUtil;
+import org.jpmml.converter.PMMLEncodable;
 import org.jpmml.converter.VersionConverter;
 import org.jpmml.model.JAXBSerializer;
 import org.jpmml.model.MarkupException;
@@ -55,8 +57,6 @@ import org.jpmml.model.visitors.VersionStandardizer;
 import org.jpmml.python.PythonUnpickler;
 import org.jpmml.python.Storage;
 import org.jpmml.python.StorageUtil;
-import org.jpmml.sklearn.Encodable;
-import org.jpmml.sklearn.EncodableUtil;
 import org.jpmml.sklearn.SkLearnUnpickler;
 import org.jpmml.sklearn.SkLearnUtil;
 import org.jpmml.telemetry.Incident;
@@ -171,9 +171,9 @@ public class Main extends Application {
 			object = pythonUnpickler.load(storage);
 		}
 
-		Encodable encodable = EncodableUtil.toEncodable(object);
+		PMMLEncodable encodable = SkLearnUtil.toEncodable(object);
 
-		PMML pmml = EncodableUtil.encodePMML(encodable);
+		PMML pmml = SkLearnUtil.encodePMML(encodable, Collections.emptyMap());
 
 		if(!this.outputFile.exists()){
 			File absoluteOutputFile = this.outputFile.getAbsoluteFile();
