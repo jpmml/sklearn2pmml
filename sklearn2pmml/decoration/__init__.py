@@ -11,7 +11,7 @@ try:
 	from sklearn.utils.validation import _check_feature_names, _check_n_features
 except ImportError:
 	pass
-from sklearn2pmml import StatelessTransformerMixin
+from sklearn2pmml.base import StatelessTransformerMixin
 from sklearn2pmml.util import _copy, _get_categories, _get_column, _get_columns, _is_categorical, _is_ordinal, _is_pandas_categorical, _is_pandas_proto_categorical, _to_numpy, _to_numpy_dtype, _set_column, _set_values, cast, common_dtype, fqn, is_1d
 
 import copy

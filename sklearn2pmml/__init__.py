@@ -25,13 +25,9 @@ import re
 import tempfile
 import warnings
 
+from .base import StatelessTransformerMixin
 from .metadata import __copyright__, __license__, __version__
 from .pipeline import PMMLPipeline
-
-class StatelessTransformerMixin(TransformerMixin):
-
-	def __sklearn_is_fitted__(self):
-		return True
 
 class EstimatorProxy(BaseEstimator):
 
