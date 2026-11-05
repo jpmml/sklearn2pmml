@@ -1,7 +1,3 @@
-try:
-	from h2o.frame import H2OFrame
-except ImportError:
-	pass
 from sklearn.base import BaseEstimator
 from sklearn2pmml.base import FeaturesInMixin, StatelessTransformerMixin
 
@@ -18,6 +14,8 @@ class H2OFrameConstructor(BaseEstimator, FeaturesInMixin, StatelessTransformerMi
 		return self
 
 	def transform(self, X):
+		from h2o.frame import H2OFrame
+
 		return H2OFrame(python_obj = X, column_names = self.column_names, column_types = self.column_types)
 
 class H2OFrameCreator(H2OFrameConstructor):

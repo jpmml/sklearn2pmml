@@ -1,7 +1,3 @@
-try:
-	from CHAID import Tree
-except ImportError:
-	pass
 from pandas import Series
 from sklearn.base import BaseEstimator, ClassifierMixin, RegressorMixin
 from sklearn2pmml.util import _is_pandas_dataframe
@@ -19,6 +15,8 @@ class CHAIDEstimator(BaseEstimator):
 		raise NotImplementedError()
 
 	def fit(self, X, y, **fit_params):
+		from CHAID import Tree
+
 		if _is_pandas_dataframe(X):
 			features = dict()
 			for col in X.columns.values:
