@@ -308,6 +308,11 @@ class ExpressionTransformer(BaseEstimator, FeaturesInMixin, TransformerMixin):
 			Xt = eval_rows(X, _eval_row, to_numpy = (not is_1d(X)), shape = (-1, 1))
 		return Xt
 
+	def __sklearn_is_fitted__(self):
+		if _is_pandas_proto_categorical(self.dtype):
+			return hasattr(self, "dtype_")
+		return True
+
 	def fit(self, X, y = None):
 		self._check_features_in(X, reset = True)
 		if _is_pandas_proto_categorical(self.dtype):

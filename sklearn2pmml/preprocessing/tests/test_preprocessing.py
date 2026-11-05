@@ -408,6 +408,7 @@ class ExpressionTransformerTest(TestCase):
 		self.assertTrue(hasattr(transformer, "invalid_value_treatment"))
 		self.assertTrue(hasattr(transformer, "dtype"))
 		self.assertFalse(hasattr(transformer, "dtype_"))
+		check_is_fitted(transformer)
 		transformer = ExpressionTransformer("X['a'] + X['b']", map_missing_to = -1, dtype = int)
 		X = DataFrame([[0, 1], [1, 2]], columns = ["a", "b"])
 		Xt = transformer.fit_transform(X)
@@ -491,8 +492,11 @@ class ExpressionTransformerTest(TestCase):
 		self.assertFalse(hasattr(transformer, "dtype_"))
 		X = DataFrame([[1.2], [0.1], [1.8], [2.3], [0.7], [0.0]], columns = ["a"])
 		with self.assertRaises(NotFittedError):
+			check_is_fitted(transformer)
+		with self.assertRaises(NotFittedError):
 			transformer.transform(X)
 		Xt = transformer.fit_transform(X)
+		check_is_fitted(transformer)
 		self.assertTrue(hasattr(transformer, "dtype"))
 		self.assertTrue(hasattr(transformer, "dtype_"))
 		self.assertIsInstance(transformer.dtype, str)
