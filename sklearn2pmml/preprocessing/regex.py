@@ -52,7 +52,16 @@ class PCRE2Engine(RegExEngine):
 			return self.pattern_.substitute(replacement, x)
 		# PCRE2 0.5.0+
 		else:
+			# PCRE2 0.6.0+
+			if _pcre2_version() >= (0, 6):
+				replacement = replacement.replace("\\", "\\\\")
 			return self.pattern_.sub(replacement, x)
+
+def _pcre2_version():
+	import pcre2
+
+	version = pcre2.__version__
+	return tuple(int(part) for part in version.split(".")[:2])
 
 class REEngine(RegExEngine):
 
