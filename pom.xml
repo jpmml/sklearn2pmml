@@ -12,6 +12,10 @@
 	<artifactId>sklearn2pmml</artifactId>
 	<version>1.1-SNAPSHOT</version>
 
+	<name>SkLearn2PMML</name>
+	<description>Python library for converting Scikit-Learn pipelines to PMML</description>
+	<url>https://github.com/jpmml/sklearn2pmml</url>
+
 	<scm>
 		<connection>scm:git:git@github.com:jpmml/sklearn2pmml.git</connection>
 		<developerConnection>scm:git:git@github.com:jpmml/sklearn2pmml.git</developerConnection>
