@@ -18,7 +18,7 @@ from sklearn.exceptions import NotFittedError
 from sklearn.pipeline import Pipeline
 from sklearn2pmml.base import FeaturesInMixin, StatelessTransformerMixin
 from sklearn2pmml.preprocessing.regex import make_regex_engine
-from sklearn2pmml.util import _copy, _get_column, _get_columns, _is_pandas_categorical, _is_pandas_dataframe, _is_pandas_proto_categorical, _mask_missing, _to_int, _to_numpy, _set_column, cast, check_expression, check_predicate, dt_transform, eval_rows, is_1d, to_1d, to_expr_func
+from sklearn2pmml.util import _copy, _get_column, _get_columns, _is_pandas_categorical, _is_pandas_dataframe, _is_pandas_proto_categorical, _mask_missing, _to_int, _to_numpy, _to_sparse, _set_column, cast, check_expression, check_predicate, dt_transform, eval_rows, is_1d, to_1d, to_expr_func
 
 import numpy
 import pandas
@@ -974,13 +974,6 @@ class WordCountTransformer(StringTransformer):
 		# The expression "X]0]" assumes a two-dimensional array
 		X1d = _to_numpy(X1d).reshape((-1, 1))
 		return self.pipeline_.transform(X1d)
-
-def _to_sparse(X, step_mask, step_result):
-	# Make array
-	result = numpy.empty((X.shape[0], step_result.shape[1]), dtype = object)
-	# Fill array
-	result[step_mask.ravel(), :] = step_result
-	return result
 
 class SelectFirstTransformer(BaseEstimator, TransformerMixin):
 

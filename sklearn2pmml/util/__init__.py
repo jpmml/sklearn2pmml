@@ -544,6 +544,20 @@ def eval_rows(X, func, to_numpy = False, shape = None, dtype = None):
 			Xt = Xt.reshape(shape)
 		return Xt
 
+def _to_sparse(X, step_mask, step_result):
+	# Make array
+	if len(step_result.shape) == 1:
+		result = numpy.empty((X.shape[0], ), dtype = object)
+	else:
+		result = numpy.empty((X.shape[0], step_result.shape[1]), dtype = object)
+	# Fill array
+	step_mask = numpy.asarray(step_mask).ravel()
+	if len(step_result.shape) == 1:
+		result[step_mask] = step_result
+	else:
+		result[step_mask, :] = step_result
+	return result
+
 def fqn(obj):
 	clazz = obj if inspect.isclass(obj) else obj.__class__
 	return ".".join([clazz.__module__, clazz.__name__])

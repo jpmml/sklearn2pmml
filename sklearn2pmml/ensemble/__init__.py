@@ -5,7 +5,7 @@ from sklearn.linear_model._base import LinearClassifierMixin, LinearModel, Spars
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.utils.metaestimators import _BaseComposition
 from sklearn.utils.validation import check_is_fitted
-from sklearn2pmml.util import check_predicate, eval_rows, fqn, to_expr_func
+from sklearn2pmml.util import _to_sparse, check_predicate, eval_rows, fqn, to_expr_func
 
 import copy
 import numpy
@@ -134,20 +134,6 @@ class GBDTLRClassifier(GBDTEstimator, ClassifierMixin):
 	def predict_proba(self, X):
 		idt = self._encoded_leaf_indices(X)
 		return self.lr_.predict_proba(idt)
-
-def _to_sparse(X, step_mask, step_result):
-	# Make array
-	if len(step_result.shape) == 1:
-		result = numpy.empty((X.shape[0], ), dtype = object)
-	else:
-		result = numpy.empty((X.shape[0], step_result.shape[1]), dtype = object)
-	# Fill array
-	step_mask = numpy.asarray(step_mask).ravel()
-	if len(step_result.shape) == 1:
-		result[step_mask] = step_result
-	else:
-		result[step_mask, :] = step_result
-	return result
 
 class _BaseEnsemble(_BaseComposition):
 
