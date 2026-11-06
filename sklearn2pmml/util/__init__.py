@@ -52,76 +52,75 @@ def _is_dataframe(X):
 def _is_1d(X):
 	return _is_pandas_1d(X) or _is_polars_1d(X)
 
-def _is_pandas_string(dtype):
-	if hasattr(dtype, "name"):
-		return dtype.name in ["str", "string"]
-	return False
-
-def _is_pandas_categorical(dtype):
-	if hasattr(dtype, "name"):
-		return dtype.name == "category"
-	return False
-
-def _is_pandas_proto_categorical(dtype):
-	if isinstance(dtype, str) and dtype == "category":
+def is_1d(X):
+	shape = X.shape
+	if len(shape) == 1:
 		return True
-	if isinstance(dtype, CategoricalDtype):
-		return dtype.categories is None
-	return False
-
-def _is_polars_string(dtype):
-	polars = sys.modules.get("polars")
-	if polars is not None:
-		return dtype == polars.String
-	return False
-
-def _is_polars_categorical(dtype):
-	polars = sys.modules.get("polars")
-	if polars is not None:
-		return isinstance(dtype, (polars.Categorical, polars.Enum))
-	return False
-
-def _is_categorical(dtype):
-	if dtype == object or dtype == str or dtype == bool:
+	elif (len(shape) == 2 and shape[1] == 1):
 		return True
-	elif _is_pandas_string(dtype):
-		return True
-	elif _is_pandas_categorical(dtype):
-		return True
-	elif _is_polars_string(dtype):
-		return True
-	elif _is_polars_categorical(dtype):
-		return True
-	return False
+	else:
+		return False
 
-def _is_pandas_ordinal(dtype):
-	if isinstance(dtype, CategoricalDtype):
-		return dtype.ordered
-	return False
+def to_1d(X):
+	if _is_1d(X):
+		return X
+	elif _is_dataframe(X):
+		columns = X.columns
+		if len(columns) == 1:
+			return X[columns[0]]
+	X = numpy.asarray(X)
+	shape = X.shape
+	if len(shape) == 1:
+		return X
+	elif (len(shape) == 2) and (shape[1] == 1):
+		return X.ravel()
+	else:
+		raise ValueError("Expected 1d array or 2d column vector array, got {0}d array of shape {1}".format(len(shape), str(shape)))
 
-def _is_polars_ordinal(dtype):
-	polars = sys.modules.get("polars")
-	if polars is not None:
-		return isinstance(dtype, polars.Enum)
-	return False
+def _to_numpy(X):
+	if hasattr(X, "to_numpy"):
+		return X.to_numpy()
+	return X
 
-def _is_ordinal(dtype):
-	if _is_pandas_ordinal(dtype):
-		return True
-	elif _is_polars_ordinal(dtype):
-		return True
-	return False
+def _to_sparse(X, step_mask, step_result):
+	# Make array
+	if len(step_result.shape) == 1:
+		result = numpy.empty((X.shape[0], ), dtype = object)
+	else:
+		result = numpy.empty((X.shape[0], step_result.shape[1]), dtype = object)
+	# Fill array
+	step_mask = numpy.asarray(step_mask).ravel()
+	if len(step_result.shape) == 1:
+		result[step_mask] = step_result
+	else:
+		result[step_mask, :] = step_result
+	return result
 
-def _get_categories(dtype):
-	if isinstance(dtype, CategoricalDtype):
-		return numpy.asarray(dtype.categories) if dtype.categories is not None else None
-	polars = sys.modules.get("polars")
-	if polars is not None:
-		if isinstance(dtype, polars.Categorical):
-			return None
-		elif isinstance(dtype, polars.Enum):
-			return numpy.asarray(dtype.categories)
-	return None
+def _copy(X):
+	if _is_polars_series(X) or _is_polars_dataframe(X):
+		return X.clone()
+	else:
+		return X.copy()
+
+def _get_column(X, column):
+	if _is_pandas_dataframe(X):
+		return X[column] if isinstance(column, str) else X.iloc[:, column]
+	elif _is_polars_dataframe(X):
+		return X[column] if isinstance(column, str) else X.to_series(column)
+	else:
+		return X[:, column]
+
+def _set_column(X, column, x):
+	if _is_pandas_dataframe(X):
+		X[column] = x
+		return X
+	elif _is_polars_dataframe(X):
+		polars = sys.modules.get("polars")
+		x = polars.Series(column if isinstance(column, str) else X.columns[column], x)
+		return X.with_columns(x)
+	else:
+		X[:, column] = x
+		return X
 
 def _get_columns(X):
 	if _is_dataframe(X):
@@ -152,25 +151,11 @@ def _get_column_names(X):
 	else:
 		return None
 
-def _get_column(X, column):
-	if _is_pandas_dataframe(X):
-		return X[column] if isinstance(column, str) else X.iloc[:, column]
-	elif _is_polars_dataframe(X):
-		return X[column] if isinstance(column, str) else X.to_series(column)
-	else:
-		return X[:, column]
-
-def _set_column(X, column, x):
-	if _is_pandas_dataframe(X):
-		X[column] = x
-		return X
-	elif _is_polars_dataframe(X):
-		polars = sys.modules.get("polars")
-		x = polars.Series(column if isinstance(column, str) else X.columns[column], x)
-		return X.with_columns(x)
-	else:
-		X[:, column] = x
-		return X
+def _get_values(X):
+	# if isinstance(X, H2OFrame)
+	if hasattr(X, "as_data_frame"):
+		X = X.as_data_frame()
+	return _to_numpy(X)
 
 def _set_values(X, where, values):
 	if _is_polars_series(X):
@@ -195,11 +180,18 @@ def _set_values(X, where, values):
 		X[where] = values
 		return X
 
-def _copy(X):
+def _mask_missing(X, Xt, mask_value = None):
 	if _is_polars_series(X) or _is_polars_dataframe(X):
-		return X.clone()
-	else:
-		return X.copy()
+		return Xt
+	if mask_value is None:
+		mask_value = X
+	mask = pandas.isnull(X)
+	if numpy.any(mask):
+		if hasattr(Xt, "where"):
+			Xt = Xt.where(~mask, mask_value)
+		else:
+			Xt = numpy.where(~mask, Xt, mask_value)
+	return Xt
 
 def _clear(X):
 	if _is_pandas_dataframe(X):
@@ -212,16 +204,87 @@ def _clear(X):
 		X.clear()
 		return X
 
-def _get_values(X):
-	# if isinstance(X, H2OFrame)
-	if hasattr(X, "as_data_frame"):
-		X = X.as_data_frame()
-	return _to_numpy(X)
+def _is_pandas_string(dtype):
+	if hasattr(dtype, "name"):
+		return dtype.name in ["str", "string"]
+	return False
 
-def _to_numpy(X):
-	if hasattr(X, "to_numpy"):
-		return X.to_numpy()
-	return X
+def _is_pandas_categorical(dtype):
+	if hasattr(dtype, "name"):
+		return dtype.name == "category"
+	return False
+
+def _is_pandas_proto_categorical(dtype):
+	if isinstance(dtype, str) and dtype == "category":
+		return True
+	if isinstance(dtype, CategoricalDtype):
+		return dtype.categories is None
+	return False
+
+def _is_pandas_ordinal(dtype):
+	if isinstance(dtype, CategoricalDtype):
+		return dtype.ordered
+	return False
+
+def _is_polars_string(dtype):
+	polars = sys.modules.get("polars")
+	if polars is not None:
+		return dtype == polars.String
+	return False
+
+def _is_polars_categorical(dtype):
+	polars = sys.modules.get("polars")
+	if polars is not None:
+		return isinstance(dtype, (polars.Categorical, polars.Enum))
+	return False
+
+def _is_polars_ordinal(dtype):
+	polars = sys.modules.get("polars")
+	if polars is not None:
+		return isinstance(dtype, polars.Enum)
+	return False
+
+def _is_categorical(dtype):
+	if dtype == object or dtype == str or dtype == bool:
+		return True
+	elif _is_pandas_string(dtype):
+		return True
+	elif _is_pandas_categorical(dtype):
+		return True
+	elif _is_polars_string(dtype):
+		return True
+	elif _is_polars_categorical(dtype):
+		return True
+	return False
+
+def _is_ordinal(dtype):
+	if _is_pandas_ordinal(dtype):
+		return True
+	elif _is_polars_ordinal(dtype):
+		return True
+	return False
+
+def _get_categories(dtype):
+	if isinstance(dtype, CategoricalDtype):
+		return numpy.asarray(dtype.categories) if dtype.categories is not None else None
+	polars = sys.modules.get("polars")
+	if polars is not None:
+		if isinstance(dtype, polars.Categorical):
+			return None
+		elif isinstance(dtype, polars.Enum):
+			return numpy.asarray(dtype.categories)
+	return None
+
+def common_dtype(X):
+	if hasattr(X, "dtype"):
+		return X.dtype
+	elif hasattr(X, "dtypes"):
+		dtypes = set(X.dtypes)
+		if len(dtypes) != 1:
+			raise ValueError(dtypes)
+		return next(iter(dtypes))
+	else:
+		raise ValueError()
 
 def _to_numpy_dtype(dtype):
 	if hasattr(dtype, "numpy_dtype"):
@@ -248,19 +311,6 @@ def cast(X, dtype):
 			Xt = _mask_missing(X, Xt)
 		return Xt
 
-def _mask_missing(X, Xt, mask_value = None):
-	if _is_polars_series(X) or _is_polars_dataframe(X):
-		return Xt
-	if mask_value is None:
-		mask_value = X
-	mask = pandas.isnull(X)
-	if numpy.any(mask):
-		if hasattr(Xt, "where"):
-			Xt = Xt.where(~mask, mask_value)
-		else:
-			Xt = numpy.where(~mask, Xt, mask_value)
-	return Xt
-
 def _to_int(X):
 	if _is_pandas_1d(X):
 		mask = pandas.isnull(X)
@@ -278,72 +328,6 @@ def _to_int(X):
 		if numpy.any(mask):
 			return numpy.where(mask, numpy.nan, X).astype(float)
 		return X.astype(int)
-
-def common_dtype(X):
-	if hasattr(X, "dtype"):
-		return X.dtype
-	elif hasattr(X, "dtypes"):
-		dtypes = set(X.dtypes)
-		if len(dtypes) != 1:
-			raise ValueError(dtypes)
-		return next(iter(dtypes))
-	else:
-		raise ValueError()
-
-def is_1d(X):
-	shape = X.shape
-	if len(shape) == 1:
-		return True
-	elif (len(shape) == 2 and shape[1] == 1):
-		return True
-	else:
-		return False
-
-def to_1d(X):
-	if _is_1d(X):
-		return X
-	elif _is_dataframe(X):
-		columns = X.columns
-		if len(columns) == 1:
-			return X[columns[0]]
-	X = numpy.asarray(X)
-	shape = X.shape
-	if len(shape) == 1:
-		return X
-	elif (len(shape) == 2) and (shape[1] == 1):
-		return X.ravel()
-	else:
-		raise ValueError("Expected 1d array or 2d column vector array, got {0}d array of shape {1}".format(len(shape), str(shape)))
-
-def dt_transform(X, func, dtype = None):
-	if _is_pandas_1d(X):
-		return X.apply(func)
-	elif _is_pandas_dataframe(X):
-		if hasattr(X, "applymap"):
-			return X.applymap(func)
-		else:
-			return X.map(func)
-	elif _is_polars_series(X):
-		return X.map_elements(func, return_dtype = dtype)
-	elif _is_polars_dataframe(X):
-		polars = sys.modules.get("polars")
-		return X.select(polars.all().map_elements(func, return_dtype = dtype))
-	else:
-		X = numpy.asarray(X)
-		Xt = numpy.vectorize(func, otypes = [object])(X)
-		return Xt
-
-def to_pydatetime(obj, dtype):
-	if not isinstance(obj, (str, datetime, datetime64, Timestamp)):
-		raise TypeError()
-	ts = pandas.to_datetime(obj, yearfirst = True, format = iso8601_format, origin = "unix")
-	if dtype == "datetime64[D]":
-		ts = ts.floor(freq = "D")
-	elif dtype == "datetime64[s]":
-		ts = ts.floor(freq = "s")
-	else:
-		raise ValueError(dtype)
-	return ts.to_pydatetime()
 
 def ensure_def(expr, env):
 	expr_code = compile(expr, "<string>", "exec")
@@ -544,19 +528,35 @@ def eval_rows(X, func, to_numpy = False, shape = None, dtype = None):
 			Xt = Xt.reshape(shape)
 		return Xt
 
-def _to_sparse(X, step_mask, step_result):
-	# Make array
-	if len(step_result.shape) == 1:
-		result = numpy.empty((X.shape[0], ), dtype = object)
+def dt_transform(X, func, dtype = None):
+	if _is_pandas_1d(X):
+		return X.apply(func)
+	elif _is_pandas_dataframe(X):
+		if hasattr(X, "applymap"):
+			return X.applymap(func)
+		else:
+			return X.map(func)
+	elif _is_polars_series(X):
+		return X.map_elements(func, return_dtype = dtype)
+	elif _is_polars_dataframe(X):
+		polars = sys.modules.get("polars")
+		return X.select(polars.all().map_elements(func, return_dtype = dtype))
 	else:
-		result = numpy.empty((X.shape[0], step_result.shape[1]), dtype = object)
-	# Fill array
-	step_mask = numpy.asarray(step_mask).ravel()
-	if len(step_result.shape) == 1:
-		result[step_mask] = step_result
+		X = numpy.asarray(X)
+		Xt = numpy.vectorize(func, otypes = [object])(X)
+		return Xt
+
+def to_pydatetime(obj, dtype):
+	if not isinstance(obj, (str, datetime, datetime64, Timestamp)):
+		raise TypeError()
+	ts = pandas.to_datetime(obj, yearfirst = True, format = iso8601_format, origin = "unix")
+	if dtype == "datetime64[D]":
+		ts = ts.floor(freq = "D")
+	elif dtype == "datetime64[s]":
+		ts = ts.floor(freq = "s")
 	else:
-		result[step_mask, :] = step_result
-	return result
+		raise ValueError(dtype)
+	return ts.to_pydatetime()
 
 def fqn(obj):
 	clazz = obj if inspect.isclass(obj) else obj.__class__
