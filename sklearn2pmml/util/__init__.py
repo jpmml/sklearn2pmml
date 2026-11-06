@@ -245,16 +245,21 @@ def cast(X, dtype):
 			X = numpy.asarray(X)
 			Xt = X.astype(dtype)
 		if dtype in (str, "unicode"):
-			if _is_polars_series(X) or _is_polars_dataframe(X):
-				pass
-			else:
-				mask = pandas.isnull(X)
-				if numpy.any(mask):
-					if hasattr(Xt, "where"):
-						Xt = Xt.where(~mask, X)
-					else:
-						Xt = numpy.where(~mask, Xt, X)
+			Xt = _mask_missing(X, Xt)
 		return Xt
+
+def _mask_missing(X, Xt, mask_value = None):
+	if _is_polars_series(X) or _is_polars_dataframe(X):
+		return Xt
+	if mask_value is None:
+		mask_value = X
+	mask = pandas.isnull(X)
+	if numpy.any(mask):
+		if hasattr(Xt, "where"):
+			Xt = Xt.where(~mask, mask_value)
+		else:
+			Xt = numpy.where(~mask, Xt, mask_value)
+	return Xt
 
 def common_dtype(X):
 	if hasattr(X, "dtype"):

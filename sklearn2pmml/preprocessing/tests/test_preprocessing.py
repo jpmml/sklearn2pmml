@@ -1044,6 +1044,8 @@ class StringLengthTransformerTest(TransformerTest):
 		transformer = StringLengthTransformer()
 		check_is_fitted(transformer)
 		self.assertEqual([3, 3, 5, 4, 4], self._transform1d(transformer, X).tolist())
+		X = Series(["one", None, numpy.nan])
+		self.assertTrue(_list_equal([3, numpy.nan, numpy.nan], self._transform1d(transformer, X).tolist()))
 
 class StringNormalizerTest(TransformerTest):
 
@@ -1069,6 +1071,10 @@ class StringNormalizerTest(TransformerTest):
 		Xt = pipeline.fit_transform(X)
 		self.assertEqual((3, 1), Xt.shape)
 
+		X = Series([" One", None, numpy.nan])
+		transformer = StringNormalizer(function = "lowercase")
+		self.assertTrue(_list_equal(["one", None, numpy.nan], self._transform1d(transformer, X).tolist()))
+
 class SubstringTransformerTest(TransformerTest):
 
 	def test_transform(self):
@@ -1083,6 +1089,8 @@ class SubstringTransformerTest(TransformerTest):
 		X = X.values
 		Xt = pipeline.fit_transform(X)
 		self.assertEqual((6, 3), Xt.shape)
+		X = Series(["aBc", None, numpy.nan])
+		self.assertTrue(_list_equal(["Bc", None, numpy.nan], self._transform1d(transformer, X).tolist()))
 
 class WordCountTransformerTest(TransformerTest):
 
