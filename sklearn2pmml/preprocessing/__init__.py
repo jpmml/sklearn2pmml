@@ -18,7 +18,7 @@ from sklearn.exceptions import NotFittedError
 from sklearn.pipeline import Pipeline
 from sklearn2pmml.base import FeaturesInMixin, StatelessTransformerMixin
 from sklearn2pmml.preprocessing.regex import make_regex_engine
-from sklearn2pmml.util import _copy, _get_column, _get_columns, _is_pandas_1d, _is_pandas_categorical, _is_pandas_dataframe, _is_pandas_proto_categorical, _mask_missing, _to_numpy, _set_column, cast, check_expression, check_predicate, dt_transform, eval_rows, is_1d, to_1d, to_expr_func
+from sklearn2pmml.util import _copy, _get_column, _get_columns, _is_pandas_1d, _is_pandas_categorical, _is_pandas_dataframe, _is_pandas_proto_categorical, _is_polars_dataframe, _is_polars_series, _mask_missing, _to_numpy, _set_column, cast, check_expression, check_predicate, dt_transform, eval_rows, is_1d, to_1d, to_expr_func
 
 import numpy
 import pandas
@@ -190,14 +190,19 @@ class SeriesConstructor(BaseEstimator, FeaturesInMixin, StatelessTransformerMixi
 		return Series(X1d, name = self.name, dtype = self.dtype)
 
 def _int(X):
-	if _is_pandas_dataframe(X):
-		return X.apply(_int)
-	mask = pandas.isnull(X)
 	if _is_pandas_1d(X):
+		mask = pandas.isnull(X)
 		if numpy.any(mask):
 			return X.astype("Int64")
 		return X.astype(int)
+	elif _is_pandas_dataframe(X):
+		return X.apply(_int)
+	elif _is_polars_series(X):
+		return X.cast(int)
+	elif _is_polars_dataframe(X):
+		return X.cast(int)
 	else:
+		mask = pandas.isnull(X)
 		if numpy.any(mask):
 			return numpy.where(mask, numpy.nan, X).astype(float)
 		return X.astype(int)
@@ -225,7 +230,7 @@ class DurationTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerMi
 			duration = self._to_duration(pandas.to_timedelta(X - self.epoch))
 			return int(duration)
 
-		Xt = dt_transform(X, to_int_duration)
+		Xt = dt_transform(X, to_int_duration, dtype = int)
 		return _int(Xt)
 
 class DaysSinceYearTransformer(DurationTransformer):
@@ -267,7 +272,7 @@ class SecondsSinceMidnightTransformer(BaseEstimator, FeaturesInMixin, StatelessT
 			duration = self._to_duration(dt - dt.normalize())
 			return int(duration)
 
-		Xt = dt_transform(X, to_int_duration)
+		Xt = dt_transform(X, to_int_duration, dtype = int)
 		return _int(Xt)
 
 class ExpressionTransformer(BaseEstimator, FeaturesInMixin, TransformerMixin):

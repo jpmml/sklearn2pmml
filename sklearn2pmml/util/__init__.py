@@ -235,7 +235,7 @@ def _to_numpy_dtype(dtype):
 def cast(X, dtype):
 	if isinstance(dtype, str) and dtype.startswith("datetime64"):
 		func = lambda x: to_pydatetime(x, dtype)
-		return dt_transform(X, func)
+		return dt_transform(X, func, dtype = datetime)
 	else:
 		if _is_pandas_series(X) or _is_pandas_dataframe(X):
 			Xt = X.astype(dtype)
@@ -297,7 +297,7 @@ def to_1d(X):
 	else:
 		raise ValueError("Expected 1d array or 2d column vector array, got {0}d array of shape {1}".format(len(shape), str(shape)))
 
-def dt_transform(X, func):
+def dt_transform(X, func, dtype = None):
 	if _is_pandas_1d(X):
 		return X.apply(func)
 	elif _is_pandas_dataframe(X):
@@ -305,9 +305,15 @@ def dt_transform(X, func):
 			return X.applymap(func)
 		else:
 			return X.map(func)
-	X = numpy.asarray(X)
-	Xt = numpy.vectorize(func, otypes = [object])(X)
-	return Xt
+	elif _is_polars_series(X):
+		return X.map_elements(func, return_dtype = dtype)
+	elif _is_polars_dataframe(X):
+		polars = sys.modules.get("polars")
+		return X.select(polars.all().map_elements(func, return_dtype = dtype))
+	else:
+		X = numpy.asarray(X)
+		Xt = numpy.vectorize(func, otypes = [object])(X)
+		return Xt
 
 def to_pydatetime(obj, dtype):
 	if not isinstance(obj, (str, datetime, datetime64, Timestamp)):

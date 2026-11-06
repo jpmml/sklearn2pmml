@@ -141,6 +141,13 @@ class CastTransformerTest(TransformerTest):
 		transformer = CastTransformer(dtype = "datetime64[s]")
 		self.assertEqual([datetime(1969, 7, 16, 13, 32, 0), datetime(1969, 7, 20, 20, 17, 40), datetime(1969, 7, 21, 17, 54, 1), datetime(1969, 7, 24, 16, 50, 35)], self._fit_transform1d(transformer, X).tolist())
 
+	def test_polars_transform_datetime(self):
+		X = polars.Series([datetime(1969, 7, 16, 13, 32, 0), None])
+		transformer = CastTransformer(dtype = "datetime64[D]")
+		Xt = self._fit_transform1d(transformer, X, check_numpy = False)
+		self.assertIsInstance(Xt, polars.Series)
+		self.assertEqual([datetime(1969, 7, 16), None], Xt.to_list())
+
 	def test_transform_string(self):
 		# XXX: Replace "pandas.NA" string literal with the actual constant
 		X = Series([float("NaN"), "red", None, "green", "pandas.NA"], dtype = object)
@@ -360,6 +367,21 @@ class DurationTransformerTest(TestCase):
 		transformer = SecondsSinceYearTransformer(year = 1960)
 		self.assertEqual([0, 1, 60, -1, 185403], transformer.transform(X).tolist())
 
+	def test_polars_transform(self):
+		X = polars.Series([datetime(1960, 1, 2), None])
+		transformer = DaysSinceYearTransformer(year = 1960)
+		Xt = transformer.transform(X)
+		self.assertIsInstance(Xt, polars.Series)
+		self.assertEqual(polars.Int64, Xt.dtype)
+		self.assertEqual([1, None], Xt.to_list())
+		X = polars.DataFrame({"x" : [datetime(1960, 1, 1, 0, 1, 0), None], "y" : [datetime(1959, 12, 31, 23, 59, 59), datetime(1960, 1, 3, 3, 30, 3)]})
+		transformer = SecondsSinceYearTransformer(year = 1960)
+		Xt = transformer.transform(X)
+		self.assertIsInstance(Xt, polars.DataFrame)
+		self.assertEqual([polars.Int64, polars.Int64], Xt.dtypes)
+		self.assertEqual([60, None], Xt["x"].to_list())
+		self.assertEqual([-1, 185403], Xt["y"].to_list())
+
 	def test_timedelta_days(self):
 		X = DataFrame([["2018-12-31", "2019-01-01"], ["2019-01-31", "2019-01-01"]], columns = ["left", "right"])
 		pipeline = clone(Pipeline([
@@ -398,6 +420,14 @@ class SecondsSinceMidnightTransformerTest(TestCase):
 		Xt = transformer.transform(X)
 		self.assertEqual("Int64", Xt.dtype)
 		self.assertEqual([60, pandas.NA], Xt.tolist())
+
+	def test_polars_timedelta(self):
+		X = polars.Series([datetime(2020, 1, 1, 0, 1), None])
+		transformer = SecondsSinceMidnightTransformer()
+		Xt = transformer.transform(X)
+		self.assertIsInstance(Xt, polars.Series)
+		self.assertEqual(polars.Int64, Xt.dtype)
+		self.assertEqual([60, None], Xt.to_list())
 
 def _signum(X):
 	if X[0] < 0: return -1
