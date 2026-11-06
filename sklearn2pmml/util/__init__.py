@@ -180,17 +180,17 @@ def _set_values(X, where, values):
 		X[where] = values
 		return X
 
-def _mask_missing(X, Xt, mask_value = None):
+def _set_missing_values(X, Xt, value = None):
 	if _is_polars_series(X) or _is_polars_dataframe(X):
 		return Xt
-	if mask_value is None:
-		mask_value = X
+	if value is None:
+		value = X
 	mask = pandas.isnull(X)
 	if numpy.any(mask):
 		if hasattr(Xt, "where"):
-			Xt = Xt.where(~mask, mask_value)
+			Xt = Xt.where(~mask, value)
 		else:
-			Xt = numpy.where(~mask, Xt, mask_value)
+			Xt = numpy.where(~mask, Xt, value)
 	return Xt
 
 def _clear(X):
@@ -308,7 +308,7 @@ def cast(X, dtype):
 			X = numpy.asarray(X)
 			Xt = X.astype(dtype)
 		if dtype in (str, "unicode"):
-			Xt = _mask_missing(X, Xt)
+			Xt = _set_missing_values(X, Xt)
 		return Xt
 
 def _to_int(X):

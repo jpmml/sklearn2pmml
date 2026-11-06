@@ -18,7 +18,7 @@ from sklearn.exceptions import NotFittedError
 from sklearn.pipeline import Pipeline
 from sklearn2pmml.base import FeaturesInMixin, StatelessTransformerMixin
 from sklearn2pmml.preprocessing.regex import make_regex_engine
-from sklearn2pmml.util import _copy, _get_column, _get_columns, _has_1d_shape, _is_pandas_categorical, _is_pandas_dataframe, _is_pandas_proto_categorical, _mask_missing, _to_1d, _to_int, _to_numpy, _to_sparse, _set_column, cast, check_expression, check_predicate, dt_transform, eval_rows, to_expr_func
+from sklearn2pmml.util import _copy, _get_column, _get_columns, _has_1d_shape, _is_pandas_categorical, _is_pandas_dataframe, _is_pandas_proto_categorical, _set_missing_values, _to_1d, _to_int, _to_numpy, _to_sparse, _set_column, cast, check_expression, check_predicate, dt_transform, eval_rows, to_expr_func
 
 import numpy
 import pandas
@@ -881,11 +881,11 @@ class StringLengthTransformer(StringTransformer):
 		Xt = cast(X1d, "U")
 		if hasattr(Xt, "str"):
 			Xt = Xt.str.len()
-			Xt = _mask_missing(X1d, Xt, numpy.nan)
+			Xt = _set_missing_values(X1d, Xt, numpy.nan)
 			return Xt
 		else:
 			Xt = numpy.char.str_len(Xt)
-			Xt = _mask_missing(X1d, Xt, numpy.nan)
+			Xt = _set_missing_values(X1d, Xt, numpy.nan)
 			return Xt.reshape(X.shape)
 
 class StringNormalizer(StringTransformer):
@@ -924,7 +924,7 @@ class StringNormalizer(StringTransformer):
 				Xt = Xt.str.strip()
 			else:
 				Xt = numpy.char.strip(Xt)
-		Xt = _mask_missing(X1d, Xt)
+		Xt = _set_missing_values(X1d, Xt)
 		if hasattr(Xt, "str"):
 			return Xt
 		else:
@@ -948,12 +948,12 @@ class SubstringTransformer(StringTransformer):
 		Xt = cast(X1d, "U")
 		if hasattr(Xt, "str"):
 			Xt = Xt.str.slice(self.begin, self.end)
-			Xt = _mask_missing(X1d, Xt)
+			Xt = _set_missing_values(X1d, Xt)
 			return Xt
 		else:
 			func = lambda x: x[self.begin:self.end]
 			Xt = eval_rows(Xt, func)
-			Xt = _mask_missing(X1d, Xt)
+			Xt = _set_missing_values(X1d, Xt)
 			return Xt.reshape(X.shape)
 
 class WordCountTransformer(StringTransformer):
