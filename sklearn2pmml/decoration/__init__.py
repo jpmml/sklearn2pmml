@@ -7,7 +7,7 @@ try:
 except ImportError:
 	from sklearn.base import _OneToOneFeatureMixin as OneToOneFeatureMixin
 from sklearn2pmml.base import FeaturesInMixin, StatelessTransformerMixin
-from sklearn2pmml.util import _copy, _get_categories, _get_column, _get_columns, _is_categorical, _is_ordinal, _is_pandas_categorical, _is_pandas_proto_categorical, _to_numpy, _to_numpy_dtype, _set_column, _set_values, cast, common_dtype, fqn, is_1d
+from sklearn2pmml.util import _copy, _get_categories, _get_column, _get_columns, _has_1d_shape, _is_categorical, _is_ordinal, _is_pandas_categorical, _is_pandas_proto_categorical, _to_numpy, _to_numpy_dtype, _set_column, _set_values, cast, common_dtype, fqn
 
 import copy
 import itertools
@@ -66,7 +66,7 @@ class MultiAlias(TransformerWrapper):
 		return numpy.asarray(self.names)
 
 def _check_cols(X, values):
-	if is_1d(X):
+	if _has_1d_shape(X):
 		if hasattr(values, "__len__") and len(values) > 1:
 			raise ValueError()
 	else:
@@ -240,7 +240,7 @@ class DiscreteDomain(Domain):
 				else:
 					return numpy.isin(x, values)
 
-			if is_1d(X):
+			if _has_1d_shape(X):
 				where = where.ravel()
 				mask = numpy.full(X.shape, fill_value = False)
 				mask[where] = _isin_mask(X[where], data_values)
@@ -283,7 +283,7 @@ class DiscreteDomain(Domain):
 				nonmissing_mask = ~missing_mask
 			else:
 				_check_cols(X, self.data_values)
-			if is_1d(X):
+			if _has_1d_shape(X):
 				if self.data_values is None:
 					data_values = _get_categories(self.dtype_)
 					if data_values is None:
@@ -309,7 +309,7 @@ class DiscreteDomain(Domain):
 		if self.with_statistics:
 			missing_mask, valid_mask, invalid_mask = self._compute_masks(X)
 			self.counts_ = _count(missing_mask, valid_mask, invalid_mask)
-			if is_1d(X):
+			if _has_1d_shape(X):
 				values, counts = numpy.unique(X[valid_mask], return_counts = True)
 				self.discr_stats_ = (_cast(values), counts)
 			else:

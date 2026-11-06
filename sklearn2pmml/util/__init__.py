@@ -52,7 +52,7 @@ def _is_dataframe(X):
 def _is_1d(X):
 	return _is_pandas_1d(X) or _is_polars_1d(X)
 
-def is_1d(X):
+def _has_1d_shape(X):
 	shape = X.shape
 	if len(shape) == 1:
 		return True

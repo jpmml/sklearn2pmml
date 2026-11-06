@@ -18,7 +18,7 @@ from sklearn.exceptions import NotFittedError
 from sklearn.pipeline import Pipeline
 from sklearn2pmml.base import FeaturesInMixin, StatelessTransformerMixin
 from sklearn2pmml.preprocessing.regex import make_regex_engine
-from sklearn2pmml.util import _copy, _get_column, _get_columns, _is_pandas_categorical, _is_pandas_dataframe, _is_pandas_proto_categorical, _mask_missing, _to_int, _to_numpy, _to_sparse, _set_column, cast, check_expression, check_predicate, dt_transform, eval_rows, is_1d, to_1d, to_expr_func
+from sklearn2pmml.util import _copy, _get_column, _get_columns, _has_1d_shape, _is_pandas_categorical, _is_pandas_dataframe, _is_pandas_proto_categorical, _mask_missing, _to_int, _to_numpy, _to_sparse, _set_column, cast, check_expression, check_predicate, dt_transform, eval_rows, to_1d, to_expr_func
 
 import numpy
 import pandas
@@ -305,7 +305,7 @@ class ExpressionTransformer(BaseEstimator, FeaturesInMixin, TransformerMixin):
 
 		# Evaluate in PMML compatibility mode
 		with numpy.errstate(divide = "raise"):
-			Xt = eval_rows(X, _eval_row, to_numpy = (not is_1d(X)), shape = (-1, 1))
+			Xt = eval_rows(X, _eval_row, to_numpy = (not _has_1d_shape(X)), shape = (-1, 1))
 		return Xt
 
 	def __sklearn_is_fitted__(self):
