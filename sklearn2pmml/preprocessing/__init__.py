@@ -18,7 +18,7 @@ from sklearn.exceptions import NotFittedError
 from sklearn.pipeline import Pipeline
 from sklearn2pmml.base import FeaturesInMixin, StatelessTransformerMixin
 from sklearn2pmml.preprocessing.regex import make_regex_engine
-from sklearn2pmml.util import _copy, _get_column, _get_columns, _has_1d_shape, _is_pandas_categorical, _is_pandas_dataframe, _is_pandas_proto_categorical, _mask_missing, _to_int, _to_numpy, _to_sparse, _set_column, cast, check_expression, check_predicate, dt_transform, eval_rows, to_1d, to_expr_func
+from sklearn2pmml.util import _copy, _get_column, _get_columns, _has_1d_shape, _is_pandas_categorical, _is_pandas_dataframe, _is_pandas_proto_categorical, _mask_missing, _to_1d, _to_int, _to_numpy, _to_sparse, _set_column, cast, check_expression, check_predicate, dt_transform, eval_rows, to_expr_func
 
 import numpy
 import pandas
@@ -68,11 +68,11 @@ class BSplineTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerMix
 
 	def fit(self, X, y = None):
 		self._check_features_in(X, reset = True)
-		to_1d(X)
+		_to_1d(X)
 		return self
 
 	def transform(self, X):
-		X1d = to_1d(X)
+		X1d = _to_1d(X)
 		Xt = self.bspline(X1d)
 		return Xt.reshape(X.shape)
 
@@ -140,11 +140,11 @@ class CutTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin):
 
 	def fit(self, X, y = None):
 		self._check_features_in(X, reset = True)
-		to_1d(X)
+		_to_1d(X)
 		return self
 
 	def transform(self, X):
-		X1d = to_1d(X)
+		X1d = _to_1d(X)
 		Xt = pandas.cut(X1d, bins = self.bins, right = self.right, labels = self.labels, include_lowest = self.include_lowest)
 		if self.dtype:
 			return Xt
@@ -182,11 +182,11 @@ class SeriesConstructor(BaseEstimator, FeaturesInMixin, StatelessTransformerMixi
 
 	def fit(self, X, y = None):
 		self._check_features_in(X, reset = True)
-		to_1d(X)
+		_to_1d(X)
 		return self
 
 	def transform(self, X):
-		X1d = to_1d(X)
+		X1d = _to_1d(X)
 		return Series(X1d, name = self.name, dtype = self.dtype)
 
 class DurationTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin):
@@ -383,11 +383,11 @@ class DateTimeFormatter(BaseEstimator, FeaturesInMixin, StatelessTransformerMixi
 
 	def fit(self, X):
 		self._check_features_in(X, reset = True)
-		to_1d(X)
+		_to_1d(X)
 		return self
 
 	def transform(self, X):
-		X1d = to_1d(X)
+		X1d = _to_1d(X)
 
 		def _eval_row(x):
 			if pandas.isnull(x):
@@ -416,11 +416,11 @@ class NumberFormatter(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin)
 
 	def fit(self, X):
 		self._check_features_in(X, reset = True)
-		to_1d(X)
+		_to_1d(X)
 		return self
 
 	def transform(self, X):
-		X1d = to_1d(X)
+		X1d = _to_1d(X)
 
 		def _eval_row(x):
 			if pandas.isnull(x):
@@ -478,11 +478,11 @@ class LookupTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerMixi
 
 	def fit(self, X, y = None):
 		self._check_features_in(X, reset = True)
-		to_1d(X)
+		_to_1d(X)
 		return self
 
 	def transform(self, X):
-		X1d = to_1d(X)
+		X1d = _to_1d(X)
 		transform_dict = self._transform_dict()
 
 		def _eval_row(x):
@@ -516,7 +516,7 @@ class FilterLookupTransformer(LookupTransformer):
 		return self.mapping
 
 	def transform(self, X):
-		X1d = to_1d(X)
+		X1d = _to_1d(X)
 		transform_dict = self._transform_dict()
 
 		def _eval_row(x):
@@ -583,12 +583,12 @@ class PMMLLabelBinarizer(BaseEstimator, FeaturesInMixin, TransformerMixin):
 
 	def fit(self, X, y = None):
 		self._check_features_in(X, reset = True)
-		X1d = to_1d(X)
+		X1d = _to_1d(X)
 		self.classes_ = _unique(X1d)
 		return self
 
 	def transform(self, X):
-		X1d = to_1d(X)
+		X1d = _to_1d(X)
 		mapping = _make_index(self.classes_)
 		if self.sparse_output:
 			Xt = lil_matrix((len(X1d), len(mapping)), dtype = int)
@@ -609,12 +609,12 @@ class PMMLLabelEncoder(BaseEstimator, FeaturesInMixin, TransformerMixin):
 
 	def fit(self, X, y = None):
 		self._check_features_in(X, reset = True)
-		X1d = to_1d(X)
+		X1d = _to_1d(X)
 		self.classes_ = _unique(X1d)
 		return self
 
 	def transform(self, X):
-		X1d = to_1d(X)
+		X1d = _to_1d(X)
 		mapping = _make_index(self.classes_)
 		Xt = numpy.array([self.missing_values if pandas.isnull(v) else mapping.get(v, self.missing_values) for v in X1d])
 		return Xt.reshape((-1, 1))
@@ -820,11 +820,11 @@ class RegExTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin
 
 	def fit(self, X, y = None):
 		self._check_features_in(X, reset = True)
-		to_1d(X)
+		_to_1d(X)
 		return self
 
 	def transform(self, X):
-		X1d = to_1d(X)
+		X1d = _to_1d(X)
 		regex_engine = make_regex_engine(self.pattern, self.re_flavour)
 		func = self._regex_func(regex_engine)
 
@@ -868,7 +868,7 @@ class StringTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerMixi
 
 	def fit(self, X, y = None):
 		self._check_features_in(X, reset = True)
-		to_1d(X)
+		_to_1d(X)
 		return self
 
 class StringLengthTransformer(StringTransformer):
@@ -877,7 +877,7 @@ class StringLengthTransformer(StringTransformer):
 		super(StringLengthTransformer, self).__init__()
 
 	def transform(self, X):
-		X1d = to_1d(X)
+		X1d = _to_1d(X)
 		Xt = cast(X1d, "U")
 		if hasattr(Xt, "str"):
 			Xt = Xt.str.len()
@@ -900,7 +900,7 @@ class StringNormalizer(StringTransformer):
 		self.trim_blanks = trim_blanks
 
 	def transform(self, X):
-		X1d = to_1d(X)
+		X1d = _to_1d(X)
 		# Convert from any data type to Unicode string data type
 		Xt = cast(X1d, "U")
 		# Transform
@@ -943,7 +943,7 @@ class SubstringTransformer(StringTransformer):
 		self.end = end
 
 	def transform(self, X):
-		X1d = to_1d(X)
+		X1d = _to_1d(X)
 		# Convert from any data type to Unicode string data type
 		Xt = cast(X1d, "U")
 		if hasattr(Xt, "str"):
@@ -970,7 +970,7 @@ class WordCountTransformer(StringTransformer):
 		])
 
 	def transform(self, X):
-		X1d = to_1d(X)
+		X1d = _to_1d(X)
 		# The expression "X]0]" assumes a two-dimensional array
 		X1d = _to_numpy(X1d).reshape((-1, 1))
 		return self.pipeline_.transform(X1d)

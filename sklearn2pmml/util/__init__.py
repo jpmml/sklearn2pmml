@@ -61,7 +61,7 @@ def _has_1d_shape(X):
 	else:
 		return False
 
-def to_1d(X):
+def _to_1d(X):
 	if _is_1d(X):
 		return X
 	elif _is_dataframe(X):

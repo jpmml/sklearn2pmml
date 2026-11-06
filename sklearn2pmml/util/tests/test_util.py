@@ -1,6 +1,6 @@
 from pandas import Categorical, CategoricalDtype, DataFrame, Series
 from sklearn.utils.validation import check_is_fitted
-from sklearn2pmml.util import _is_categorical, _is_ordinal, _is_pandas_proto_categorical, _get_column_count, _get_column_names, check_expression, check_predicate, eval_rows, fqn, sizeof, deep_sizeof, to_1d, to_expr, to_expr_func, Evaluatable, Expression, Predicate, Slicer, Reshaper
+from sklearn2pmml.util import _is_categorical, _is_ordinal, _is_pandas_proto_categorical, _get_column_count, _get_column_names, _to_1d, check_expression, check_predicate, eval_rows, fqn, sizeof, deep_sizeof, to_expr, to_expr_func, Evaluatable, Expression, Predicate, Slicer, Reshaper
 from unittest import TestCase
 
 import inspect
@@ -44,21 +44,21 @@ class ContainerTest(TestCase):
 
 	def test_to_1d(self):
 		X = Series([1, 2, 3])
-		Xt = to_1d(X)
+		Xt = _to_1d(X)
 		self.assertIs(X, Xt)
 		X = DataFrame([[1], [2], [3]], columns = ["a"])
 		self.assertEqual((3, 1), X.shape)
-		Xt = to_1d(X)
+		Xt = _to_1d(X)
 		self.assertIsInstance(Xt, Series)
 		self.assertEqual([1, 2, 3], Xt.tolist())
 
 	def test_polars_to_1d(self):
 		X = polars.Series(name = "a", values = [1, 2, 3])
-		Xt = to_1d(X)
+		Xt = _to_1d(X)
 		self.assertIs(X, Xt)
 		X = polars.DataFrame([[1], [2], [3]], schema = ["a"], orient = "row")
 		self.assertEqual((3, 1), X.shape)
-		Xt = to_1d(X)
+		Xt = _to_1d(X)
 		self.assertIsInstance(Xt, polars.Series)
 		self.assertEqual([1, 2, 3], Xt.to_list())
 
