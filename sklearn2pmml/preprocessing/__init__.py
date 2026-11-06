@@ -18,7 +18,7 @@ from sklearn.exceptions import NotFittedError
 from sklearn.pipeline import Pipeline
 from sklearn2pmml.base import FeaturesInMixin, StatelessTransformerMixin
 from sklearn2pmml.preprocessing.regex import make_regex_engine
-from sklearn2pmml.util import _copy, _get_column, _get_columns, _is_pandas_categorical, _is_pandas_proto_categorical, _mask_missing, _to_numpy, _set_column, cast, check_expression, check_predicate, dt_transform, eval_rows, is_1d, to_1d, to_expr_func
+from sklearn2pmml.util import _copy, _get_column, _get_columns, _is_pandas_1d, _is_pandas_categorical, _is_pandas_dataframe, _is_pandas_proto_categorical, _mask_missing, _to_numpy, _set_column, cast, check_expression, check_predicate, dt_transform, eval_rows, is_1d, to_1d, to_expr_func
 
 import numpy
 import pandas
@@ -190,10 +190,17 @@ class SeriesConstructor(BaseEstimator, FeaturesInMixin, StatelessTransformerMixi
 		return Series(X1d, name = self.name, dtype = self.dtype)
 
 def _int(X):
-	if numpy.isscalar(X):
-		return int(X)
+	if _is_pandas_dataframe(X):
+		return X.apply(_int)
+	mask = pandas.isnull(X)
+	if _is_pandas_1d(X):
+		if numpy.any(mask):
+			return X.astype("Int64")
+		return X.astype(int)
 	else:
-		return cast(X, int)
+		if numpy.any(mask):
+			return numpy.where(mask, numpy.nan, X).astype(float)
+		return X.astype(int)
 
 class DurationTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin):
 	"""Calculate time difference."""
@@ -213,10 +220,13 @@ class DurationTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerMi
 
 	def transform(self, X):
 		def to_int_duration(X):
+			if pandas.isnull(X):
+				return None
 			duration = self._to_duration(pandas.to_timedelta(X - self.epoch))
-			return _int(duration)
+			return int(duration)
 
-		return dt_transform(X, to_int_duration)
+		Xt = dt_transform(X, to_int_duration)
+		return _int(Xt)
 
 class DaysSinceYearTransformer(DurationTransformer):
 	"""Calculate the number of days since the epoch."""
@@ -251,11 +261,14 @@ class SecondsSinceMidnightTransformer(BaseEstimator, FeaturesInMixin, StatelessT
 
 	def transform(self, X):
 		def to_int_duration(X):
+			if pandas.isnull(X):
+				return None
 			dt = pandas.to_datetime(X)
 			duration = self._to_duration(dt - dt.normalize())
-			return _int(duration)
+			return int(duration)
 
-		return dt_transform(X, to_int_duration)
+		Xt = dt_transform(X, to_int_duration)
+		return _int(Xt)
 
 class ExpressionTransformer(BaseEstimator, FeaturesInMixin, TransformerMixin):
 	"""Transform data using a Python expression.

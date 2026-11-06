@@ -346,6 +346,14 @@ class DurationTransformerTest(TestCase):
 		transformer = DaysSinceYearTransformer(year = 1960)
 		check_is_fitted(transformer)
 		self.assertEqual([0, 1, 31, -1, 15796], transformer.transform(X).tolist())
+		X = numpy.array([datetime(1960, 1, 2), None])
+		Xt = transformer.transform(X)
+		self.assertEqual(float, Xt.dtype)
+		self.assertTrue(_list_equal([1.0, numpy.nan], Xt.tolist()))
+		X = Series(pandas.to_datetime(["1960-01-02", None]))
+		Xt = transformer.transform(X)
+		self.assertEqual("Int64", Xt.dtype)
+		self.assertEqual([1, pandas.NA], Xt.tolist())
 
 	def test_seconds_transform(self):
 		X = numpy.array([datetime(1960, 1, 1), datetime(1960, 1, 1, 0, 0, 1), datetime(1960, 1, 1, 0, 1, 0), datetime(1959, 12, 31, 23, 59, 59), datetime(1960, 1, 3, 3, 30, 3)])
@@ -385,6 +393,11 @@ class SecondsSinceMidnightTransformerTest(TestCase):
 		])
 		Xt = mapper.fit_transform(X)
 		self.assertEqual([[0], [60], [19410]], Xt.tolist())
+		X = Series(pandas.to_datetime(["2020-01-01T00:01:00", None]))
+		transformer = SecondsSinceMidnightTransformer()
+		Xt = transformer.transform(X)
+		self.assertEqual("Int64", Xt.dtype)
+		self.assertEqual([60, pandas.NA], Xt.tolist())
 
 def _signum(X):
 	if X[0] < 0: return -1

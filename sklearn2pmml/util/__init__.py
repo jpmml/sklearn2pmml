@@ -306,7 +306,7 @@ def dt_transform(X, func):
 		else:
 			return X.map(func)
 	X = numpy.asarray(X)
-	Xt = numpy.vectorize(func)(X)
+	Xt = numpy.vectorize(func, otypes = [object])(X)
 	return Xt
 
 def to_pydatetime(obj, dtype):
