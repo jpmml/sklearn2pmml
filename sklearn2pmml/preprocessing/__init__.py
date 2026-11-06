@@ -817,7 +817,13 @@ class RegExTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin
 		X1d = to_1d(X)
 		regex_engine = make_regex_engine(self.pattern, self.re_flavour)
 		func = self._regex_func(regex_engine)
-		Xt = eval_rows(X1d, func, shape = X.shape)
+
+		def _eval_row(x):
+			if pandas.isnull(x):
+				return x
+			return func(x)
+
+		Xt = eval_rows(X1d, _eval_row, shape = X.shape)
 		return Xt
 
 class MatchesTransformer(RegExTransformer):

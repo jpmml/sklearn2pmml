@@ -1021,6 +1021,8 @@ class MatchesTransformerTest(TransformerTest):
 		transformer = MatchesTransformer("ar?y")
 		check_is_fitted(transformer)
 		self.assertEqual([True, True, False, False, True, False, False, False, False, False, False, False], self._transform1d(transformer, X).tolist())
+		X = Series(["January", None, numpy.nan])
+		self.assertTrue(_list_equal([True, None, numpy.nan], self._transform1d(transformer, X).tolist()))
 
 class ReplaceTransformerTest(TransformerTest):
 
@@ -1036,6 +1038,8 @@ class ReplaceTransformerTest(TransformerTest):
 		X = X.values
 		Xt = pipeline.fit_transform(X)
 		self.assertEqual((7, 5), Xt.shape)
+		X = Series(["BAB", None, numpy.nan])
+		self.assertTrue(_list_equal(["cAc", None, numpy.nan], self._transform1d(transformer, X).tolist()))
 
 class StringLengthTransformerTest(TransformerTest):
 
@@ -1095,12 +1099,14 @@ class SubstringTransformerTest(TransformerTest):
 class WordCountTransformerTest(TransformerTest):
 
 	def test_transform(self):
-		X = Series(["", "Hellow World", "Happy New Year", "!?"])
+		X = Series(["", "Hello World", "Happy New Year", "!?"])
 		transformer = WordCountTransformer()
 		check_is_fitted(transformer)
 		self.assertEqual([[0], [2], [3], [0]], transformer.transform(X).tolist())
 		X = X.values
 		self.assertEqual([[0], [2], [3], [0]], transformer.transform(X).tolist())
+		X = Series(["Hello World", None, numpy.nan])
+		self.assertTrue(_list_equal([[2], [numpy.nan], [numpy.nan]], transformer.transform(X).tolist()))
 
 class SelectFirstTransformerTest(TestCase):
 
