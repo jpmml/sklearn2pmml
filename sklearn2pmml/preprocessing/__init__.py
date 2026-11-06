@@ -388,8 +388,13 @@ class DateTimeFormatter(BaseEstimator, FeaturesInMixin, StatelessTransformerMixi
 
 	def transform(self, X):
 		X1d = to_1d(X)
-		func = lambda x: self._strftime(x)
-		Xt = eval_rows(X1d, func, shape = X.shape)
+
+		def _eval_row(x):
+			if pandas.isnull(x):
+				return x
+			return self._strftime(x)
+
+		Xt = eval_rows(X1d, _eval_row, shape = X.shape)
 		return Xt
 
 class NumberFormatter(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin):
@@ -416,8 +421,13 @@ class NumberFormatter(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin)
 
 	def transform(self, X):
 		X1d = to_1d(X)
-		func = lambda x: self._printf(x)
-		Xt = eval_rows(X1d, func, shape = X.shape)
+
+		def _eval_row(x):
+			if pandas.isnull(x):
+				return x
+			return self._printf(x)
+
+		Xt = eval_rows(X1d, _eval_row, shape = X.shape)
 		return Xt
 
 class LookupTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin):
