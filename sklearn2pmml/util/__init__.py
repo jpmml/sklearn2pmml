@@ -261,6 +261,24 @@ def _mask_missing(X, Xt, mask_value = None):
 			Xt = numpy.where(~mask, Xt, mask_value)
 	return Xt
 
+def _to_int(X):
+	if _is_pandas_1d(X):
+		mask = pandas.isnull(X)
+		if numpy.any(mask):
+			return X.astype("Int64")
+		return X.astype(int)
+	elif _is_pandas_dataframe(X):
+		return X.apply(_to_int)
+	elif _is_polars_series(X):
+		return X.cast(int)
+	elif _is_polars_dataframe(X):
+		return X.cast(int)
+	else:
+		mask = pandas.isnull(X)
+		if numpy.any(mask):
+			return numpy.where(mask, numpy.nan, X).astype(float)
+		return X.astype(int)
+
 def common_dtype(X):
 	if hasattr(X, "dtype"):
 		return X.dtype
