@@ -73,6 +73,16 @@ def _check_cols(X, values):
 		if X.shape[1] != len(values):
 			raise ValueError()
 
+def _unique(X):
+	values = pandas.unique(X)
+	return numpy.sort(values)
+
+def _value_counts(X):
+	codes, values = pandas.factorize(X)
+	counts = numpy.bincount(codes, minlength = len(values))
+	order = numpy.argsort(values)
+	return (values[order], counts[order])
+
 def _count(missing_mask, valid_mask, invalid_mask):
 	missing_freq = numpy.sum(missing_mask, axis = 0)
 	valid_freq = numpy.sum(valid_mask, axis = 0)
@@ -287,7 +297,7 @@ class DiscreteDomain(Domain):
 				if self.data_values is None:
 					data_values = _get_categories(self.dtype_)
 					if data_values is None:
-						data_values = numpy.unique(X[nonmissing_mask])
+						data_values = _unique(X[nonmissing_mask])
 				else:
 					data_values = numpy.asarray(self.data_values)
 				self.data_values_ = _cast(data_values)
@@ -302,7 +312,7 @@ class DiscreteDomain(Domain):
 						col_X = X[:, col]
 						col_missing_mask = missing_mask[:, col]
 						col_nonmissing_mask = nonmissing_mask[:, col]
-						data_values = numpy.unique(col_X[col_nonmissing_mask])
+						data_values = _unique(col_X[col_nonmissing_mask])
 					else:
 						data_values = numpy.asarray(self.data_values[col])
 					self.data_values_.append(_cast(data_values))
@@ -310,14 +320,14 @@ class DiscreteDomain(Domain):
 			missing_mask, valid_mask, invalid_mask = self._compute_masks(X)
 			self.counts_ = _count(missing_mask, valid_mask, invalid_mask)
 			if _has_1d_shape(X):
-				values, counts = numpy.unique(X[valid_mask], return_counts = True)
+				values, counts = _value_counts(X[valid_mask])
 				self.discr_stats_ = (_cast(values), counts)
 			else:
 				self.discr_stats_ = []
 				for col in range(X.shape[1]):
 					col_X = X[:, col]
 					col_valid_mask = valid_mask[:, col]
-					values, counts = numpy.unique(col_X[col_valid_mask], return_counts = True)
+					values, counts = _value_counts(col_X[col_valid_mask])
 					self.discr_stats_.append((_cast(values), counts))
 		return self
 
