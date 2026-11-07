@@ -536,7 +536,7 @@ def to_expr_func(expr, modules = ["math", "re", "pcre", "pcre2", "numpy", "panda
 	else:
 		raise TypeError()
 
-class SeriesApplier:
+class _SeriesApplier:
 
 	def __init__(self, X):
 		if not _is_series(X):
@@ -552,7 +552,7 @@ class SeriesApplier:
 		else:
 			raise TypeError()
 
-class DataFrameApplier:
+class _DataFrameApplier:
 
 	def __init__(self, X):
 		if not _is_dataframe(X):
@@ -591,7 +591,7 @@ class DataFrameApplier:
 		else:
 			raise TypeError()
 
-class NDArrayApplier:
+class _NDArrayApplier:
 
 	def __init__(self, X):
 		self.X = X
@@ -607,7 +607,7 @@ class NDArrayApplier:
 def _eval_array_rows(X, func, to_numpy = False, shape = None, dtype = None):
 	X = _to_2d(X)
 	if _is_dataframe(X):
-		Xt = DataFrameApplier(X).apply(func)
+		Xt = _DataFrameApplier(X).apply(func)
 		if dtype is not None:
 			Xt = cast(Xt, dtype)
 		if to_numpy:
@@ -620,7 +620,7 @@ def _eval_array_rows(X, func, to_numpy = False, shape = None, dtype = None):
 
 def _eval_scalar_rows(X, func, shape = None, dtype = None):
 	if _is_series(X):
-		Xt = SeriesApplier(X).apply(func)
+		Xt = _SeriesApplier(X).apply(func)
 		if dtype is not None:
 			Xt = cast(Xt, dtype)
 		return Xt
@@ -628,7 +628,7 @@ def _eval_scalar_rows(X, func, shape = None, dtype = None):
 		return _eval_ndarray_rows(X, func, shape = shape, dtype = dtype)
 
 def _eval_ndarray_rows(X, func, shape = None, dtype = None):
-	Xt = NDArrayApplier(X).apply(func)
+	Xt = _NDArrayApplier(X).apply(func)
 	if dtype is not None:
 		Xt = cast(Xt, dtype)
 	if shape is not None:
