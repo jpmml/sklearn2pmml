@@ -188,7 +188,10 @@ class SeriesConstructor(BaseEstimator, FeaturesInMixin, StatelessTransformerMixi
 
 	def transform(self, X):
 		X1d = _to_1d(X)
-		return Series(X1d, name = self.name, dtype = self.dtype)
+		Xt = Series(X1d, name = self.name)
+		if self.dtype is not None:
+			Xt = cast(Xt, self.dtype)
+		return Xt
 
 class DurationTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin):
 	"""Calculate time difference."""

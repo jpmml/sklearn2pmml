@@ -310,6 +310,10 @@ def cast(X, dtype):
 		return dt_transform(X, func, dtype = datetime)
 	else:
 		if _is_pandas(X):
+			if isinstance(dtype, CategoricalDtype):
+				if dtype.categories is not None:
+					category_mask = X.isin(dtype.categories)
+					X = X.where(category_mask)
 			Xt = X.astype(dtype)
 		elif _is_polars(X):
 			Xt = X.cast(dtype)
@@ -607,8 +611,10 @@ def dt_transform(X, func, dtype = None):
 	if _is_pandas_1d(X):
 		return X.apply(func)
 	elif _is_pandas_dataframe(X):
-		if hasattr(X, "applymap"):
+		# Pandas 2.0.X
+		if not hasattr(X, "map"):
 			return X.applymap(func)
+		# Pandas 2.1.0+
 		else:
 			return X.map(func)
 	elif _is_polars_series(X):
