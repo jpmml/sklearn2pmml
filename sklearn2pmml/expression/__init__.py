@@ -2,7 +2,7 @@ from scipy.special import expit, softmax
 from sklearn.preprocessing import normalize
 from sklearn.base import BaseEstimator, ClassifierMixin, RegressorMixin
 from sklearn2pmml.base import StatelessEstimatorMixin
-from sklearn2pmml.util import _to_2d, check_expression, eval_rows, to_expr_func
+from sklearn2pmml.util import _eval_array_rows, check_expression, to_expr_func
 
 import numpy
 
@@ -20,8 +20,7 @@ class ExpressionRegressor(BaseEstimator, StatelessEstimatorMixin, RegressorMixin
 
 	def decision_function(self, X):
 		func = to_expr_func(self.expr)
-		X_eval = _to_2d(X)
-		return eval_rows(X_eval, func, dtype = float)
+		return _eval_array_rows(X, func, dtype = float)
 
 	def predict(self, X):
 		y = self.decision_function(X)
@@ -70,7 +69,6 @@ class ExpressionClassifier(BaseEstimator, ClassifierMixin):
 		return self
 
 	def decision_function(self, X):
-		X_eval = _to_2d(X)
 		n_classes = len(self.classes_)
 		y = None
 		for clazz in self.classes_:
@@ -79,7 +77,7 @@ class ExpressionClassifier(BaseEstimator, ClassifierMixin):
 			except KeyError:
 				continue
 			class_func = to_expr_func(class_expr)
-			class_y = eval_rows(X_eval, class_func, dtype = float)
+			class_y = _eval_array_rows(X, class_func, dtype = float)
 			if y is None:
 				y = class_y
 			else:

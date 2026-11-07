@@ -1,6 +1,6 @@
 from pandas import Categorical, CategoricalDtype, DataFrame, Series
 from sklearn.utils.validation import check_is_fitted
-from sklearn2pmml.util import _is_categorical, _is_ordinal, _is_pandas_proto_categorical, _get_column_count, _get_column_names, _to_1d, check_expression, check_predicate, eval_rows, fqn, sizeof, deep_sizeof, to_expr, to_expr_func, Evaluatable, Expression, Predicate, Slicer, Reshaper
+from sklearn2pmml.util import _is_categorical, _is_ordinal, _is_pandas_proto_categorical, _eval_array_rows, _eval_scalar_rows, _get_column_count, _get_column_names, _to_1d, check_expression, check_predicate, fqn, sizeof, deep_sizeof, to_expr, to_expr_func, Evaluatable, Expression, Predicate, Slicer, Reshaper
 from unittest import TestCase
 
 import inspect
@@ -173,14 +173,23 @@ class FunctionTest(TestCase):
 		with self.assertRaises(TypeError):
 			check_predicate(Expression("1.0"))
 
-	def test_eval_rows(self):
+	def test_eval_array_rows(self):
 		X = Series([-1, 0, 1], index = [10, 20, 30])
-		Xt = eval_rows(X, to_expr_func("X > 0"), dtype = bool)
+		Xt = _eval_array_rows(X, to_expr_func("X[0] > 0"), dtype = bool)
 		self.assertEqual([10, 20, 30], Xt.index.tolist())
 		self.assertEqual([False, False, True], Xt.tolist())
 		X = DataFrame([[-1], [0], [1]], columns = ["a"], index = [10, 20, 30])
-		Xt = eval_rows(X, to_expr_func("X['a'] > 0"), dtype = bool)
+		Xt = _eval_array_rows(X, to_expr_func("X['a'] > 0"), dtype = bool)
 		self.assertEqual([10, 20, 30], Xt.index.tolist())
+		self.assertEqual([False, False, True], Xt.tolist())
+
+	def test_eval_scalar_rows(self):
+		X = Series([-1, 0, 1], index = [10, 20, 30])
+		Xt = _eval_scalar_rows(X, lambda x: x > 0, dtype = bool)
+		self.assertEqual([10, 20, 30], Xt.index.tolist())
+		self.assertEqual([False, False, True], Xt.tolist())
+		X = numpy.asarray([-1, 0, 1])
+		Xt = _eval_scalar_rows(X, lambda x: x > 0, dtype = bool)
 		self.assertEqual([False, False, True], Xt.tolist())
 
 	def test_fqn(self):

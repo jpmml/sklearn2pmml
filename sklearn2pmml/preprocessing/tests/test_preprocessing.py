@@ -786,6 +786,13 @@ class MultiLookupTransformerTest(TestCase):
 		check_is_fitted(transformer)
 		X = DataFrame([[1, 0], [1, 1], [2, 0], [2, 1], [2, 2], [3, 0], [3, 1], [3, 2], [3, 3]])
 		self.assertTrue(_list_equal([[None], ["one"], [None], [None], ["two"], [None], [None], [None], ["three"]], transformer.transform(X).tolist()))
+		mapping = {
+			(1, ) : "one",
+			(2, ) : "two"
+		}
+		transformer = MultiLookupTransformer(mapping, None)
+		X = numpy.asarray([1, 2, 3])
+		self.assertTrue(_list_equal([["one"], ["two"], [None]], transformer.transform(X).tolist()))
 
 	def test_polars_transform_int(self):
 		mapping = {
@@ -1098,6 +1105,8 @@ class ConcatTransformerTest(TestCase):
 		self.assertEqual([["L/-1"], ["R/1"]], transformer.transform(X).tolist())
 		X = DataFrame([["L", None], ["R", numpy.nan]], columns = ["left", "right"])
 		self.assertEqual([["L/"], ["R/"]], transformer.transform(X).tolist())
+		X = Series(["Lo", "Ro"])
+		self.assertEqual([["Lo"], ["Ro"]], transformer.transform(X).tolist())
 
 class MatchesTransformerTest(TransformerTest):
 

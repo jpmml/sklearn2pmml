@@ -591,13 +591,21 @@ class DataFrameApplier:
 		else:
 			raise TypeError()
 
-def eval_rows(X, func, to_numpy = False, shape = None, dtype = None):
-	Xt = None
-	if _is_series(X):
-		Xt = SeriesApplier(X).apply(func)
-	elif _is_dataframe(X):
+def _eval_ndarray_rows(X, func, shape = None, dtype = None):
+	nrow = X.shape[0]
+	Xt = numpy.empty(shape = (nrow, ), dtype = object)
+	for i in range(0, nrow):
+		Xt[i] = func(X[i])
+	if dtype is not None:
+		Xt = cast(Xt, dtype)
+	if shape is not None:
+		Xt = Xt.reshape(shape)
+	return Xt
+
+def _eval_array_rows(X, func, to_numpy = False, shape = None, dtype = None):
+	X = _to_2d(X)
+	if _is_dataframe(X):
 		Xt = DataFrameApplier(X).apply(func)
-	if Xt is not None:
 		if dtype is not None:
 			Xt = cast(Xt, dtype)
 		if to_numpy:
@@ -606,15 +614,16 @@ def eval_rows(X, func, to_numpy = False, shape = None, dtype = None):
 				Xt = Xt.reshape(shape)
 		return Xt
 	else:
-		nrow = X.shape[0]
-		Xt = numpy.empty(shape = (nrow, ), dtype = object)
-		for i in range(0, nrow):
-			Xt[i] = func(X[i])
+		return _eval_ndarray_rows(X, func, shape = shape, dtype = dtype)
+
+def _eval_scalar_rows(X, func, shape = None, dtype = None):
+	if _is_series(X):
+		Xt = SeriesApplier(X).apply(func)
 		if dtype is not None:
 			Xt = cast(Xt, dtype)
-		if shape is not None:
-			Xt = Xt.reshape(shape)
 		return Xt
+	else:
+		return _eval_ndarray_rows(X, func, shape = shape, dtype = dtype)
 
 def dt_transform(X, func, dtype = None):
 	if _is_pandas_1d(X):

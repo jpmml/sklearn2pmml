@@ -18,7 +18,7 @@ from sklearn.exceptions import NotFittedError
 from sklearn.pipeline import Pipeline
 from sklearn2pmml.base import FeaturesInMixin, StatelessTransformerMixin
 from sklearn2pmml.preprocessing.regex import make_regex_engine
-from sklearn2pmml.util import _copy, _get_column, _get_columns, _has_1d_shape, _is_pandas_categorical, _is_pandas_dataframe, _is_pandas_proto_categorical, _to_1d, _to_2d, _to_bool, _to_float, _to_int, _to_numpy, _to_str, _to_sparse, _set_column, cast, check_expression, check_predicate, dt_transform, eval_rows, to_expr_func
+from sklearn2pmml.util import _copy, _eval_array_rows, _eval_scalar_rows, _get_column, _get_columns, _has_1d_shape, _is_pandas_categorical, _is_pandas_dataframe, _is_pandas_proto_categorical, _to_1d, _to_2d, _to_bool, _to_float, _to_int, _to_numpy, _to_str, _to_sparse, _set_column, cast, check_expression, check_predicate, dt_transform, to_expr_func
 
 import numpy
 import pandas
@@ -287,8 +287,6 @@ class ExpressionTransformer(BaseEstimator, FeaturesInMixin, TransformerMixin):
 		self.dtype = dtype
 
 	def _eval(self, X):
-		X = _to_2d(X)
-
 		expr_func = to_expr_func(self.expr)
 
 		def _eval_row(x):
@@ -311,7 +309,7 @@ class ExpressionTransformer(BaseEstimator, FeaturesInMixin, TransformerMixin):
 
 		# Evaluate in PMML compatibility mode
 		with numpy.errstate(divide = "raise"):
-			Xt = eval_rows(X, _eval_row, to_numpy = (not _has_1d_shape(X)), shape = (-1, 1))
+			Xt = _eval_array_rows(X, _eval_row, to_numpy = (not _has_1d_shape(X)), shape = (-1, 1))
 		return Xt
 
 	def __sklearn_is_fitted__(self):
@@ -400,7 +398,7 @@ class DateTimeFormatter(BaseEstimator, FeaturesInMixin, StatelessTransformerMixi
 				return None
 			return self._strftime(x)
 
-		Xt = eval_rows(X1d, _eval_row, shape = X.shape)
+		Xt = _eval_scalar_rows(X1d, _eval_row, shape = X.shape)
 		return _to_str(Xt)
 
 class NumberFormatter(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin):
@@ -433,7 +431,7 @@ class NumberFormatter(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin)
 				return None
 			return self._printf(x)
 
-		Xt = eval_rows(X1d, _eval_row, shape = X.shape)
+		Xt = _eval_scalar_rows(X1d, _eval_row, shape = X.shape)
 		return _to_str(Xt)
 
 class LookupTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin):
@@ -496,7 +494,7 @@ class LookupTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerMixi
 				return x
 			return transform_dict[x]
 
-		Xt = eval_rows(X1d, _eval_row, shape = X.shape, dtype = self.dtype)
+		Xt = _eval_scalar_rows(X1d, _eval_row, shape = X.shape, dtype = self.dtype)
 		return Xt
 
 class FilterLookupTransformer(LookupTransformer):
@@ -530,7 +528,7 @@ class FilterLookupTransformer(LookupTransformer):
 				return x
 			return transform_dict[x]
 
-		Xt = eval_rows(X1d, _eval_row, shape = X.shape)
+		Xt = _eval_scalar_rows(X1d, _eval_row, shape = X.shape)
 		return Xt
 
 def _deeptype(t):
@@ -563,14 +561,14 @@ class MultiLookupTransformer(LookupTransformer):
 				return None
 			# See https://stackoverflow.com/a/3460747
 			# See https://stackoverflow.com/a/3338368
-			x = x if isinstance(x, Hashable) else tuple(numpy.squeeze(numpy.asarray(x)))
+			x = x if isinstance(x, Hashable) else tuple(numpy.ravel(numpy.asarray(x)))
 			return transform_dict[tuple(x)]
 
 		if self.dtype:
-			Xt = eval_rows(X, _eval_row, dtype = self.dtype)
+			Xt = _eval_array_rows(X, _eval_row, dtype = self.dtype)
 			return Xt
 		else:
-			Xt = eval_rows(X, _eval_row, to_numpy = True)
+			Xt = _eval_array_rows(X, _eval_row, to_numpy = True)
 			return Xt.reshape((-1, 1))
 
 def _make_index(values):
@@ -814,7 +812,7 @@ class ConcatTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerMixi
 			return str(X)
 
 		func = lambda x: self.separator.join([to_str(v) for v in x])
-		Xt = eval_rows(X, func, to_numpy = True)
+		Xt = _eval_array_rows(X, func, to_numpy = True)
 		Xt = _to_str(Xt)
 		return Xt.reshape((-1, 1))
 
@@ -846,7 +844,7 @@ class RegExTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin
 				return None
 			return func(x)
 
-		Xt = eval_rows(X1d, _eval_row, shape = X.shape)
+		Xt = _eval_scalar_rows(X1d, _eval_row, shape = X.shape)
 		return Xt
 
 class MatchesTransformer(RegExTransformer):
@@ -975,7 +973,7 @@ class SubstringTransformer(StringTransformer):
 			return _to_str(Xt, missing_mask)
 		else:
 			func = lambda x: x[self.begin:self.end]
-			Xt = eval_rows(Xt, func)
+			Xt = _eval_scalar_rows(Xt, func)
 			missing_mask = pandas.isnull(X1d)
 			Xt = _to_str(Xt, missing_mask)
 			return Xt.reshape(X.shape)
@@ -1024,7 +1022,7 @@ class SelectFirstTransformer(BaseEstimator, TransformerMixin):
 	def _eval_step_mask(self, X, predicate):
 		step_func = to_expr_func(predicate)
 		if self.eval_rows:
-			return eval_rows(X, step_func, dtype = bool)
+			return _eval_array_rows(X, step_func, dtype = bool)
 		else:
 			return step_func(X)
 
