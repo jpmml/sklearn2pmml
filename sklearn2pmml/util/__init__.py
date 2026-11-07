@@ -320,69 +320,88 @@ def cast(X, dtype):
 			Xt = _set_missing_values(X, Xt)
 		return Xt
 
-def _to_bool(X):
+def _to_bool(X, missing_mask = None):
 	if _is_pandas_1d(X):
-		mask = pandas.isnull(X)
-		if numpy.any(mask):
-			return X.astype("boolean")
+		if missing_mask is None:
+			missing_mask = pandas.isnull(X)
+		if numpy.any(missing_mask):
+			Xt = X.astype("boolean")
+			Xt[missing_mask] = None
+			return Xt
 		return X.astype(bool)
 	elif _is_pandas_dataframe(X):
 		return X.apply(_to_bool)
 	elif _is_polars(X):
 		return X.cast(bool)
 	else:
-		mask = pandas.isnull(X)
-		if numpy.any(mask):
-			return numpy.where(mask, None, X).astype(object)
+		if missing_mask is None:
+			missing_mask = pandas.isnull(X)
+		if numpy.any(missing_mask):
+			Xt = X.astype(bool)
+			return numpy.where(missing_mask, None, Xt)
 		return X.astype(bool)
 
-def _to_float(X):
+def _to_float(X, missing_mask = None):
 	if _is_pandas_1d(X):
-		mask = pandas.isnull(X)
-		if numpy.any(mask):
-			return X.astype("Float64")
+		if missing_mask is None:
+			missing_mask = pandas.isnull(X)
+		if numpy.any(missing_mask):
+			Xt = X.astype("Float64")
+			Xt[missing_mask] = None
+			return Xt
 		return X.astype(float)
 	elif _is_pandas_dataframe(X):
 		return X.apply(_to_float)
 	elif _is_polars(X):
 		return X.cast(float)
 	else:
-		mask = pandas.isnull(X)
-		if numpy.any(mask):
-			return numpy.where(mask, numpy.nan, X).astype(float)
+		if missing_mask is None:
+			missing_mask = pandas.isnull(X)
+		if numpy.any(missing_mask):
+			Xt = X.astype(float)
+			return numpy.where(missing_mask, numpy.nan, Xt)
 		return X.astype(float)
 
-def _to_int(X):
+def _to_int(X, missing_mask = None):
 	if _is_pandas_1d(X):
-		mask = pandas.isnull(X)
-		if numpy.any(mask):
-			return X.astype("Int64")
+		if missing_mask is None:
+			missing_mask = pandas.isnull(X)
+		if numpy.any(missing_mask):
+			Xt = X.astype("Int64")
+			Xt[missing_mask] = None
+			return Xt
 		return X.astype(int)
 	elif _is_pandas_dataframe(X):
 		return X.apply(_to_int)
 	elif _is_polars(X):
 		return X.cast(int)
 	else:
-		mask = pandas.isnull(X)
-		if numpy.any(mask):
-			return numpy.where(mask, numpy.nan, X).astype(float)
+		if missing_mask is None:
+			missing_mask = pandas.isnull(X)
+		if numpy.any(missing_mask):
+			Xt = X.astype(float)
+			return numpy.where(missing_mask, numpy.nan, Xt)
 		return X.astype(int)
 
-def _to_str(X):
+def _to_str(X, missing_mask = None):
 	if _is_pandas_1d(X):
-		mask = pandas.isnull(X)
-		if numpy.any(mask):
-			return X.astype("string")
+		if missing_mask is None:
+			missing_mask = pandas.isnull(X)
+		if numpy.any(missing_mask):
+			Xt = X.astype("string")
+			Xt[missing_mask] = None
+			return Xt
 		return X.astype(str)
 	elif _is_pandas_dataframe(X):
 		return X.apply(_to_str)
 	elif _is_polars(X):
 		return X.cast(str)
 	else:
-		mask = pandas.isnull(X)
-		if numpy.any(mask):
+		if missing_mask is None:
+			missing_mask = pandas.isnull(X)
+		if numpy.any(missing_mask):
 			Xt = X.astype(str)
-			return numpy.where(mask, None, Xt)
+			return numpy.where(missing_mask, None, Xt)
 		return X.astype(str)
 
 def ensure_def(expr, env):
