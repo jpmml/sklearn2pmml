@@ -18,7 +18,7 @@ from sklearn.exceptions import NotFittedError
 from sklearn.pipeline import Pipeline
 from sklearn2pmml.base import FeaturesInMixin, StatelessTransformerMixin
 from sklearn2pmml.preprocessing.regex import make_regex_engine
-from sklearn2pmml.util import _copy, _get_column, _get_columns, _has_1d_shape, _is_pandas_categorical, _is_pandas_dataframe, _is_pandas_proto_categorical, _set_missing_values, _to_1d, _to_bool, _to_int, _to_numpy, _to_sparse, _set_column, cast, check_expression, check_predicate, dt_transform, eval_rows, to_expr_func
+from sklearn2pmml.util import _copy, _get_column, _get_columns, _has_1d_shape, _is_pandas_categorical, _is_pandas_dataframe, _is_pandas_proto_categorical, _set_missing_values, _to_1d, _to_bool, _to_int, _to_numpy, _to_str, _to_sparse, _set_column, cast, check_expression, check_predicate, dt_transform, eval_rows, to_expr_func
 
 import numpy
 import pandas
@@ -395,7 +395,7 @@ class DateTimeFormatter(BaseEstimator, FeaturesInMixin, StatelessTransformerMixi
 			return self._strftime(x)
 
 		Xt = eval_rows(X1d, _eval_row, shape = X.shape)
-		return Xt
+		return _to_str(Xt)
 
 class NumberFormatter(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin):
 	"""Formats numbers according to a pattern. Analogous to C's printf() function.
@@ -428,7 +428,7 @@ class NumberFormatter(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin)
 			return self._printf(x)
 
 		Xt = eval_rows(X1d, _eval_row, shape = X.shape)
-		return Xt
+		return _to_str(Xt)
 
 class LookupTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin):
 	"""Re-map 1D categorical data.
@@ -808,6 +808,7 @@ class ConcatTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerMixi
 
 		func = lambda x: self.separator.join([to_str(v) for v in x])
 		Xt = eval_rows(X, func, to_numpy = True)
+		Xt = _to_str(Xt)
 		return Xt.reshape((-1, 1))
 
 class RegExTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin):
@@ -869,6 +870,10 @@ class ReplaceTransformer(RegExTransformer):
 			return regex_engine.replace(self.replacement, x)
 
 		return replace
+
+	def transform(self, X):
+		Xt = super(ReplaceTransformer, self).transform(X = X)
+		return _to_str(Xt)
 
 class StringTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin):
 
@@ -934,6 +939,7 @@ class StringNormalizer(StringTransformer):
 			else:
 				Xt = numpy.char.strip(Xt)
 		Xt = _set_missing_values(X1d, Xt)
+		Xt = _to_str(Xt)
 		if hasattr(Xt, "str"):
 			return Xt
 		else:
@@ -958,11 +964,12 @@ class SubstringTransformer(StringTransformer):
 		if hasattr(Xt, "str"):
 			Xt = Xt.str.slice(self.begin, self.end)
 			Xt = _set_missing_values(X1d, Xt)
-			return Xt
+			return _to_str(Xt)
 		else:
 			func = lambda x: x[self.begin:self.end]
 			Xt = eval_rows(Xt, func)
 			Xt = _set_missing_values(X1d, Xt)
+			Xt = _to_str(Xt)
 			return Xt.reshape(X.shape)
 
 class WordCountTransformer(StringTransformer):

@@ -352,6 +352,23 @@ def _to_int(X):
 			return numpy.where(mask, numpy.nan, X).astype(float)
 		return X.astype(int)
 
+def _to_str(X):
+	if _is_pandas_1d(X):
+		mask = pandas.isnull(X)
+		if numpy.any(mask):
+			return X.astype("string")
+		return X.astype(str)
+	elif _is_pandas_dataframe(X):
+		return X.apply(_to_str)
+	elif _is_polars(X):
+		return X.cast(str)
+	else:
+		mask = pandas.isnull(X)
+		if numpy.any(mask):
+			Xt = X.astype(str)
+			return numpy.where(mask, None, Xt)
+		return X.astype(str)
+
 def ensure_def(expr, env):
 	expr_code = compile(expr, "<string>", "exec")
 

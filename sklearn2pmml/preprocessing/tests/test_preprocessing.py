@@ -617,9 +617,11 @@ class DateTimeFormatterTest(TransformerTest):
 		self.assertEqual([["08/20/04"], ["08/21/04"]], Xt.tolist())
 		X = DataFrame(["2004-08-20", "2004-08-21T03:15:00", None], columns = ["timestamp"])
 		Xt = mapper.fit_transform(X)
-		self.assertTrue(_list_equal([["08/20/04"], ["08/21/04"], [None]], Xt.tolist()))
+		self.assertEqual([["08/20/04"], ["08/21/04"], [pandas.NA]], Xt.tolist())
 		X = Series(pandas.to_datetime(["2004-08-20", None]))
-		self.assertTrue(_list_equal(["08/20/04", None], self._transform1d(transformer, X, check_numpy = False).tolist()))
+		Xt = self._transform1d(transformer, X, check_numpy = False)
+		self.assertEqual("string", Xt.dtype)
+		self.assertEqual(["08/20/04", pandas.NA], Xt.tolist())
 
 class NumberFormatterTest(TransformerTest):
 
@@ -635,7 +637,9 @@ class NumberFormatterTest(TransformerTest):
 		self.assertIsInstance(Xt, numpy.ndarray)
 		self.assertEqual([[" -1"], ["  0"], ["  1"]], Xt.tolist())
 		X = Series([1.5, None, numpy.nan])
-		self.assertTrue(_list_equal(["  1", None, None], self._transform1d(transformer, X).tolist()))
+		Xt = self._transform1d(transformer, X, check_numpy = False)
+		self.assertEqual("string", Xt.dtype)
+		self.assertEqual(["  1", pandas.NA, pandas.NA], Xt.tolist())
 		X = numpy.asarray([[1.5], [numpy.nan]])
 		self.assertEqual([["  1"], [None]], transformer.transform(X).tolist())
 
@@ -1104,7 +1108,9 @@ class ReplaceTransformerTest(TransformerTest):
 		Xt = pipeline.fit_transform(X)
 		self.assertEqual((7, 5), Xt.shape)
 		X = Series(["BAB", None, numpy.nan])
-		self.assertTrue(_list_equal(["cAc", None, None], self._transform1d(transformer, X).tolist()))
+		Xt = self._transform1d(transformer, X, check_numpy = False)
+		self.assertEqual("string", Xt.dtype)
+		self.assertEqual(["cAc", pandas.NA, pandas.NA], Xt.tolist())
 		X = numpy.asarray(["BAB", None, numpy.nan], dtype = object)
 		self.assertEqual(["cAc", None, None], transformer.transform(X).tolist())
 
@@ -1144,7 +1150,11 @@ class StringNormalizerTest(TransformerTest):
 
 		X = Series([" One", None, numpy.nan])
 		transformer = StringNormalizer(function = "lowercase")
-		self.assertTrue(_list_equal(["one", None, numpy.nan], self._transform1d(transformer, X).tolist()))
+		Xt = self._transform1d(transformer, X, check_numpy = False)
+		self.assertEqual("string", Xt.dtype)
+		self.assertEqual(["one", pandas.NA, pandas.NA], Xt.tolist())
+		X = numpy.asarray([" One", None, numpy.nan], dtype = object)
+		self.assertEqual(["one", None, None], transformer.transform(X).tolist())
 
 class SubstringTransformerTest(TransformerTest):
 
@@ -1161,7 +1171,11 @@ class SubstringTransformerTest(TransformerTest):
 		Xt = pipeline.fit_transform(X)
 		self.assertEqual((6, 3), Xt.shape)
 		X = Series(["aBc", None, numpy.nan])
-		self.assertTrue(_list_equal(["Bc", None, numpy.nan], self._transform1d(transformer, X).tolist()))
+		Xt = self._transform1d(transformer, X, check_numpy = False)
+		self.assertEqual("string", Xt.dtype)
+		self.assertEqual(["Bc", pandas.NA, pandas.NA], Xt.tolist())
+		X = numpy.asarray(["aBc", None, numpy.nan], dtype = object)
+		self.assertEqual(["Bc", None, None], transformer.transform(X).tolist())
 
 class WordCountTransformerTest(TransformerTest):
 
