@@ -898,10 +898,11 @@ class StringLengthTransformer(StringTransformer):
 		if hasattr(Xt, "str"):
 			Xt = Xt.str.len()
 			Xt = _set_missing_values(X1d, Xt, numpy.nan)
-			return Xt
+			return _to_int(Xt)
 		else:
 			Xt = numpy.char.str_len(Xt)
 			Xt = _set_missing_values(X1d, Xt, numpy.nan)
+			Xt = _to_int(Xt)
 			return Xt.reshape(X.shape)
 
 class StringNormalizer(StringTransformer):

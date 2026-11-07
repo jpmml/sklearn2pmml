@@ -1128,7 +1128,9 @@ class StringLengthTransformerTest(TransformerTest):
 		check_is_fitted(transformer)
 		self.assertEqual([3, 3, 5, 4, 4], self._transform1d(transformer, X).tolist())
 		X = Series(["one", None, numpy.nan])
-		self.assertTrue(_list_equal([3, numpy.nan, numpy.nan], self._transform1d(transformer, X).tolist()))
+		Xt = self._transform1d(transformer, X, check_numpy = False)
+		self.assertEqual("Int64", Xt.dtype)
+		self.assertEqual([3, pandas.NA, pandas.NA], Xt.tolist())
 
 class StringNormalizerTest(TransformerTest):
 
