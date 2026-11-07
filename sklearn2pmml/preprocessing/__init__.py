@@ -18,7 +18,7 @@ from sklearn.exceptions import NotFittedError
 from sklearn.pipeline import Pipeline
 from sklearn2pmml.base import FeaturesInMixin, StatelessTransformerMixin
 from sklearn2pmml.preprocessing.regex import make_regex_engine
-from sklearn2pmml.util import _copy, _eval_array_rows, _eval_cells, _eval_scalar_rows, _get_column, _get_columns, _has_1d_shape, _is_pandas_categorical, _is_pandas_dataframe, _is_pandas_proto_categorical, _to_1d, _to_2d, _to_bool, _to_float, _to_int, _to_numpy, _to_str, _to_sparse, _set_column, cast, check_expression, check_predicate, to_expr_func
+from sklearn2pmml.util import _copy, _eval_array_rows, _eval_cells, _eval_scalar_rows, _get_column, _get_columns, _has_1d_shape, _is_pandas_categorical, _is_pandas_dataframe, _is_pandas_proto_categorical, _to_1d, _to_2d, _to_bool, _to_float, _to_int, _to_numpy, _to_str, _to_sparse, _set_column, cast, check_expression, check_predicate, to_evaluatable_func
 
 import numpy
 import pandas
@@ -287,7 +287,7 @@ class ExpressionTransformer(BaseEstimator, FeaturesInMixin, TransformerMixin):
 		self.dtype = dtype
 
 	def _eval(self, X):
-		expr_func = to_expr_func(self.expr)
+		expr_func = to_evaluatable_func(self.expr)
 
 		def eval_func(x):
 			# x is array-like (row vector)
@@ -1024,7 +1024,7 @@ class SelectFirstTransformer(BaseEstimator, TransformerMixin):
 		return _to_2d(X)
 
 	def _eval_step_mask(self, X, predicate):
-		predicate_func = to_expr_func(predicate)
+		predicate_func = to_evaluatable_func(predicate)
 		if self.eval_rows:
 			return _eval_array_rows(X, predicate_func, dtype = bool)
 		else:

@@ -1,6 +1,6 @@
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn2pmml.base import StatelessEstimatorMixin
-from sklearn2pmml.util import _eval_array_rows, check_predicate, to_expr_func
+from sklearn2pmml.util import _eval_array_rows, check_predicate, to_evaluatable_func
 
 class RuleSetClassifier(BaseEstimator, StatelessEstimatorMixin, ClassifierMixin):
 
@@ -19,7 +19,7 @@ class RuleSetClassifier(BaseEstimator, StatelessEstimatorMixin, ClassifierMixin)
 		return self
 
 	def predict(self, X):
-		rules = [(to_expr_func(predicate), score) for (predicate, score) in self.rules]
+		rules = [(to_evaluatable_func(predicate), score) for (predicate, score) in self.rules]
 
 		def eval_func(x):
 			for (predicate_func, score) in rules:

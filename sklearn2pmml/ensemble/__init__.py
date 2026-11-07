@@ -5,7 +5,7 @@ from sklearn.linear_model._base import LinearClassifierMixin, LinearModel, Spars
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.utils.metaestimators import _BaseComposition
 from sklearn.utils.validation import check_is_fitted
-from sklearn2pmml.util import _eval_array_rows, _to_2d, _to_sparse, check_predicate, fqn, to_expr_func
+from sklearn2pmml.util import _eval_array_rows, _to_2d, _to_sparse, check_predicate, fqn, to_evaluatable_func
 
 import copy
 import numpy
@@ -227,7 +227,7 @@ class EstimatorChain(_BaseEnsemble):
 		X_eval = self._to_evaluation_dataset(X)
 		i = 0
 		for name, estimator, predicate in self.steps:
-			predicate_func = to_expr_func(predicate)
+			predicate_func = to_evaluatable_func(predicate)
 			step_mask = _eval_array_rows(X_eval, predicate_func, dtype = bool)
 			if numpy.sum(step_mask) < 1:
 				raise ValueError(predicate)
@@ -249,7 +249,7 @@ class EstimatorChain(_BaseEnsemble):
 		result = None
 		X_eval = self._to_evaluation_dataset(X)
 		for name, estimator, predicate in self.steps:
-			predicate_func = to_expr_func(predicate)
+			predicate_func = to_evaluatable_func(predicate)
 			step_mask = _eval_array_rows(X_eval, predicate_func, dtype = bool)
 			if numpy.sum(step_mask) < 1:
 				continue
@@ -284,7 +284,7 @@ class SelectFirstEstimator(_BaseEnsemble):
 		self.eval_rows = eval_rows
 
 	def _eval_step_mask(self, X, predicate):
-		predicate_func = to_expr_func(predicate)
+		predicate_func = to_evaluatable_func(predicate)
 		if self.eval_rows:
 			return _eval_array_rows(X, predicate_func, dtype = bool)
 		else:

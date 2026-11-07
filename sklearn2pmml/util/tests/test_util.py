@@ -1,6 +1,6 @@
 from pandas import Categorical, CategoricalDtype, DataFrame, Series
 from sklearn.utils.validation import check_is_fitted
-from sklearn2pmml.util import _is_categorical, _is_ordinal, _is_pandas_proto_categorical, _eval_array_rows, _eval_scalar_rows, _get_column_count, _get_column_names, _to_1d, check_expression, check_predicate, fqn, sizeof, deep_sizeof, to_expr, to_expr_func, Evaluatable, Expression, Predicate, Slicer, Reshaper
+from sklearn2pmml.util import _is_categorical, _is_ordinal, _is_pandas_proto_categorical, _eval_array_rows, _eval_scalar_rows, _get_column_count, _get_column_names, _to_1d, check_expression, check_predicate, fqn, sizeof, deep_sizeof, to_evaluatable_func, to_expr, Evaluatable, Expression, Predicate, Slicer, Reshaper
 from unittest import TestCase
 
 import inspect
@@ -175,11 +175,11 @@ class FunctionTest(TestCase):
 
 	def test_eval_array_rows(self):
 		X = Series([-1, 0, 1], index = [10, 20, 30])
-		Xt = _eval_array_rows(X, to_expr_func("X[0] > 0"), dtype = bool)
+		Xt = _eval_array_rows(X, to_evaluatable_func("X[0] > 0"), dtype = bool)
 		self.assertEqual([10, 20, 30], Xt.index.tolist())
 		self.assertEqual([False, False, True], Xt.tolist())
 		X = DataFrame([[-1], [0], [1]], columns = ["a"], index = [10, 20, 30])
-		Xt = _eval_array_rows(X, to_expr_func("X['a'] > 0"), dtype = bool)
+		Xt = _eval_array_rows(X, to_evaluatable_func("X['a'] > 0"), dtype = bool)
 		self.assertEqual([10, 20, 30], Xt.index.tolist())
 		self.assertEqual([False, False, True], Xt.tolist())
 
@@ -206,30 +206,30 @@ class FunctionTest(TestCase):
 	def test_inline_expr(self):
 		expr = "-1 if (X[0] < 0) else (1 if (X[0] > 0) else 0)"
 		expr = to_expr(expr)
-		expr_func = to_expr_func(expr, modules = [])
+		expr_func = to_evaluatable_func(expr, modules = [])
 		self.assertEqual(-1, expr_func([-1.5]))
 		self.assertEqual(0, expr_func([0]))
 		self.assertEqual(1, expr_func([1.5]))
 
 		expr = "re.search(X[0], X[1])"
 		expr = to_expr(expr)
-		expr_func = to_expr_func(expr)
+		expr_func = to_evaluatable_func(expr)
 		self.assertTrue(expr_func(["ar?y", "February"]))
 		self.assertFalse(expr_func(["ar?y", "March"]))
 		self.assertTrue(expr_func(["ar?y", "May"]))
 
 		expr = "pandas.isnull(X[0])"
 		expr = to_expr(expr)
-		expr_func = to_expr_func(expr, modules = [])
+		expr_func = to_evaluatable_func(expr, modules = [])
 		with self.assertRaises(NameError):
 			expr_func([1.5])
-		expr_func = to_expr_func(expr, modules = ["pandas"])
+		expr_func = to_evaluatable_func(expr, modules = ["pandas"])
 		self.assertFalse(expr_func([1.5]))
 		self.assertTrue(expr_func([numpy.nan]))
 
 		expr = "mymodule.myfunc(X[0])"
 		expr = to_expr(expr)
-		expr_func = to_expr_func(expr)
+		expr_func = to_evaluatable_func(expr)
 		with self.assertRaises(NameError):
 			expr_func([0])
 
@@ -237,17 +237,17 @@ class FunctionTest(TestCase):
 		expr = _is_missing
 		expr = to_expr(expr)
 		self.assertIsInstance(expr, str)
-		expr_func = to_expr_func(expr, modules = [])
+		expr_func = to_evaluatable_func(expr, modules = [])
 		with self.assertRaises(NameError):
 			expr_func([1.5])
-		expr_func = to_expr_func(expr, modules = ["pandas"])
+		expr_func = to_evaluatable_func(expr, modules = ["pandas"])
 		self.assertFalse(expr_func([1.5]))
 		self.assertTrue(expr_func([numpy.nan]))
 
 		expr = inspect.getsource(_signum)
 		expr = to_expr(expr)
 		self.assertIsInstance(expr, str)
-		expr_func = to_expr_func(expr, modules = [])
+		expr_func = to_evaluatable_func(expr, modules = [])
 		self.assertEqual(-1, expr_func([-1.5]))
 		self.assertEqual(0, expr_func([0]))
 		self.assertEqual(1, expr_func([1.5]))
@@ -267,21 +267,21 @@ class EvaluatableTest(TestCase):
 		expr = Evaluatable("_is_negative(X[0])")
 		expr = to_expr(expr)
 		self.assertIsInstance(expr, Evaluatable)
-		expr_func = to_expr_func(expr)
+		expr_func = to_evaluatable_func(expr)
 		with self.assertRaises(NameError):
 			expr_func([-1.5])
 		expr = Evaluatable("_is_negative(X[0])", function_defs = [_is_negative])
 		expr = to_expr(expr)
 		self.assertFalse(expr.uses("math"))
 		self.assertFalse(expr.uses("numpy"))
-		expr_func = to_expr_func(expr)
+		expr_func = to_evaluatable_func(expr)
 		with self.assertRaises(NameError):
 			expr_func([-1.5])
 		expr = Evaluatable("_is_negative(X[0])", function_defs = [_is_negative, _trunc])
 		expr = to_expr(expr)
 		self.assertTrue(expr.uses("math"))
 		self.assertFalse(expr.uses("numpy"))
-		expr_func = to_expr_func(expr)
+		expr_func = to_evaluatable_func(expr)
 		self.assertTrue(expr_func([-1.5]))
 		self.assertFalse(expr_func([0]))
 		self.assertFalse(expr_func([1.5]))
@@ -289,7 +289,7 @@ class EvaluatableTest(TestCase):
 		expr = Evaluatable("-1 if _is_negative(X[0]) else (1 if _is_positive(X[0]) else 0)", function_defs = [_is_negative, _is_positive, _trunc])
 		expr = to_expr(expr)
 		self.assertIsInstance(expr, Evaluatable)
-		expr_func = to_expr_func(expr)
+		expr_func = to_evaluatable_func(expr)
 		self.assertEqual(-1, expr_func([-1.5]))
 		self.assertEqual(0, expr_func([0]))
 		self.assertEqual(1, expr_func([1.5]))
