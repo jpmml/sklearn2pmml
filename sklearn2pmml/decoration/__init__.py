@@ -74,9 +74,9 @@ def _check_cols(X, values):
 			raise ValueError()
 
 def _count(missing_mask, valid_mask, invalid_mask):
-	missing_freq = sum(missing_mask)
-	valid_freq = sum(valid_mask)
-	invalid_freq = sum(invalid_mask) if (invalid_mask is not None) else (valid_freq - valid_freq) # A scalar zero, or an array of zeroes
+	missing_freq = numpy.sum(missing_mask, axis = 0)
+	valid_freq = numpy.sum(valid_mask, axis = 0)
+	invalid_freq = numpy.sum(invalid_mask, axis = 0) if (invalid_mask is not None) else (valid_freq - valid_freq) # A scalar zero, or an array of zeroes
 	return {
 		"totalFreq" : (missing_freq + valid_freq + invalid_freq),
 		"missingFreq" : missing_freq,
