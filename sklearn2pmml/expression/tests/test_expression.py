@@ -21,6 +21,9 @@ class ExpressionRegressorTest(TestCase):
 		X = DataFrame([-2.5, -1.5, -0.5, 0.5, 1.5, 2.5], columns = ["a"])
 		pred = regressor.predict(X)
 		self.assertEqual([0.0, 0.0, 0.0, 0.5, 1.5, 2.5], pred.tolist())
+		X = X["a"]
+		pred = regressor.predict(X)
+		self.assertEqual([0.0, 0.0, 0.0, 0.5, 1.5, 2.5], pred.tolist())
 
 		regressor = ExpressionRegressor(Expression("_relu(X[0])", function_defs = [_relu]), normalization_method = "exp")
 		X = numpy.asarray([[-2], [-1], [0], [1], [2]], dtype = int)
@@ -74,6 +77,9 @@ class ExpressionClassifierTest(TestCase):
 		pred_proba = classifier.predict_proba(X)
 		self.assertEqual((3, 2), pred_proba.shape)
 		self.assertEqual([[0.0, 1.0], [1.0, 0.0], [0.0, 1.0]], pred_proba.tolist())
+		X = X[:, 0]
+		pred = classifier.predict(X)
+		self.assertEqual(["yes", "no", "yes"], pred.tolist())
 
 		class_exprs = {
 			"yes" : "X[0] ** X[1] + X[2]"

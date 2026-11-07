@@ -86,6 +86,14 @@ def _to_1d(X):
 	else:
 		raise ValueError("Expected 1d array or 2d column vector array, got {0}d array of shape {1}".format(len(shape), str(shape)))
 
+def _to_2d(X):
+	if _is_series(X):
+		return X.to_frame()
+	elif len(numpy.shape(X)) == 1:
+		return numpy.reshape(X, (-1, 1))
+	else:
+		return X
+
 def _to_numpy(X):
 	if hasattr(X, "to_numpy"):
 		return X.to_numpy()

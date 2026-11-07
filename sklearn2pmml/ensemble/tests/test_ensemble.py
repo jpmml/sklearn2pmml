@@ -71,6 +71,10 @@ class EstimatorChainTest(TestCase):
 		self.assertEqual((5, 2), pred_proba.shape)
 		# XXX: non-sensical, because the two binary classifiers have different class labels ("negative/not negative" vs "not-negative/not not-negative")
 		self.assertEqual([[1, 0], [1, 0], [1, 0], [1, 0], [1, 0]], pred_proba.tolist())
+		X = df["a"]
+		estimator.fit(X, y)
+		pred = estimator.predict(X)
+		self.assertEqual([-1, 0, -1, 0, -1], pred.tolist())
 
 	def test_complex_fit_predict(self):
 		X, y = load_iris(return_X_y = True)
@@ -124,6 +128,10 @@ class SelectFirstClassifierTest(TestCase):
 		pred_proba = classifier.predict_proba(X)
 		self.assertEqual((5, 2), pred_proba.shape)
 		pred = classifier.predict(X.set_index(X.index + 100))
+		self.assertEqual([-1, 0, -1, 1, -1], pred.tolist())
+		X = df["a"]
+		classifier.fit(X, y)
+		pred = classifier.predict(X)
 		self.assertEqual([-1, 0, -1, 1, -1], pred.tolist())
 		X = X.values
 		classifier = SelectFirstClassifier([

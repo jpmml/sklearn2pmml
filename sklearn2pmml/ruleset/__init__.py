@@ -1,6 +1,6 @@
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn2pmml.base import StatelessEstimatorMixin
-from sklearn2pmml.util import check_predicate, eval_rows, to_expr_func
+from sklearn2pmml.util import _to_2d, check_predicate, eval_rows, to_expr_func
 
 class RuleSetClassifier(BaseEstimator, StatelessEstimatorMixin, ClassifierMixin):
 
@@ -27,4 +27,5 @@ class RuleSetClassifier(BaseEstimator, StatelessEstimatorMixin, ClassifierMixin)
 					return score
 			return self.default_score
 
-		return eval_rows(X, _eval_row)
+		X_eval = _to_2d(X)
+		return eval_rows(X_eval, _eval_row)

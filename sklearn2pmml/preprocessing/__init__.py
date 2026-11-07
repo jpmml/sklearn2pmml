@@ -18,7 +18,7 @@ from sklearn.exceptions import NotFittedError
 from sklearn.pipeline import Pipeline
 from sklearn2pmml.base import FeaturesInMixin, StatelessTransformerMixin
 from sklearn2pmml.preprocessing.regex import make_regex_engine
-from sklearn2pmml.util import _copy, _get_column, _get_columns, _has_1d_shape, _is_pandas_categorical, _is_pandas_dataframe, _is_pandas_proto_categorical, _to_1d, _to_bool, _to_float, _to_int, _to_numpy, _to_str, _to_sparse, _set_column, cast, check_expression, check_predicate, dt_transform, eval_rows, to_expr_func
+from sklearn2pmml.util import _copy, _get_column, _get_columns, _has_1d_shape, _is_pandas_categorical, _is_pandas_dataframe, _is_pandas_proto_categorical, _to_1d, _to_2d, _to_bool, _to_float, _to_int, _to_numpy, _to_str, _to_sparse, _set_column, cast, check_expression, check_predicate, dt_transform, eval_rows, to_expr_func
 
 import numpy
 import pandas
@@ -287,6 +287,8 @@ class ExpressionTransformer(BaseEstimator, FeaturesInMixin, TransformerMixin):
 		self.dtype = dtype
 
 	def _eval(self, X):
+		X = _to_2d(X)
+
 		expr_func = to_expr_func(self.expr)
 
 		def _eval_row(x):
@@ -1016,8 +1018,8 @@ class SelectFirstTransformer(BaseEstimator, TransformerMixin):
 
 	def _to_evaluation_dataset(self, X):
 		if self.controller is not None:
-			return self.controller.transform(X)
-		return X
+			X = self.controller.transform(X)
+		return _to_2d(X)
 
 	def _eval_step_mask(self, X, predicate):
 		step_func = to_expr_func(predicate)

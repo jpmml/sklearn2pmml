@@ -5,7 +5,7 @@ from sklearn.linear_model._base import LinearClassifierMixin, LinearModel, Spars
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.utils.metaestimators import _BaseComposition
 from sklearn.utils.validation import check_is_fitted
-from sklearn2pmml.util import _to_sparse, check_predicate, eval_rows, fqn, to_expr_func
+from sklearn2pmml.util import _to_2d, _to_sparse, check_predicate, eval_rows, fqn, to_expr_func
 
 import copy
 import numpy
@@ -176,8 +176,8 @@ class _BaseEnsemble(_BaseComposition):
 
 	def _to_evaluation_dataset(self, X):
 		if self.controller is not None:
-			return self.controller.transform(X)
-		return X
+			X = self.controller.transform(X)
+		return _to_2d(X)
 
 class Link(BaseEstimator):
 

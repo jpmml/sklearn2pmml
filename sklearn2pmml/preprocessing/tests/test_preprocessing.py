@@ -480,6 +480,15 @@ class ExpressionTransformerTest(TestCase):
 		self.assertEqual([[1], [3]], Xt.tolist())
 		X.iloc[1, 1] = float("NaN")
 		self.assertEqual([[1], [-1]], transformer.fit_transform(X).tolist())
+		X = Series([0.5, None])
+		transformer = ExpressionTransformer("X[0] + 1", map_missing_to = -1)
+		Xt = transformer.fit_transform(X)
+		self.assertIsInstance(Xt, Series)
+		self.assertEqual([1.5, -1], Xt.tolist())
+		X = numpy.array([0.5, None])
+		Xt = transformer.fit_transform(X)
+		self.assertIsInstance(Xt, numpy.ndarray)
+		self.assertEqual([[1.5], [-1]], Xt.tolist())
 		transformer = ExpressionTransformer("X['a'] + X['b']", default_value = -1, dtype = float)
 		X = DataFrame([[0.5, 0.5], [1.0, 2.0]], columns = ["a", "b"])
 		Xt = transformer.fit_transform(X)
@@ -536,6 +545,11 @@ class ExpressionTransformerTest(TestCase):
 		self.assertEqual(None, transformer.dtype_)
 		self.assertIsInstance(Xt, numpy.ndarray)
 		self.assertEqual([[1.0], [3.0]], Xt.tolist())
+		X = polars.Series([0.5, None])
+		transformer = ExpressionTransformer("X[0] + 1", map_missing_to = -1)
+		Xt = transformer.fit_transform(X)
+		self.assertIsInstance(Xt, polars.Series)
+		self.assertEqual([1.5, -1], Xt.to_list())
 
 	def test_category_transform(self):
 		begin_err_state = numpy.geterr()
@@ -1214,6 +1228,13 @@ class SelectFirstTransformerTest(TestCase):
 		], eval_rows = False)
 		Xt = transformer.fit_transform(X)
 		self.assertEqual([[2.0], [-1.0], [4.0], [None]], Xt.tolist())
+		X = Series([1.0, 0, 3.0, -1.5])
+		transformer = SelectFirstTransformer([
+			("positive", ExpressionTransformer("X[0] + 1.0"), "X[0] > 0"),
+			("negative", ExpressionTransformer("X[0] - 1.0"), "X[0] < 0")
+		], eval_rows = True)
+		Xt = transformer.fit_transform(X)
+		self.assertEqual([2.0, None, 4.0, -2.5], Xt.tolist())
 
 class H2OFrameCreatorTest(TestCase):
 
