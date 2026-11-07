@@ -77,7 +77,9 @@ class AggregateTransformerTest(TestCase):
 		X = X.reshape((2, 2))
 		self.assertEqual([[0], [2]], transformer.transform(X).tolist())
 		X = X.reshape((4, -1))
-		self.assertEqual([[1], [0], [2], [3]], transformer.transform(X).tolist())
+		Xt = transformer.transform(X)
+		self.assertEqual("float64", Xt.dtype)
+		self.assertEqual([[1], [0], [2], [3]], Xt.tolist())
 
 	def test_min_float(self):
 		X = numpy.asarray([1.0, 0.5, 2.0, 3.0, float("NaN"), 1.5])
@@ -921,6 +923,10 @@ class PowerFunctionTransformerTest(TestCase):
 		self.assertEqual([4, 1, 0, 1, 4], transformer.transform(X).tolist())
 		transformer = PowerFunctionTransformer(power = 3)
 		self.assertEqual([-8, -1, 0, 1, 8], transformer.transform(X).tolist())
+		X = Series([-2, None, numpy.nan])
+		Xt = transformer.transform(X)
+		self.assertEqual("Float64", Xt.dtype)
+		self.assertEqual([-8, pandas.NA, pandas.NA], Xt.tolist())
 
 class LagTransformerTest(TestCase):
 

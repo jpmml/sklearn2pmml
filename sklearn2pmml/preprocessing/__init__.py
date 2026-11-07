@@ -18,7 +18,7 @@ from sklearn.exceptions import NotFittedError
 from sklearn.pipeline import Pipeline
 from sklearn2pmml.base import FeaturesInMixin, StatelessTransformerMixin
 from sklearn2pmml.preprocessing.regex import make_regex_engine
-from sklearn2pmml.util import _copy, _get_column, _get_columns, _has_1d_shape, _is_pandas_categorical, _is_pandas_dataframe, _is_pandas_proto_categorical, _set_missing_values, _to_1d, _to_bool, _to_int, _to_numpy, _to_str, _to_sparse, _set_column, cast, check_expression, check_predicate, dt_transform, eval_rows, to_expr_func
+from sklearn2pmml.util import _copy, _get_column, _get_columns, _has_1d_shape, _is_pandas_categorical, _is_pandas_dataframe, _is_pandas_proto_categorical, _set_missing_values, _to_1d, _to_bool, _to_float, _to_int, _to_numpy, _to_str, _to_sparse, _set_column, cast, check_expression, check_predicate, dt_transform, eval_rows, to_expr_func
 
 import numpy
 import pandas
@@ -57,6 +57,7 @@ class AggregateTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerM
 	def transform(self, X):
 		fun = _aggregate_fun(self.function)
 		Xt = fun(X, axis = 1)
+		Xt = _to_float(Xt)
 		return Xt.reshape((-1, 1))
 
 class BSplineTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin):
@@ -632,7 +633,8 @@ class PowerFunctionTransformer(BaseEstimator, FeaturesInMixin, StatelessTransfor
 		return self
 
 	def transform(self, X):
-		return numpy.power(X, self.power)
+		Xt = numpy.power(X, self.power)
+		return _to_float(Xt)
 
 def _map_feature_names(input_names, block_indicators, fun):
 	if input_names is None:

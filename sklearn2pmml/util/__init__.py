@@ -336,6 +336,22 @@ def _to_bool(X):
 			return numpy.where(mask, None, X).astype(object)
 		return X.astype(bool)
 
+def _to_float(X):
+	if _is_pandas_1d(X):
+		mask = pandas.isnull(X)
+		if numpy.any(mask):
+			return X.astype("Float64")
+		return X.astype(float)
+	elif _is_pandas_dataframe(X):
+		return X.apply(_to_float)
+	elif _is_polars(X):
+		return X.cast(float)
+	else:
+		mask = pandas.isnull(X)
+		if numpy.any(mask):
+			return numpy.where(mask, numpy.nan, X).astype(float)
+		return X.astype(float)
+
 def _to_int(X):
 	if _is_pandas_1d(X):
 		mask = pandas.isnull(X)
