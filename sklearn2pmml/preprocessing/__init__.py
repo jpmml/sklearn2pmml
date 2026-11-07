@@ -291,8 +291,9 @@ class ExpressionTransformer(BaseEstimator, FeaturesInMixin, TransformerMixin):
 
 		def eval_func(x):
 			# x is array-like (row vector)
-			if (self.map_missing_to is not None) and ((pandas.isnull(x)).any()):
-				return self.map_missing_to
+			if self.map_missing_to is not None:
+				if any(map(pandas.isnull, x)):
+					return self.map_missing_to
 			try:
 				xt = expr_func(x)
 			except ArithmeticError as ae:

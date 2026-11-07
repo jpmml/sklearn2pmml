@@ -571,6 +571,9 @@ class _DataFrameApplier:
 			key = self.column_indexes[key]
 		return self._values[key]
 
+	def __iter__(self):
+		return iter(self._values)
+
 	def apply(self, func):
 		X = self.X
 		nrow = X.shape[0]
