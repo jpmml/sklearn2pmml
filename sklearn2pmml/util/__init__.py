@@ -508,10 +508,11 @@ def to_expr_func(expr, modules = ["math", "re", "pcre", "pcre2", "numpy", "panda
 				exec("import {}".format(module), env)
 
 		if "\n" not in expr:
+			expr_code = compile(expr, "<string>", "eval")
 
 			def evaluate(x):
 				env["X"] = x
-				return eval(expr, env)
+				return eval(expr_code, env)
 
 			return evaluate
 		else:
