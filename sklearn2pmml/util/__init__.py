@@ -314,8 +314,10 @@ def _to_numpy_dtype(dtype):
 
 def cast(X, dtype):
 	if isinstance(dtype, str) and dtype.startswith("datetime64"):
-		func = lambda x: to_pydatetime(x, dtype)
-		return _eval_cells(X, func, dtype = datetime)
+		def eval_func(x):
+			return to_pydatetime(x, dtype)
+
+		return _eval_cells(X, eval_func, dtype = datetime)
 	else:
 		if _is_pandas(X):
 			if isinstance(dtype, CategoricalDtype):

@@ -210,13 +210,13 @@ class DurationTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerMi
 		return self
 
 	def transform(self, X):
-		def to_int_duration(X):
+		def eval_func(X):
 			if pandas.isnull(X):
 				return None
 			duration = self._to_duration(pandas.to_timedelta(X - self.epoch))
 			return int(duration)
 
-		Xt = _eval_cells(X, to_int_duration, dtype = int)
+		Xt = _eval_cells(X, eval_func, dtype = int)
 		return _to_int(Xt)
 
 class DaysSinceYearTransformer(DurationTransformer):
@@ -251,14 +251,14 @@ class SecondsSinceMidnightTransformer(BaseEstimator, FeaturesInMixin, StatelessT
 		return self
 
 	def transform(self, X):
-		def to_int_duration(X):
+		def eval_func(X):
 			if pandas.isnull(X):
 				return None
 			dt = pandas.to_datetime(X)
 			duration = self._to_duration(dt - dt.normalize())
 			return int(duration)
 
-		Xt = _eval_cells(X, to_int_duration, dtype = int)
+		Xt = _eval_cells(X, eval_func, dtype = int)
 		return _to_int(Xt)
 
 class ExpressionTransformer(BaseEstimator, FeaturesInMixin, TransformerMixin):
@@ -289,7 +289,7 @@ class ExpressionTransformer(BaseEstimator, FeaturesInMixin, TransformerMixin):
 	def _eval(self, X):
 		expr_func = to_expr_func(self.expr)
 
-		def _eval_row(x):
+		def eval_func(x):
 			# x is array-like (row vector)
 			if (self.map_missing_to is not None) and ((pandas.isnull(x)).any()):
 				return self.map_missing_to
@@ -309,7 +309,7 @@ class ExpressionTransformer(BaseEstimator, FeaturesInMixin, TransformerMixin):
 
 		# Evaluate in PMML compatibility mode
 		with numpy.errstate(divide = "raise"):
-			Xt = _eval_array_rows(X, _eval_row, to_numpy = (not _has_1d_shape(X)), shape = (-1, 1))
+			Xt = _eval_array_rows(X, eval_func, to_numpy = (not _has_1d_shape(X)), shape = (-1, 1))
 		return Xt
 
 	def __sklearn_is_fitted__(self):
@@ -393,12 +393,12 @@ class DateTimeFormatter(BaseEstimator, FeaturesInMixin, StatelessTransformerMixi
 	def transform(self, X):
 		X1d = _to_1d(X)
 
-		def _eval_row(x):
+		def eval_func(x):
 			if pandas.isnull(x):
 				return None
 			return self._strftime(x)
 
-		Xt = _eval_scalar_rows(X1d, _eval_row, shape = X.shape)
+		Xt = _eval_scalar_rows(X1d, eval_func, shape = X.shape)
 		return _to_str(Xt)
 
 class NumberFormatter(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin):
@@ -426,12 +426,12 @@ class NumberFormatter(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin)
 	def transform(self, X):
 		X1d = _to_1d(X)
 
-		def _eval_row(x):
+		def eval_func(x):
 			if pandas.isnull(x):
 				return None
 			return self._printf(x)
 
-		Xt = _eval_scalar_rows(X1d, _eval_row, shape = X.shape)
+		Xt = _eval_scalar_rows(X1d, eval_func, shape = X.shape)
 		return _to_str(Xt)
 
 class LookupTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin):
@@ -489,12 +489,12 @@ class LookupTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerMixi
 		X1d = _to_1d(X)
 		transform_dict = self._transform_dict()
 
-		def _eval_row(x):
+		def eval_func(x):
 			if pandas.isnull(x):
 				return x
 			return transform_dict[x]
 
-		Xt = _eval_scalar_rows(X1d, _eval_row, shape = X.shape, dtype = self.dtype)
+		Xt = _eval_scalar_rows(X1d, eval_func, shape = X.shape, dtype = self.dtype)
 		return Xt
 
 class FilterLookupTransformer(LookupTransformer):
@@ -523,12 +523,12 @@ class FilterLookupTransformer(LookupTransformer):
 		X1d = _to_1d(X)
 		transform_dict = self._transform_dict()
 
-		def _eval_row(x):
+		def eval_func(x):
 			if x not in transform_dict:
 				return x
 			return transform_dict[x]
 
-		Xt = _eval_scalar_rows(X1d, _eval_row, shape = X.shape)
+		Xt = _eval_scalar_rows(X1d, eval_func, shape = X.shape)
 		return Xt
 
 def _deeptype(t):
@@ -556,7 +556,7 @@ class MultiLookupTransformer(LookupTransformer):
 	def transform(self, X):
 		transform_dict = self._transform_dict()
 
-		def _eval_row(x):
+		def eval_func(x):
 			if (pandas.isnull(x)).any():
 				return None
 			# See https://stackoverflow.com/a/3460747
@@ -565,10 +565,10 @@ class MultiLookupTransformer(LookupTransformer):
 			return transform_dict[tuple(x)]
 
 		if self.dtype:
-			Xt = _eval_array_rows(X, _eval_row, dtype = self.dtype)
+			Xt = _eval_array_rows(X, eval_func, dtype = self.dtype)
 			return Xt
 		else:
-			Xt = _eval_array_rows(X, _eval_row, to_numpy = True)
+			Xt = _eval_array_rows(X, eval_func, to_numpy = True)
 			return Xt.reshape((-1, 1))
 
 def _make_index(values):
@@ -811,8 +811,10 @@ class ConcatTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerMixi
 				return ""
 			return str(X)
 
-		func = lambda x: self.separator.join([to_str(v) for v in x])
-		Xt = _eval_array_rows(X, func, to_numpy = True)
+		def eval_func(x):
+			return self.separator.join([to_str(v) for v in x])
+
+		Xt = _eval_array_rows(X, eval_func, to_numpy = True)
 		Xt = _to_str(Xt)
 		return Xt.reshape((-1, 1))
 
@@ -839,12 +841,12 @@ class RegExTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin
 		regex_engine = make_regex_engine(self.pattern, self.re_flavour)
 		func = self._regex_func(regex_engine)
 
-		def _eval_row(x):
+		def eval_func(x):
 			if pandas.isnull(x):
 				return None
 			return func(x)
 
-		Xt = _eval_scalar_rows(X1d, _eval_row, shape = X.shape)
+		Xt = _eval_scalar_rows(X1d, eval_func, shape = X.shape)
 		return Xt
 
 class MatchesTransformer(RegExTransformer):
@@ -972,8 +974,10 @@ class SubstringTransformer(StringTransformer):
 			missing_mask = pandas.isnull(X1d)
 			return _to_str(Xt, missing_mask)
 		else:
-			func = lambda x: x[self.begin:self.end]
-			Xt = _eval_scalar_rows(Xt, func)
+			def eval_func(x):
+				return x[self.begin:self.end]
+
+			Xt = _eval_scalar_rows(Xt, eval_func)
 			missing_mask = pandas.isnull(X1d)
 			Xt = _to_str(Xt, missing_mask)
 			return Xt.reshape(X.shape)
@@ -1020,11 +1024,11 @@ class SelectFirstTransformer(BaseEstimator, TransformerMixin):
 		return _to_2d(X)
 
 	def _eval_step_mask(self, X, predicate):
-		step_func = to_expr_func(predicate)
+		predicate_func = to_expr_func(predicate)
 		if self.eval_rows:
-			return _eval_array_rows(X, step_func, dtype = bool)
+			return _eval_array_rows(X, predicate_func, dtype = bool)
 		else:
-			return step_func(X)
+			return predicate_func(X)
 
 	def fit(self, X, y = None):
 		X_eval = self._to_evaluation_dataset(X)

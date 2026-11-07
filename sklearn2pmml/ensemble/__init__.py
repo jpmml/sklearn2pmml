@@ -227,8 +227,8 @@ class EstimatorChain(_BaseEnsemble):
 		X_eval = self._to_evaluation_dataset(X)
 		i = 0
 		for name, estimator, predicate in self.steps:
-			step_mask_func = to_expr_func(predicate)
-			step_mask = _eval_array_rows(X_eval, step_mask_func, dtype = bool)
+			predicate_func = to_expr_func(predicate)
+			step_mask = _eval_array_rows(X_eval, predicate_func, dtype = bool)
 			if numpy.sum(step_mask) < 1:
 				raise ValueError(predicate)
 			step_X = X[step_mask]
@@ -249,8 +249,8 @@ class EstimatorChain(_BaseEnsemble):
 		result = None
 		X_eval = self._to_evaluation_dataset(X)
 		for name, estimator, predicate in self.steps:
-			step_mask_func = to_expr_func(predicate)
-			step_mask = _eval_array_rows(X_eval, step_mask_func, dtype = bool)
+			predicate_func = to_expr_func(predicate)
+			step_mask = _eval_array_rows(X_eval, predicate_func, dtype = bool)
 			if numpy.sum(step_mask) < 1:
 				continue
 			step_X = X[step_mask]
@@ -284,11 +284,11 @@ class SelectFirstEstimator(_BaseEnsemble):
 		self.eval_rows = eval_rows
 
 	def _eval_step_mask(self, X, predicate):
-		step_func = to_expr_func(predicate)
+		predicate_func = to_expr_func(predicate)
 		if self.eval_rows:
-			return _eval_array_rows(X, step_func, dtype = bool)
+			return _eval_array_rows(X, predicate_func, dtype = bool)
 		else:
-			return step_func(X)
+			return predicate_func(X)
 
 	def fit(self, X, y, **fit_params):
 		X_eval = self._to_evaluation_dataset(X)

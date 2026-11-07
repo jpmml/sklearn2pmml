@@ -21,10 +21,10 @@ class RuleSetClassifier(BaseEstimator, StatelessEstimatorMixin, ClassifierMixin)
 	def predict(self, X):
 		rules = [(to_expr_func(predicate), score) for (predicate, score) in self.rules]
 
-		def _eval_row(x):
-			for (expr_func, score) in rules:
-				if expr_func(x):
+		def eval_func(x):
+			for (predicate_func, score) in rules:
+				if predicate_func(x):
 					return score
 			return self.default_score
 
-		return _eval_array_rows(X, _eval_row)
+		return _eval_array_rows(X, eval_func)

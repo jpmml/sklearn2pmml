@@ -19,8 +19,8 @@ class ExpressionRegressor(BaseEstimator, StatelessEstimatorMixin, RegressorMixin
 		return self
 
 	def decision_function(self, X):
-		func = to_expr_func(self.expr)
-		return _eval_array_rows(X, func, dtype = float)
+		expr_func = to_expr_func(self.expr)
+		return _eval_array_rows(X, expr_func, dtype = float)
 
 	def predict(self, X):
 		y = self.decision_function(X)
@@ -76,8 +76,8 @@ class ExpressionClassifier(BaseEstimator, ClassifierMixin):
 				class_expr = self.class_exprs[clazz]				
 			except KeyError:
 				continue
-			class_func = to_expr_func(class_expr)
-			class_y = _eval_array_rows(X, class_func, dtype = float)
+			expr_func = to_expr_func(class_expr)
+			class_y = _eval_array_rows(X, expr_func, dtype = float)
 			if y is None:
 				y = class_y
 			else:
