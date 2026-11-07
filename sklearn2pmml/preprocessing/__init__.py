@@ -835,7 +835,7 @@ class RegExTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin
 
 		def _eval_row(x):
 			if pandas.isnull(x):
-				return x
+				return None
 			return func(x)
 
 		Xt = eval_rows(X1d, _eval_row, shape = X.shape)

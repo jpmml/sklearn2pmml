@@ -1081,7 +1081,9 @@ class MatchesTransformerTest(TransformerTest):
 		check_is_fitted(transformer)
 		self.assertEqual([True, True, False, False, True, False, False, False, False, False, False, False], self._transform1d(transformer, X).tolist())
 		X = Series(["January", None, numpy.nan])
-		self.assertTrue(_list_equal([True, None, numpy.nan], self._transform1d(transformer, X).tolist()))
+		self.assertTrue(_list_equal([True, None, None], self._transform1d(transformer, X).tolist()))
+		X = numpy.asarray(["January", None, numpy.nan], dtype = object)
+		self.assertEqual([True, None, None], transformer.transform(X).tolist())
 
 class ReplaceTransformerTest(TransformerTest):
 
@@ -1098,7 +1100,9 @@ class ReplaceTransformerTest(TransformerTest):
 		Xt = pipeline.fit_transform(X)
 		self.assertEqual((7, 5), Xt.shape)
 		X = Series(["BAB", None, numpy.nan])
-		self.assertTrue(_list_equal(["cAc", None, numpy.nan], self._transform1d(transformer, X).tolist()))
+		self.assertTrue(_list_equal(["cAc", None, None], self._transform1d(transformer, X).tolist()))
+		X = numpy.asarray(["BAB", None, numpy.nan], dtype = object)
+		self.assertEqual(["cAc", None, None], transformer.transform(X).tolist())
 
 class StringLengthTransformerTest(TransformerTest):
 
