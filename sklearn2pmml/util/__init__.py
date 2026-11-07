@@ -28,6 +28,9 @@ def _is_pandas_series(X):
 def _is_pandas_1d(X):
 	return isinstance(X, (Categorical, Series))
 
+def _is_pandas(X):
+	return isinstance(X, (DataFrame, Series))
+
 def _is_polars_dataframe(X):
 	polars = sys.modules.get("polars")
 	if polars is not None:
@@ -42,6 +45,12 @@ def _is_polars_series(X):
 
 def _is_polars_1d(X):
 	return _is_polars_series(X)
+
+def _is_polars(X):
+	polars = sys.modules.get("polars")
+	if polars is not None:
+		return isinstance(X, (polars.DataFrame, polars.Series))
+	return False
 
 def _is_series(X):
 	return _is_pandas_series(X) or _is_polars_series(X)
@@ -97,7 +106,7 @@ def _to_sparse(X, step_mask, step_result):
 	return result
 
 def _copy(X):
-	if _is_polars_series(X) or _is_polars_dataframe(X):
+	if _is_polars(X):
 		return X.clone()
 	else:
 		return X.copy()
@@ -181,7 +190,7 @@ def _set_values(X, where, values):
 		return X
 
 def _set_missing_values(X, Xt, value = None):
-	if _is_polars_series(X) or _is_polars_dataframe(X):
+	if _is_polars(X):
 		return Xt
 	if value is None:
 		value = X
@@ -300,9 +309,9 @@ def cast(X, dtype):
 		func = lambda x: to_pydatetime(x, dtype)
 		return dt_transform(X, func, dtype = datetime)
 	else:
-		if _is_pandas_series(X) or _is_pandas_dataframe(X):
+		if _is_pandas(X):
 			Xt = X.astype(dtype)
-		elif _is_polars_series(X) or _is_polars_dataframe(X):
+		elif _is_polars(X):
 			Xt = X.cast(dtype)
 		else:
 			X = numpy.asarray(X)
@@ -319,9 +328,7 @@ def _to_int(X):
 		return X.astype(int)
 	elif _is_pandas_dataframe(X):
 		return X.apply(_to_int)
-	elif _is_polars_series(X):
-		return X.cast(int)
-	elif _is_polars_dataframe(X):
+	elif _is_polars(X):
 		return X.cast(int)
 	else:
 		mask = pandas.isnull(X)
