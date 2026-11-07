@@ -1,9 +1,10 @@
 from sklearn.base import TransformerMixin
 try:
-	# SkLearn 1.7.0+
+	# SkLearn 1.6.0+
 	from sklearn.utils.validation import _check_feature_names, _check_n_features
 except ImportError:
-	pass
+	_check_feature_names = None
+	_check_n_features = None
 
 import numpy
 
@@ -14,11 +15,11 @@ class FeaturesInMixin:
 			if reset:
 				self.n_features_in_ = 1
 			return
-		# SkLearn 1.6.1
-		if hasattr(self, "_check_feature_names") and hasattr(self, "_check_n_features"):
+		# SkLearn 1.5.X
+		if _check_n_features is None:
 			self._check_n_features(X, reset = reset)
 			self._check_feature_names(X, reset = reset)
-		# SkLearn 1.7.0+
+		# SkLearn 1.6.0+
 		else:
 			_check_n_features(self, X, reset = reset)
 			_check_feature_names(self, X, reset = reset)

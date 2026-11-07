@@ -25,7 +25,7 @@ def make_lightgbm_dataframe_mapper(dtypes, missing_value_aware = True):
 	i = 0
 	for column, dtype in dtypes.items():
 		if _is_categorical(dtype):
-			features.append(([column], PMMLLabelEncoder(missing_values = -1) if missing_value_aware else LabelEncoder()))
+			features.append((column, PMMLLabelEncoder(missing_values = -1) if missing_value_aware else LabelEncoder()))
 			categorical_features.append(i)
 		else:
 			features.append(([column], None))
