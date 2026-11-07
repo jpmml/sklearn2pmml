@@ -140,6 +140,10 @@ class CastTransformerTest(TransformerTest):
 		self.assertEqual([datetime(1969, 7, 16), datetime(1969, 7, 20), datetime(1969, 7, 21), datetime(1969, 7, 24)], self._fit_transform1d(transformer, X).tolist())
 		transformer = CastTransformer(dtype = "datetime64[s]")
 		self.assertEqual([datetime(1969, 7, 16, 13, 32, 0), datetime(1969, 7, 20, 20, 17, 40), datetime(1969, 7, 21, 17, 54, 1), datetime(1969, 7, 24, 16, 50, 35)], self._fit_transform1d(transformer, X).tolist())
+		X = Series(["1969-07-16T13:32:00", None])
+		transformer = CastTransformer(dtype = "datetime64[D]")
+		self.assertEqual([datetime(1969, 7, 16), pandas.NaT], self._fit_transform1d(transformer, X, check_numpy = False).tolist())
+		self.assertEqual([datetime(1969, 7, 16), None], transformer.transform(X.values).tolist())
 
 	def test_polars_transform_datetime(self):
 		X = polars.Series([datetime(1969, 7, 16, 13, 32, 0), None])
@@ -415,6 +419,9 @@ class SecondsSinceMidnightTransformerTest(TestCase):
 		])
 		Xt = mapper.fit_transform(X)
 		self.assertEqual([[0], [60], [19410]], Xt.tolist())
+		X = DataFrame([["2020-01-01"], ["2020-01-01T00:01:00"], ["2020-01-01T05:23:30"], [None]], columns = ["timestamp"])
+		Xt = mapper.fit_transform(X)
+		self.assertTrue(_list_equal([[0], [60], [19410], [numpy.nan]], Xt.tolist()))
 		X = Series(pandas.to_datetime(["2020-01-01T00:01:00", None]))
 		transformer = SecondsSinceMidnightTransformer()
 		Xt = transformer.transform(X)
@@ -608,6 +615,9 @@ class DateTimeFormatterTest(TransformerTest):
 		], input_df = True)
 		Xt = mapper.fit_transform(X)
 		self.assertEqual([["08/20/04"], ["08/21/04"]], Xt.tolist())
+		X = DataFrame(["2004-08-20", "2004-08-21T03:15:00", None], columns = ["timestamp"])
+		Xt = mapper.fit_transform(X)
+		self.assertEqual([["08/20/04"], ["08/21/04"], [pandas.NaT]], Xt.tolist())
 		X = Series(pandas.to_datetime(["2004-08-20", None]))
 		self.assertTrue(_list_equal(["08/20/04", pandas.NaT], self._transform1d(transformer, X, check_numpy = False).tolist()))
 
