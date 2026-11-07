@@ -372,7 +372,11 @@ class ContinuousDomain(Domain):
 
 	def _valid_value_mask(self, X, where):
 		if hasattr(self, "data_min_") and hasattr(self, "data_max_"):
-			return numpy.where((X >= self.data_min_) & (X <= self.data_max_), where, False)
+			min_mask = numpy.full(X.shape, False)
+			numpy.greater_equal(X, self.data_min_, out = min_mask, where = where)
+			max_mask = numpy.full(X.shape, False)
+			numpy.less_equal(X, self.data_max_, out = max_mask, where = where)
+			return min_mask & max_mask
 		return super(ContinuousDomain, self)._valid_value_mask(X, where)
 
 	def fit(self, X, y = None):
@@ -418,13 +422,19 @@ class ContinuousDomain(Domain):
 		return self
 
 	def _outlier_mask(self, X, where):
-		return numpy.where((X < self.low_value) | (X > self.high_value), where, False)
+		negative_outlier_mask = self._negative_outlier_mask(X, where)
+		positive_outlier_mask = self._positive_outlier_mask(X, where)
+		return negative_outlier_mask | positive_outlier_mask
 
 	def _negative_outlier_mask(self, X, where):
-		return numpy.where(X < self.low_value, where, False)
+		negative_outlier_mask = numpy.full(X.shape, False)
+		numpy.less(X, self.low_value, out = negative_outlier_mask, where = where)
+		return negative_outlier_mask
 
 	def _positive_outlier_mask(self, X, where):
-		return numpy.where(X > self.high_value, where, False)
+		positive_outlier_mask = numpy.full(X.shape, False)
+		numpy.greater(X, self.high_value, out = positive_outlier_mask, where = where)
+		return positive_outlier_mask
 
 	def _transform_valid_values(self, X, where):
 		if not numpy.any(where):
