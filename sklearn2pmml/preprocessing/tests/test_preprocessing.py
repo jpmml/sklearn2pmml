@@ -617,9 +617,9 @@ class DateTimeFormatterTest(TransformerTest):
 		self.assertEqual([["08/20/04"], ["08/21/04"]], Xt.tolist())
 		X = DataFrame(["2004-08-20", "2004-08-21T03:15:00", None], columns = ["timestamp"])
 		Xt = mapper.fit_transform(X)
-		self.assertEqual([["08/20/04"], ["08/21/04"], [pandas.NaT]], Xt.tolist())
+		self.assertTrue(_list_equal([["08/20/04"], ["08/21/04"], [None]], Xt.tolist()))
 		X = Series(pandas.to_datetime(["2004-08-20", None]))
-		self.assertTrue(_list_equal(["08/20/04", pandas.NaT], self._transform1d(transformer, X, check_numpy = False).tolist()))
+		self.assertTrue(_list_equal(["08/20/04", None], self._transform1d(transformer, X, check_numpy = False).tolist()))
 
 class NumberFormatterTest(TransformerTest):
 
@@ -635,7 +635,9 @@ class NumberFormatterTest(TransformerTest):
 		self.assertIsInstance(Xt, numpy.ndarray)
 		self.assertEqual([[" -1"], ["  0"], ["  1"]], Xt.tolist())
 		X = Series([1.5, None, numpy.nan])
-		self.assertTrue(_list_equal(["  1", numpy.nan, numpy.nan], self._transform1d(transformer, X).tolist()))
+		self.assertTrue(_list_equal(["  1", None, None], self._transform1d(transformer, X).tolist()))
+		X = numpy.asarray([[1.5], [numpy.nan]])
+		self.assertEqual([["  1"], [None]], transformer.transform(X).tolist())
 
 class IdentityTransformerTest(TestCase):
 

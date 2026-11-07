@@ -391,7 +391,7 @@ class DateTimeFormatter(BaseEstimator, FeaturesInMixin, StatelessTransformerMixi
 
 		def _eval_row(x):
 			if pandas.isnull(x):
-				return x
+				return None
 			return self._strftime(x)
 
 		Xt = eval_rows(X1d, _eval_row, shape = X.shape)
@@ -424,7 +424,7 @@ class NumberFormatter(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin)
 
 		def _eval_row(x):
 			if pandas.isnull(x):
-				return x
+				return None
 			return self._printf(x)
 
 		Xt = eval_rows(X1d, _eval_row, shape = X.shape)
