@@ -315,7 +315,7 @@ def _to_numpy_dtype(dtype):
 def cast(X, dtype):
 	if isinstance(dtype, str) and dtype.startswith("datetime64"):
 		func = lambda x: to_pydatetime(x, dtype)
-		return dt_transform(X, func, dtype = datetime)
+		return _eval_cells(X, func, dtype = datetime)
 	else:
 		if _is_pandas(X):
 			if isinstance(dtype, CategoricalDtype):
@@ -635,7 +635,7 @@ def _eval_ndarray_rows(X, func, shape = None, dtype = None):
 		Xt = Xt.reshape(shape)
 	return Xt
 
-def dt_transform(X, func, dtype = None):
+def _eval_cells(X, func, dtype = None):
 	if _is_pandas_1d(X):
 		return X.apply(func)
 	elif _is_pandas_dataframe(X):

@@ -18,7 +18,7 @@ from sklearn.exceptions import NotFittedError
 from sklearn.pipeline import Pipeline
 from sklearn2pmml.base import FeaturesInMixin, StatelessTransformerMixin
 from sklearn2pmml.preprocessing.regex import make_regex_engine
-from sklearn2pmml.util import _copy, _eval_array_rows, _eval_scalar_rows, _get_column, _get_columns, _has_1d_shape, _is_pandas_categorical, _is_pandas_dataframe, _is_pandas_proto_categorical, _to_1d, _to_2d, _to_bool, _to_float, _to_int, _to_numpy, _to_str, _to_sparse, _set_column, cast, check_expression, check_predicate, dt_transform, to_expr_func
+from sklearn2pmml.util import _copy, _eval_array_rows, _eval_cells, _eval_scalar_rows, _get_column, _get_columns, _has_1d_shape, _is_pandas_categorical, _is_pandas_dataframe, _is_pandas_proto_categorical, _to_1d, _to_2d, _to_bool, _to_float, _to_int, _to_numpy, _to_str, _to_sparse, _set_column, cast, check_expression, check_predicate, to_expr_func
 
 import numpy
 import pandas
@@ -216,7 +216,7 @@ class DurationTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerMi
 			duration = self._to_duration(pandas.to_timedelta(X - self.epoch))
 			return int(duration)
 
-		Xt = dt_transform(X, to_int_duration, dtype = int)
+		Xt = _eval_cells(X, to_int_duration, dtype = int)
 		return _to_int(Xt)
 
 class DaysSinceYearTransformer(DurationTransformer):
@@ -258,7 +258,7 @@ class SecondsSinceMidnightTransformer(BaseEstimator, FeaturesInMixin, StatelessT
 			duration = self._to_duration(dt - dt.normalize())
 			return int(duration)
 
-		Xt = dt_transform(X, to_int_duration, dtype = int)
+		Xt = _eval_cells(X, to_int_duration, dtype = int)
 		return _to_int(Xt)
 
 class ExpressionTransformer(BaseEstimator, FeaturesInMixin, TransformerMixin):
