@@ -320,6 +320,22 @@ def cast(X, dtype):
 			Xt = _set_missing_values(X, Xt)
 		return Xt
 
+def _to_bool(X):
+	if _is_pandas_1d(X):
+		mask = pandas.isnull(X)
+		if numpy.any(mask):
+			return X.astype("boolean")
+		return X.astype(bool)
+	elif _is_pandas_dataframe(X):
+		return X.apply(_to_bool)
+	elif _is_polars(X):
+		return X.cast(bool)
+	else:
+		mask = pandas.isnull(X)
+		if numpy.any(mask):
+			return numpy.where(mask, None, X).astype(object)
+		return X.astype(bool)
+
 def _to_int(X):
 	if _is_pandas_1d(X):
 		mask = pandas.isnull(X)

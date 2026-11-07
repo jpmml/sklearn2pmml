@@ -18,7 +18,7 @@ from sklearn.exceptions import NotFittedError
 from sklearn.pipeline import Pipeline
 from sklearn2pmml.base import FeaturesInMixin, StatelessTransformerMixin
 from sklearn2pmml.preprocessing.regex import make_regex_engine
-from sklearn2pmml.util import _copy, _get_column, _get_columns, _has_1d_shape, _is_pandas_categorical, _is_pandas_dataframe, _is_pandas_proto_categorical, _set_missing_values, _to_1d, _to_int, _to_numpy, _to_sparse, _set_column, cast, check_expression, check_predicate, dt_transform, eval_rows, to_expr_func
+from sklearn2pmml.util import _copy, _get_column, _get_columns, _has_1d_shape, _is_pandas_categorical, _is_pandas_dataframe, _is_pandas_proto_categorical, _set_missing_values, _to_1d, _to_bool, _to_int, _to_numpy, _to_sparse, _set_column, cast, check_expression, check_predicate, dt_transform, eval_rows, to_expr_func
 
 import numpy
 import pandas
@@ -852,6 +852,10 @@ class MatchesTransformer(RegExTransformer):
 			return bool(regex_engine.matches(x))
 
 		return matches
+
+	def transform(self, X):
+		Xt = super(MatchesTransformer, self).transform(X = X)
+		return _to_bool(Xt)
 
 class ReplaceTransformer(RegExTransformer):
 	"""Replace all RE pattern matches."""

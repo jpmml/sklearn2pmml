@@ -1083,7 +1083,9 @@ class MatchesTransformerTest(TransformerTest):
 		check_is_fitted(transformer)
 		self.assertEqual([True, True, False, False, True, False, False, False, False, False, False, False], self._transform1d(transformer, X).tolist())
 		X = Series(["January", None, numpy.nan])
-		self.assertTrue(_list_equal([True, None, None], self._transform1d(transformer, X).tolist()))
+		Xt = self._transform1d(transformer, X, check_numpy = False)
+		self.assertEqual("boolean", Xt.dtype)
+		self.assertEqual([True, pandas.NA, pandas.NA], Xt.tolist())
 		X = numpy.asarray(["January", None, numpy.nan], dtype = object)
 		self.assertEqual([True, None, None], transformer.transform(X).tolist())
 
