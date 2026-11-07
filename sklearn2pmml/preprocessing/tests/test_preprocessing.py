@@ -1060,6 +1060,8 @@ class ConcatTransformerTest(TestCase):
 		X = DataFrame([["L", -1], ["R", 1]], columns = ["left", "right"])
 		transformer = ConcatTransformer("/")
 		self.assertEqual([["L/-1"], ["R/1"]], transformer.transform(X).tolist())
+		X = DataFrame([["L", None], ["R", numpy.nan]], columns = ["left", "right"])
+		self.assertEqual([["L/"], ["R/"]], transformer.transform(X).tolist())
 
 class MatchesTransformerTest(TransformerTest):
 

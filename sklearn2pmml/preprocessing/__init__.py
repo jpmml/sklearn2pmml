@@ -801,7 +801,12 @@ class ConcatTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerMixi
 		return self
 
 	def transform(self, X):
-		func = lambda x: self.separator.join([str(v) for v in x])
+		def to_str(X):
+			if pandas.isnull(X):
+				return ""
+			return str(X)
+
+		func = lambda x: self.separator.join([to_str(v) for v in x])
 		Xt = eval_rows(X, func, to_numpy = True)
 		return Xt.reshape((-1, 1))
 
