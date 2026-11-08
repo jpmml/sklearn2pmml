@@ -1,4 +1,3 @@
-from sklearn_pandas import DataFrameMapper
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import LabelBinarizer, OneHotEncoder, OrdinalEncoder
@@ -21,6 +20,8 @@ def make_xgboost_dataframe_mapper(dtypes, missing_value_aware = True):
 	DataFrameMapper
 
 	"""
+	from sklearn_pandas import DataFrameMapper
+
 	features = list()
 	for column, dtype in dtypes.items():
 		if _is_categorical(dtype):

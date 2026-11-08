@@ -1,4 +1,3 @@
-from sklearn_pandas import DataFrameMapper
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import LabelEncoder, OrdinalEncoder
 from sklearn2pmml.preprocessing import PMMLLabelEncoder
@@ -20,6 +19,8 @@ def make_lightgbm_dataframe_mapper(dtypes, missing_value_aware = True):
 	Tuple (DataFrameMapper, list of categorical column indices)
 
 	"""
+	from sklearn_pandas import DataFrameMapper
+
 	features = list()
 	categorical_features = list()
 	i = 0
