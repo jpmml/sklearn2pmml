@@ -37,6 +37,20 @@ def _aggregate_fun(function):
 	else:
 		raise ValueError(function)
 
+def _apply_rolling_aggregate(windows, function):
+	if function == "avg" or function == "mean":
+		return windows.mean()
+	elif function == "max":
+		return windows.max()
+	elif function == "min":
+		return windows.min()
+	elif function == "product" or function == "prod":
+		return windows.apply(numpy.nanprod, raw = True)
+	elif function == "sum":
+		return windows.sum()
+	else:
+		raise ValueError(function)
+
 class AggregateTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin):
 	"""Aggregate continuous data."""
 
@@ -757,42 +771,33 @@ class RollingAggregateTransformer(BaseEstimator, FeaturesInMixin, StatelessTrans
 		return self
 
 	def transform(self, X):
-		fun = _aggregate_fun(self.function)
 		if hasattr(X, "rolling"):
-			def _rolling_apply(df):
-				df_windows = df.rolling(window = self.n, min_periods = 1, closed = "left")
-				return df_windows.apply(fun, raw = True)
-
 			if self.block_indicators is not None:
-				return _df_apply_blockwise(X, self.block_indicators, _rolling_apply)
+				X_block_indicators = X[self.block_indicators]
+				feature_columns = [col for col in X.columns if col not in X_block_indicators.columns]
+				X_features = X[feature_columns].astype(float)
+				X_features = X_features.set_axis(range(X.shape[0]), axis = 0)
+				block_keys = [X_block_indicators[col].to_numpy() for col in X_block_indicators.columns]
+				block_levels = list(range(len(block_keys)))
+				blocks = X_features.groupby(block_keys, sort = False, dropna = False)
+				windows = blocks.rolling(window = self.n, min_periods = 1, closed = "left")
+
+				Xt_features = _apply_rolling_aggregate(windows, self.function)
+				Xt_features = Xt_features.droplevel(block_levels).sort_index()
+				Xt = X.copy()
+				for col in feature_columns:
+					Xt[col] = Xt_features[col].to_numpy()
+				return Xt
 			else:
-				return _rolling_apply(X)
+				windows = X.astype(float).rolling(window = self.n, min_periods = 1, closed = "left")
+				return _apply_rolling_aggregate(windows, self.function)
 		else:
 			X = numpy.asarray(X)
 			if len(X.shape) != 2:
 				raise ValueError("Expected a 2D array, got {}D array".format(len(X.shape)))
-			if self.block_indicators is not None:
-				def _rolling_apply(X, Xt, row_indices, column_indices):
-					block_index = numpy.ix_(row_indices, column_indices)
-					X_block = X[block_index]
-					for i in range(0, len(row_indices)):
-						X_window = X_block[max(0, i - self.n):i]
-						if X_window.size == 0:
-							continue
-						Xt[row_indices[i], column_indices] = fun(X_window, axis = 0)
-
-				return _ndarray_apply_blockwise(X, self.block_indicators, _rolling_apply)
-			else:
-				def _rolling_apply(X, Xt):
-					for i in range(0, X.shape[0]):
-						X_window = X[max(0, i - self.n):i]
-						if X_window.size == 0:
-							continue
-						Xt[i] = fun(X_window, axis = 0)
-
-				Xt = numpy.full_like(X, fill_value = numpy.nan, dtype = float)
-				_rolling_apply(X, Xt)
-				return Xt
+			X = DataFrame(X)
+			Xt = self.transform(X)
+			return Xt.to_numpy()
 
 class ConcatTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin):
 	"""Concat data to string."""

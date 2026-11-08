@@ -1064,6 +1064,15 @@ class RollingAggregateTransformerTest(TestCase):
 		Xt = self._transform2d(transformer, X)
 		self.assertTrue(_list_equal([[None, None], [1, -1], [1.5, -1], [2.5, 1], [3.5, 1.5]], Xt.values.tolist()))
 
+		X = DataFrame([[-1, "a"], [numpy.nan, "b"], [1, "b"], [2, "a"]], columns = ["int", "block"])
+		transformer = RollingAggregateTransformer(function = "avg", n = 1, block_indicators = ["block"])
+		Xt = transformer.fit_transform(X)
+		self.assertTrue(_list_equal([float("NaN"), float("NaN"), float("NaN"), -1], Xt.iloc[:, 0].tolist()))
+		X = X.values
+		transformer = RollingAggregateTransformer(function = "avg", n = 1, block_indicators = [1])
+		Xt = transformer.fit_transform(X)
+		self.assertTrue(_list_equal([float("NaN"), float("NaN"), float("NaN"), -1], Xt[:, 0].tolist()))
+
 	def test_max(self):
 		X = Series([1, 2, 3, 4, 5])
 		transformer = RollingAggregateTransformer(function = "max", n = 3)
@@ -1093,6 +1102,9 @@ class RollingAggregateTransformerTest(TestCase):
 		X = DataFrame([[1, -1], [2, numpy.nan], [3, 1], [4, 2], [5, 3]])
 		Xt = self._transform2d(transformer, X)
 		self.assertTrue(_list_equal([[float("NaN"), float("NaN")], [1, -1], [2, -1], [6, -1], [24, 2]], Xt.values.tolist()))
+		transformer = RollingAggregateTransformer(function = "product", n = 1)
+		Xt = self._transform2d(transformer, X)
+		self.assertTrue(_list_equal([[float("NaN"), float("NaN")], [1, -1], [2, float("NaN")], [3, 1], [4, 2]], Xt.values.tolist()))
 
 	def test_sum(self):
 		X = Series([1, 2, 3, 4, 5])
@@ -1103,6 +1115,9 @@ class RollingAggregateTransformerTest(TestCase):
 		X = DataFrame([[1, -1], [2, numpy.nan], [3, 1], [4, 2], [5, 3]])
 		Xt = self._transform2d(transformer, X)
 		self.assertTrue(_list_equal([[float("NaN"), float("NaN")], [1, -1], [3, -1], [6, 0], [9, 3]], Xt.values.tolist()))
+		transformer = RollingAggregateTransformer(function = "sum", n = 1)
+		Xt = self._transform2d(transformer, X)
+		self.assertTrue(_list_equal([[float("NaN"), float("NaN")], [1, -1], [2, float("NaN")], [3, 1], [4, 2]], Xt.values.tolist()))
 
 		X = DataFrame([[-1, "a"], [0, "a"], [1, "b"], [2, "b"], [3, "a"], [4, "b"], [5, "a"]], columns = ["int", "block"])
 		transformer = RollingAggregateTransformer(function = "sum", n = 2, block_indicators = ["block"])
