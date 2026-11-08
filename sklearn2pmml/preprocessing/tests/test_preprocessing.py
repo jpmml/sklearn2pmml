@@ -1005,6 +1005,15 @@ class LagTransformerTest(TestCase):
 		self.assertTrue(_list_equal([float("NaN"), -1, float("NaN"), 1, 0], Xt[:, 0].tolist()))
 		self.assertEqual(["a", "a", "b", "b", "a"], Xt[:, 1].tolist())
 
+		X = DataFrame([[-1, -10, "a"], [0, 0, "a"], [1, 10, "b"], [2, 20, "b"], [3, 30, "a"]], columns = ["int1", "int2", "block"])
+		transformer = LagTransformer(n = 1, block_indicators = ["block"])
+		Xt = transformer.transform(X)
+		self.assertTrue(_list_equal([[float("NaN"), float("NaN")], [-1, -10], [float("NaN"), float("NaN")], [1, 10], [0, 0]], Xt[["int1", "int2"]].values.tolist()))
+		X = X.values
+		transformer = LagTransformer(n = 1, block_indicators = [2])
+		Xt = transformer.transform(X)
+		self.assertTrue(_list_equal([[float("NaN"), float("NaN")], [-1, -10], [float("NaN"), float("NaN")], [1, 10], [0, 0]], Xt[:, 0:2].tolist()))
+
 		X = DataFrame([[-1, "a", "x"], [0, "a", "y"], [1, "b", "x"], [2, "b", "y"], [3, "a", "x"], [4, "a", "y"], [5, None, "x"], [6, None, "x"]], columns = ["int", "block1", "block2"])
 		transformer = LagTransformer(n = 1, block_indicators = ["block1", "block2"])
 		Xt = transformer.transform(X)
@@ -1104,6 +1113,15 @@ class RollingAggregateTransformerTest(TestCase):
 		Xt = transformer.fit_transform(X)
 		self.assertEqual(2, transformer.n_features_in_)
 		self.assertTrue(_list_equal([float("NaN"), -1, float("NaN"), 1, -1, 3, 3], Xt[:, 0].tolist()))
+
+		X = DataFrame([[-1, -10, "a"], [0, 0, "a"], [1, 10, "b"], [2, 20, "b"], [3, 30, "a"]], columns = ["int1", "int2", "block"])
+		transformer = RollingAggregateTransformer(function = "sum", n = 2, block_indicators = ["block"])
+		Xt = transformer.fit_transform(X)
+		self.assertTrue(_list_equal([[float("NaN"), float("NaN")], [-1, -10], [float("NaN"), float("NaN")], [1, 10], [-1, -10]], Xt[["int1", "int2"]].values.tolist()))
+		X = X.values
+		transformer = RollingAggregateTransformer(function = "sum", n = 2, block_indicators = [2])
+		Xt = transformer.fit_transform(X)
+		self.assertTrue(_list_equal([[float("NaN"), float("NaN")], [-1, -10], [float("NaN"), float("NaN")], [1, 10], [-1, -10]], Xt[:, 0:2].tolist()))
 
 		X = DataFrame([[-1, "a", "x"], [0, "a", "y"], [1, "b", "x"], [2, "b", "y"], [3, "a", "x"], [4, "a", "y"], [5, None, "x"], [6, None, "x"]], columns = ["int", "block1", "block2"])
 		transformer = RollingAggregateTransformer(function = "sum", n = 2, block_indicators = ["block1", "block2"])

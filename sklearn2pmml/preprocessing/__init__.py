@@ -718,7 +718,9 @@ class LagTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin):
 			if self.block_indicators is not None:
 				def _shift(X, Xt, row_indices, column_indices):
 					if self.n < len(row_indices):
-						Xt[row_indices[self.n:], column_indices] = X[row_indices[:-self.n], column_indices]
+						target_index = numpy.ix_(row_indices[self.n:], column_indices)
+						source_index = numpy.ix_(row_indices[:-self.n], column_indices)
+						Xt[target_index] = X[source_index]
 
 				return _ndarray_apply_blockwise(X, self.block_indicators, _shift)
 			else:
@@ -771,7 +773,8 @@ class RollingAggregateTransformer(BaseEstimator, FeaturesInMixin, StatelessTrans
 				raise ValueError("Expected a 2D array, got {}D array".format(len(X.shape)))
 			if self.block_indicators is not None:
 				def _rolling_apply(X, Xt, row_indices, column_indices):
-					X_block = X[row_indices, column_indices]
+					block_index = numpy.ix_(row_indices, column_indices)
+					X_block = X[block_index]
 					for i in range(0, len(row_indices)):
 						X_window = X_block[max(0, i - self.n):i]
 						if X_window.size == 0:
