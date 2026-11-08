@@ -638,6 +638,9 @@ class DateTimeFormatterTest(TransformerTest):
 		Xt = self._transform1d(transformer, X, check_numpy = False)
 		self.assertEqual("string", Xt.dtype)
 		self.assertEqual(["08/20/04", pandas.NA], Xt.tolist())
+		X = numpy.asarray(["2004-08-20", "2004-08-21T23:59:59.999999999", "NaT"], dtype = "datetime64[ns]")
+		Xt = transformer.transform(X)
+		self.assertEqual(["08/20/04", "08/21/04", None], Xt.tolist())
 
 class NumberFormatterTest(TransformerTest):
 

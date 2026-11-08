@@ -384,6 +384,8 @@ class DateTimeFormatter(BaseEstimator, FeaturesInMixin, StatelessTransformerMixi
 		self.pattern = pattern
 
 	def _strftime(self, x):
+		if isinstance(x, numpy.datetime64):
+			x = x.astype("datetime64[s]").item()
 		return x.strftime(self.pattern)
 
 	def fit(self, X):
