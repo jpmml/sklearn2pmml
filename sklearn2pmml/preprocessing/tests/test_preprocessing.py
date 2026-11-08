@@ -848,6 +848,10 @@ class MultiLookupTransformerTest(TestCase):
 		self.assertIsInstance(Xt.dtype, CategoricalDtype)
 		self.assertEqual([False, True], Xt.dtype.categories.tolist())
 		self.assertTrue(_list_equal([float("NaN"), False, True], Xt.tolist()))
+		X = DataFrame([["apple", "green"], ["banana", None], [None, "yellow"]], columns = ["fruit", "color"])
+		transformer = MultiLookupTransformer(mapping, False)
+		Xt = transformer.fit_transform(X)
+		self.assertTrue(_list_equal([False, float("NaN"), float("NaN")], Xt.tolist()))
 
 class PMMLLabelBinarizerTest(TestCase):
 

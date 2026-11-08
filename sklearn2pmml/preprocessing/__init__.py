@@ -1,8 +1,4 @@
 from collections import defaultdict
-try:
-	from collections.abc import Hashable
-except ImportError:
-	from collections import Hashable
 from datetime import datetime
 from io import StringIO
 from pandas import CategoricalDtype, DataFrame, Series
@@ -560,12 +556,10 @@ class MultiLookupTransformer(LookupTransformer):
 		transform_dict = self._transform_dict()
 
 		def eval_func(x):
-			if (pandas.isnull(x)).any():
+			key = tuple(x)
+			if any(pandas.isnull(value) for value in key):
 				return None
-			# See https://stackoverflow.com/a/3460747
-			# See https://stackoverflow.com/a/3338368
-			x = x if isinstance(x, Hashable) else tuple(numpy.ravel(numpy.asarray(x)))
-			return transform_dict[tuple(x)]
+			return transform_dict[key]
 
 		if self.dtype:
 			Xt = _eval_array_rows(X, eval_func, dtype = self.dtype)
