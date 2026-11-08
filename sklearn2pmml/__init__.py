@@ -2,17 +2,13 @@ from dataclasses import asdict, is_dataclass
 from datetime import date
 from importlib.metadata import version, PackageNotFoundError
 from pathlib import Path
-try:
-	from sklearn_pandas import DataFrameMapper
-except ImportError:
-	class DataFrameMapper(object):
-		pass
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.compose import ColumnTransformer
 from sklearn.exceptions import NotFittedError
 from sklearn.feature_selection import SelectorMixin
 from sklearn.pipeline import FeatureUnion, Pipeline
 from sklearn2pmml.resources import _package_classpath
+from sklearn2pmml.util import _is_dataframe_mapper
 from subprocess import PIPE, Popen
 from zipfile import ZipFile
 
@@ -114,7 +110,7 @@ def _escape(obj, escape_func):
 		if is_extension_class:
 			obj.pmml_base_class_ = base_class
 
-	if isinstance(obj, DataFrameMapper):
+	if _is_dataframe_mapper(obj):
 		obj.features = _escape_steps(obj.features, escape_func = escape_func)
 		if hasattr(obj, "built_features"):
 			if obj.built_features is not None:

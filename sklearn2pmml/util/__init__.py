@@ -52,6 +52,12 @@ def _is_polars(X):
 		return isinstance(X, (polars.DataFrame, polars.Series))
 	return False
 
+def _is_dataframe_mapper(obj):
+	sklearn_pandas = sys.modules.get("sklearn_pandas")
+	if sklearn_pandas is not None:
+		return isinstance(obj, sklearn_pandas.DataFrameMapper)
+	return False
+
 def _is_series(X):
 	return _is_pandas_series(X) or _is_polars_series(X)
 

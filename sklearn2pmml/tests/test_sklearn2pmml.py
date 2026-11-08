@@ -1,3 +1,7 @@
+from sklearn2pmml.sklearn_pandas import patch_sklearn
+
+patch_sklearn()
+
 from dataclasses import asdict, is_dataclass
 from sklearn.dummy import DummyRegressor
 from sklearn.feature_selection import f_regression, SelectFromModel, SelectKBest
@@ -7,6 +11,7 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.tree import DecisionTreeRegressor
 from sklearn2pmml import _classpath, _escape, _escape_steps, _expand_complex_key, _is_extension_class, _java_version, _parse_java_version, _strip_module, load_class_mapping, make_class_mapping_jar, make_pmml_pipeline, EstimatorProxy, SelectorProxy
 from sklearn2pmml.pipeline import PMMLPipeline
+from sklearn_pandas import DataFrameMapper
 from unittest import TestCase
 
 import numpy
@@ -171,6 +176,15 @@ class FunctionTest(TestCase):
 			self.assertTrue(is_dataclass(tags))
 			self.assertEqual("regressor", tags.estimator_type)
 			self.assertEqual(asdict(tags), estimator._sklearn_tags)
+
+	def test_escape_dataframe_mapper(self):
+		transformer = PercentageTransformer()
+		self.assertFalse(hasattr(transformer, "pmml_base_class_"))
+		mapper = DataFrameMapper([
+			(["x1", "x2"], transformer)
+		])
+		mapper = _escape(mapper, escape_func = _escape)
+		self.assertTrue(hasattr(transformer, "pmml_base_class_"))
 
 	def test_is_extension_estimator(self):
 		estimator = LogisticRegression(fit_intercept = True)
