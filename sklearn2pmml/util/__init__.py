@@ -646,6 +646,25 @@ def _eval_ndarray_rows(X, func, shape = None, dtype = None):
 		Xt = Xt.reshape(shape)
 	return Xt
 
+def _eval_columns(X, func):
+	if _is_pandas_series(X):
+		Xt = func(X.to_numpy())
+		return Series(Xt, index = X.index, name = X.name)
+	elif _is_pandas_dataframe(X):
+		return X.apply(_eval_columns, args = (func, ))
+	elif _is_polars_series(X):
+		polars = sys.modules.get("polars")
+		Xt = func(X.to_numpy())
+		return polars.Series(X.name, Xt, nan_to_null = True)
+	elif _is_polars_dataframe(X):
+		polars = sys.modules.get("polars")
+		columns = [_eval_columns(X[column], func) for column in X.columns]
+		return polars.DataFrame(columns)
+	else:
+		X = numpy.asarray(X)
+		Xt = func(X.ravel())
+		return Xt.reshape(X.shape)
+
 def _eval_cells(X, func, dtype = None):
 	if _is_pandas_1d(X):
 		return X.apply(func)

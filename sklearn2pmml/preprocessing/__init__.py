@@ -14,7 +14,7 @@ from sklearn.exceptions import NotFittedError
 from sklearn.pipeline import Pipeline
 from sklearn2pmml.base import FeaturesInMixin, StatelessTransformerMixin
 from sklearn2pmml.preprocessing.regex import make_regex_engine
-from sklearn2pmml.util import _copy, _eval_array_rows, _eval_cells, _eval_scalar_rows, _get_column, _get_columns, _has_1d_shape, _is_pandas_categorical, _is_pandas_dataframe, _is_pandas_proto_categorical, _to_1d, _to_2d, _to_bool, _to_float, _to_int, _to_numpy, _to_str, _to_sparse, _set_column, cast, check_expression, check_predicate, to_evaluatable_func
+from sklearn2pmml.util import _copy, _eval_array_rows, _eval_columns, _eval_scalar_rows, _get_column, _get_columns, _has_1d_shape, _is_pandas_categorical, _is_pandas_dataframe, _is_pandas_proto_categorical, _to_1d, _to_2d, _to_bool, _to_float, _to_int, _to_numpy, _to_str, _to_sparse, _set_column, cast, check_expression, check_predicate, to_evaluatable_func
 
 import numpy
 import pandas
@@ -212,7 +212,7 @@ class DurationTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerMi
 		self.year = year
 		self.epoch = datetime(year, 1, 1, tzinfo = None)
 
-	def _to_duration(self, td):
+	def _to_duration(self, x):
 		raise NotImplementedError()
 
 	def fit(self, X, y = None):
@@ -220,13 +220,7 @@ class DurationTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerMi
 		return self
 
 	def transform(self, X):
-		def eval_func(X):
-			if pandas.isnull(X):
-				return None
-			duration = self._to_duration(pandas.to_timedelta(X - self.epoch))
-			return int(duration)
-
-		Xt = _eval_cells(X, eval_func, dtype = int)
+		Xt = _eval_columns(X, self._to_duration)
 		return _to_int(Xt)
 
 class DaysSinceYearTransformer(DurationTransformer):
@@ -235,8 +229,10 @@ class DaysSinceYearTransformer(DurationTransformer):
 	def __init__(self, year):
 		super(DaysSinceYearTransformer, self).__init__(year)
 
-	def _to_duration(self, td):
-		return td.days
+	def _to_duration(self, x):
+		date = x.astype("datetime64[D]")
+		epoch = numpy.datetime64(self.epoch, "D")
+		return (date - epoch) / numpy.timedelta64(1, "D")
 
 class SecondsSinceYearTransformer(DurationTransformer):
 	"""Calculate the number of seconds since the epoch."""
@@ -244,8 +240,11 @@ class SecondsSinceYearTransformer(DurationTransformer):
 	def __init__(self, year):
 		super(SecondsSinceYearTransformer, self).__init__(year)
 
-	def _to_duration(self, td):
-		return td.total_seconds()
+	def _to_duration(self, x):
+		dt = x.astype("datetime64[us]")
+		epoch = numpy.datetime64(self.epoch, "us")
+		seconds = (dt - epoch) / numpy.timedelta64(1, "s")
+		return numpy.trunc(seconds)
 
 class SecondsSinceMidnightTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin):
 	"""Calculate the number of seconds since midnight."""
@@ -253,22 +252,17 @@ class SecondsSinceMidnightTransformer(BaseEstimator, FeaturesInMixin, StatelessT
 	def __init__(self):
 		pass
 
-	def _to_duration(self, td):
-		return td.seconds
+	def _to_duration(self, x):
+		dt = x.astype("datetime64[s]")
+		date = x.astype("datetime64[D]")
+		return (dt - date) / numpy.timedelta64(1, "s")
 
 	def fit(self, X, y = None):
 		self._check_features_in(X, reset = True)
 		return self
 
 	def transform(self, X):
-		def eval_func(X):
-			if pandas.isnull(X):
-				return None
-			dt = pandas.to_datetime(X)
-			duration = self._to_duration(dt - dt.normalize())
-			return int(duration)
-
-		Xt = _eval_cells(X, eval_func, dtype = int)
+		Xt = _eval_columns(X, self._to_duration)
 		return _to_int(Xt)
 
 class ExpressionTransformer(BaseEstimator, FeaturesInMixin, TransformerMixin):

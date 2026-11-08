@@ -355,10 +355,10 @@ class SeriesConstructorTest(TestCase):
 class DurationTransformerTest(TestCase):
 
 	def test_days_transform(self):
-		X = numpy.array([datetime(1960, 1, 1), datetime(1960, 1, 2), datetime(1960, 2, 1), datetime(1959, 12, 31), datetime(2003, 4, 1)])
+		X = numpy.array([datetime(1960, 1, 1), datetime(1960, 1, 2), datetime(1960, 2, 1), datetime(1959, 12, 31), datetime(1959, 12, 31, 12, 0, 0), datetime(2003, 4, 1)])
 		transformer = DaysSinceYearTransformer(year = 1960)
 		check_is_fitted(transformer)
-		self.assertEqual([0, 1, 31, -1, 15796], transformer.transform(X).tolist())
+		self.assertEqual([0, 1, 31, -1, -1, 15796], transformer.transform(X).tolist())
 		X = numpy.array([datetime(1960, 1, 2), None])
 		Xt = transformer.transform(X)
 		self.assertEqual(float, Xt.dtype)
@@ -369,9 +369,9 @@ class DurationTransformerTest(TestCase):
 		self.assertEqual([1, pandas.NA], Xt.tolist())
 
 	def test_seconds_transform(self):
-		X = numpy.array([datetime(1960, 1, 1), datetime(1960, 1, 1, 0, 0, 1), datetime(1960, 1, 1, 0, 1, 0), datetime(1959, 12, 31, 23, 59, 59), datetime(1960, 1, 3, 3, 30, 3)])
+		X = numpy.array([datetime(1960, 1, 1), datetime(1960, 1, 1, 0, 0, 1), datetime(1960, 1, 1, 0, 1, 0), datetime(1959, 12, 31, 23, 59, 59), datetime(1959, 12, 31, 23, 59, 59, 500000), datetime(1960, 1, 3, 3, 30, 3)])
 		transformer = SecondsSinceYearTransformer(year = 1960)
-		self.assertEqual([0, 1, 60, -1, 185403], transformer.transform(X).tolist())
+		self.assertEqual([0, 1, 60, -1, 0, 185403], transformer.transform(X).tolist())
 
 	def test_polars_transform(self):
 		X = polars.Series([datetime(1960, 1, 2), None])
