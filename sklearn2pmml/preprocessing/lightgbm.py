@@ -17,7 +17,7 @@ def make_lightgbm_dataframe_mapper(dtypes, missing_value_aware = True):
 
 	Returns:
 	-------
-	Tuple (DataFrameMapper, list of categorical columns indices)
+	Tuple (DataFrameMapper, list of categorical column indices)
 
 	"""
 	features = list()
