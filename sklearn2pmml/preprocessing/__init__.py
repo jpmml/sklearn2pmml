@@ -658,27 +658,26 @@ def _map_feature_names(input_names, block_indicators, fun):
 	else:
 		return [fun(input_name) for input_name in input_names]
 
+def _block_row_indices(X_block_indicators):
+	block_columns = list(X_block_indicators.columns)
+	blocks = X_block_indicators.groupby(block_columns, sort = False, dropna = False)
+	return blocks.indices.values()
+
 def _df_apply_blockwise(X, block_indicators, fun):
 	Xt = X.copy()
 	X_block_indicators = X[block_indicators]
 	feature_columns = [col for col in X.columns if col not in X_block_indicators.columns]
 	column_indices = [X.columns.get_loc(col) for col in feature_columns]
-	blocks = numpy.unique(X_block_indicators)
-	for block in blocks:
-		block_mask = (X_block_indicators == block)
-		row_indices = numpy.where(block_mask)[0]
+	for row_indices in _block_row_indices(X_block_indicators):
 		Xt.iloc[row_indices, column_indices] = fun(X.iloc[row_indices, column_indices])
 	return Xt
 
 def _ndarray_apply_blockwise(X, block_indicators, fun):
 	Xt = numpy.full_like(X, fill_value = numpy.nan)
-	X_block_indicators = X[:, block_indicators]
+	X_block_indicators = DataFrame(X[:, block_indicators])
 	column_indices = [idx for idx in range(X.shape[1]) if idx not in block_indicators]
-	Xt[:, block_indicators] = X_block_indicators
-	blocks = numpy.unique(X_block_indicators)
-	for block in blocks:
-		block_mask = (X_block_indicators == block)
-		row_indices = numpy.where(block_mask)[0]
+	Xt[:, block_indicators] = X[:, block_indicators]
+	for row_indices in _block_row_indices(X_block_indicators):
 		fun(X, Xt, row_indices, column_indices)
 	return Xt
 

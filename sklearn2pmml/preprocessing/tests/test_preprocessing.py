@@ -1005,6 +1005,15 @@ class LagTransformerTest(TestCase):
 		self.assertTrue(_list_equal([float("NaN"), -1, float("NaN"), 1, 0], Xt[:, 0].tolist()))
 		self.assertEqual(["a", "a", "b", "b", "a"], Xt[:, 1].tolist())
 
+		X = DataFrame([[-1, "a", "x"], [0, "a", "y"], [1, "b", "x"], [2, "b", "y"], [3, "a", "x"], [4, "a", "y"], [5, None, "x"], [6, None, "x"]], columns = ["int", "block1", "block2"])
+		transformer = LagTransformer(n = 1, block_indicators = ["block1", "block2"])
+		Xt = transformer.transform(X)
+		self.assertTrue(_list_equal([float("NaN"), float("NaN"), float("NaN"), float("NaN"), -1, 0, float("NaN"), 5], Xt["int"].tolist()))
+		X = X.values
+		transformer = LagTransformer(n = 1, block_indicators = [1, 2])
+		Xt = transformer.transform(X)
+		self.assertTrue(_list_equal([float("NaN"), float("NaN"), float("NaN"), float("NaN"), -1, 0, float("NaN"), 5], Xt[:, 0].tolist()))
+
 	def test_get_feature_names_out(self):
 		transformer = LagTransformer(n = 1, block_indicators = [0])
 		self.assertEqual(["x1", "x2_lag1", "x3_lag1"], transformer.get_feature_names_out(["x1", "x2", "x3"]).tolist())
@@ -1095,6 +1104,15 @@ class RollingAggregateTransformerTest(TestCase):
 		Xt = transformer.fit_transform(X)
 		self.assertEqual(2, transformer.n_features_in_)
 		self.assertTrue(_list_equal([float("NaN"), -1, float("NaN"), 1, -1, 3, 3], Xt[:, 0].tolist()))
+
+		X = DataFrame([[-1, "a", "x"], [0, "a", "y"], [1, "b", "x"], [2, "b", "y"], [3, "a", "x"], [4, "a", "y"], [5, None, "x"], [6, None, "x"]], columns = ["int", "block1", "block2"])
+		transformer = RollingAggregateTransformer(function = "sum", n = 2, block_indicators = ["block1", "block2"])
+		Xt = transformer.fit_transform(X)
+		self.assertTrue(_list_equal([float("NaN"), float("NaN"), float("NaN"), float("NaN"), -1, 0, float("NaN"), 5], Xt.iloc[:, 0].tolist()))
+		X = X.values
+		transformer = RollingAggregateTransformer(function = "sum", n = 2, block_indicators = [1, 2])
+		Xt = transformer.fit_transform(X)
+		self.assertTrue(_list_equal([float("NaN"), float("NaN"), float("NaN"), float("NaN"), -1, 0, float("NaN"), 5], Xt[:, 0].tolist()))
 
 	def test_get_feature_names_out(self):
 		transformer = RollingAggregateTransformer(function = "avg", n = 100, block_indicators = [0, 1])
