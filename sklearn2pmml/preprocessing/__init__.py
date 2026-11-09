@@ -14,7 +14,7 @@ from sklearn.exceptions import NotFittedError
 from sklearn.pipeline import Pipeline
 from sklearn2pmml.base import FeaturesInMixin, StatelessTransformerMixin
 from sklearn2pmml.preprocessing.regex import make_regex_engine
-from sklearn2pmml.util import _copy, _eval_array_rows, _eval_columns, _eval_scalar_rows, _get_column, _get_columns, _has_1d_shape, _is_pandas_categorical, _is_pandas_dataframe, _is_pandas_proto_categorical, _to_1d, _to_2d, _to_bool, _to_float, _to_int, _to_numpy, _to_str, _to_sparse, _set_column, cast, check_expression, check_predicate, to_evaluatable_func
+from sklearn2pmml.util import _copy, _eval_array_rows, _eval_columns, _eval_scalar_rows, _get_column, _get_columns, _has_1d_shape, _is_pandas, _is_pandas_dataframe, _is_pandas_proto_categorical, _to_1d, _to_2d, _to_bool, _to_float, _to_int, _to_numpy, _to_str, _to_sparse, _set_column, cast, check_expression, check_predicate, to_evaluatable_func
 
 import numpy
 import pandas
@@ -154,15 +154,22 @@ class CutTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin):
 		_to_1d(X)
 		return self
 
+	def _to_ndarray(self, X, Xt):
+		Xt = _to_numpy(Xt)
+		if self.labels is False:
+			Xt = _to_int(Xt)
+		return Xt.reshape(X.shape)
+
 	def transform(self, X):
 		X1d = _to_1d(X)
 		Xt = pandas.cut(X1d, bins = self.bins, right = self.right, labels = self.labels, include_lowest = self.include_lowest)
 		if self.dtype:
-			return Xt
+			if _is_pandas(X):
+				return Xt
+			else:
+				return self._to_ndarray(X, Xt)
 		else:
-			if _is_pandas_categorical(Xt.dtype):
-				Xt = _to_numpy(Xt)
-			return Xt.reshape(X.shape)
+			return self._to_ndarray(X, Xt)
 
 class DataFrameConstructor(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin):
 

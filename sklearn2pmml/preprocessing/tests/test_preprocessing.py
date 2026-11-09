@@ -246,7 +246,16 @@ class CutTransformerTest(TestCase):
 		Xt = transformer.fit_transform(X)
 		self.assertIsInstance(Xt, numpy.ndarray)
 		self.assertEqual([["x-neg"], ["neg"], ["pos"], ["x-pos"]], Xt.tolist())
+		X = polars.Series([-25, -1, 5, 25])
+		transformer = CutTransformer(bins, labels = ["x-neg", "neg", "pos", "x-pos"], dtype = "category")
+		Xt = transformer.fit_transform(X)
+		self.assertIsInstance(Xt, numpy.ndarray)
+		self.assertEqual(["x-neg", "neg", "pos", "x-pos"], Xt.tolist())
 		X = numpy.array([-25, -1, 5, 25])
+		Xt = transformer.fit_transform(X)
+		self.assertIsInstance(Xt, numpy.ndarray)
+		self.assertEqual(["x-neg", "neg", "pos", "x-pos"], Xt.tolist())
+		transformer = CutTransformer(bins, labels = ["x-neg", "neg", "pos", "x-pos"])
 		Xt = transformer.fit_transform(X)
 		self.assertIsInstance(Xt, numpy.ndarray)
 		self.assertEqual(["x-neg", "neg", "pos", "x-pos"], Xt.tolist())
@@ -267,6 +276,14 @@ class CutTransformerTest(TestCase):
 		bins = [float("-inf"), float("+inf")]
 		transformer = CutTransformer(bins, labels = ["any"])
 		self.assertEqual(["any", "any"], transformer.transform(X).tolist())
+		bins = [float("-inf"), -1.0, 0.0, 1.0, float("+inf")]
+		transformer = CutTransformer(bins, labels = False)
+		X = Series([-2.0, float("NaN"), 2.0])
+		self.assertTrue(_list_equal([0, float("NaN"), 3], transformer.transform(X).tolist()))
+		X = numpy.array([-2.0, 2.0])
+		Xt = transformer.transform(X)
+		self.assertEqual("int64", Xt.dtype)
+		self.assertEqual([0, 3], Xt.tolist())
 
 class DataFrameConstructorTest(TestCase):
 
