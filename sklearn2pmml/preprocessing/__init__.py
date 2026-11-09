@@ -673,29 +673,6 @@ def _map_feature_names(input_names, block_indicators, fun):
 	else:
 		return [fun(input_name) for input_name in input_names]
 
-def _block_row_indices(X_block_indicators):
-	block_columns = list(X_block_indicators.columns)
-	blocks = X_block_indicators.groupby(block_columns, sort = False, dropna = False)
-	return blocks.indices.values()
-
-def _df_apply_blockwise(X, block_indicators, fun):
-	Xt = X.copy()
-	X_block_indicators = X[block_indicators]
-	feature_columns = [col for col in X.columns if col not in X_block_indicators.columns]
-	column_indices = [X.columns.get_loc(col) for col in feature_columns]
-	for row_indices in _block_row_indices(X_block_indicators):
-		Xt.iloc[row_indices, column_indices] = fun(X.iloc[row_indices, column_indices])
-	return Xt
-
-def _ndarray_apply_blockwise(X, block_indicators, fun):
-	Xt = numpy.full_like(X, fill_value = numpy.nan)
-	X_block_indicators = DataFrame(X[:, block_indicators])
-	column_indices = [idx for idx in range(X.shape[1]) if idx not in block_indicators]
-	Xt[:, block_indicators] = X[:, block_indicators]
-	for row_indices in _block_row_indices(X_block_indicators):
-		fun(X, Xt, row_indices, column_indices)
-	return Xt
-
 class LagTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin):
 
 	def __init__(self, n, block_indicators = None):
@@ -718,34 +695,27 @@ class LagTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin):
 
 	def transform(self, X):
 		if hasattr(X, "shift"):
-			def _shift(df):
-				return df.shift(self.n)
-
 			if self.block_indicators is not None:
-				return _df_apply_blockwise(X, self.block_indicators, _shift)
+				X_block_indicators = X[self.block_indicators]
+				feature_columns = [col for col in X.columns if col not in X_block_indicators.columns]
+				X_features = X[feature_columns]
+				block_keys = [X_block_indicators[col].to_numpy() for col in X_block_indicators.columns]
+				blocks = X_features.groupby(block_keys, sort = False, dropna = False)
+
+				Xt_features = blocks.shift(self.n)
+				Xt = X.copy()
+				for col in feature_columns:
+					Xt[col] = Xt_features[col].to_numpy()
+				return Xt
 			else:
-				return _shift(X)
+				return X.shift(self.n)
 		else:
 			X = numpy.asarray(X)
 			if len(X.shape) != 2:
 				raise ValueError("Expected a 2D array, got {}D array".format(len(X.shape)))
-
-			if self.block_indicators is not None:
-				def _shift(X, Xt, row_indices, column_indices):
-					if self.n < len(row_indices):
-						target_index = numpy.ix_(row_indices[self.n:], column_indices)
-						source_index = numpy.ix_(row_indices[:-self.n], column_indices)
-						Xt[target_index] = X[source_index]
-
-				return _ndarray_apply_blockwise(X, self.block_indicators, _shift)
-			else:
-				def _shift(X, Xt):
-					if self.n < X.shape[0]:
-						Xt[self.n:] = X[:-self.n]
-
-				Xt = numpy.full_like(X, fill_value = numpy.nan)
-				_shift(X, Xt)
-				return Xt
+			X = DataFrame(X)
+			Xt = self.transform(X)
+			return Xt.to_numpy()
 
 class RollingAggregateTransformer(BaseEstimator, FeaturesInMixin, StatelessTransformerMixin):
 
