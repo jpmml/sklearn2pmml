@@ -248,7 +248,9 @@ class DiscreteDomain(Domain):
 				if hasattr(x, "isin"):
 					return x.isin(values)
 				else:
-					return numpy.isin(x, values)
+					x1d = Series(numpy.ravel(x))
+					mask = x1d.isin(numpy.ravel(values))
+					return (mask.to_numpy()).reshape(x.shape)
 
 			if _has_1d_shape(X):
 				where = where.ravel()
