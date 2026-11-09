@@ -19,7 +19,7 @@ def make_model_explanation(estimator, X, y, quality):
 	quality_test = quality(pipeline, X_test, y_test, target_field = y.name, data_usage = "test") \
 		.with_all_metrics()
 	return ModelExplanation() \
-		.append(Extension(name = "timestamp", value = datetime.datetime.utcnow().isoformat())) \
+		.append(Extension(name = "timestamp", value = (datetime.datetime.utcnow()).isoformat())) \
 		.append(quality_train).append(quality_test)
 
 class ModelExplanationTest(TestCase):

@@ -396,7 +396,7 @@ class DateTimeFormatter(BaseEstimator, FeaturesInMixin, StatelessTransformerMixi
 
 	def _strftime(self, x):
 		if isinstance(x, numpy.datetime64):
-			x = x.astype("datetime64[s]").item()
+			x = (x.astype("datetime64[s]")).item()
 		return x.strftime(self.pattern)
 
 	def fit(self, X):
@@ -754,13 +754,13 @@ class RollingAggregateTransformer(BaseEstimator, FeaturesInMixin, StatelessTrans
 				windows = blocks.rolling(window = self.n, min_periods = 1, closed = "left")
 
 				Xt_features = _apply_rolling_aggregate(windows, self.function)
-				Xt_features = Xt_features.droplevel(block_levels).sort_index()
+				Xt_features = (Xt_features.droplevel(block_levels)).sort_index()
 				Xt = X.copy()
 				for col in feature_columns:
 					Xt[col] = Xt_features[col].to_numpy()
 				return Xt
 			else:
-				windows = X.astype(float).rolling(window = self.n, min_periods = 1, closed = "left")
+				windows = (X.astype(float)).rolling(window = self.n, min_periods = 1, closed = "left")
 				return _apply_rolling_aggregate(windows, self.function)
 		else:
 			X = numpy.asarray(X)
@@ -973,7 +973,7 @@ class WordCountTransformer(StringTransformer):
 	def transform(self, X):
 		X1d = _to_1d(X)
 		# The expression "X]0]" assumes a two-dimensional array
-		X1d = _to_numpy(X1d).reshape((-1, 1))
+		X1d = (_to_numpy(X1d)).reshape((-1, 1))
 		return self.pipeline_.transform(X1d)
 
 class SelectFirstTransformer(BaseEstimator, TransformerMixin):

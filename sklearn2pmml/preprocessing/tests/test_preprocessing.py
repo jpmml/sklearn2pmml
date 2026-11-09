@@ -606,7 +606,7 @@ class ExpressionTransformerTest(TestCase):
 		transformer = clone(ExpressionTransformer(expr))
 		X = numpy.array([[1.5], [0.0], [-3.0]])
 		self.assertEqual([[1], [0], [-1]], transformer.fit_transform(X).tolist())
-		expr = inspect.getsource(_signum).replace("_signum", "_my_signum")
+		expr = (inspect.getsource(_signum)).replace("_signum", "_my_signum")
 		transformer = clone(ExpressionTransformer(expr))
 		self.assertEqual([[1], [0], [-1]], transformer.fit_transform(X).tolist())
 
@@ -1057,7 +1057,7 @@ class RollingAggregateTransformerTest(TestCase):
 		X_ndarray = X.values.reshape(-1, 1)
 		self.assertIsInstance(X_ndarray, numpy.ndarray)
 		Xt = transformer.transform(X)
-		Xt_ndarray = transformer.transform(X_ndarray).ravel()
+		Xt_ndarray = (transformer.transform(X_ndarray)).ravel()
 		self.assertIsInstance(Xt, Series)
 		self.assertIsInstance(Xt_ndarray, numpy.ndarray)
 		self.assertTrue(_list_equal(Xt.tolist(), Xt_ndarray.tolist()))
@@ -1253,7 +1253,7 @@ class StringNormalizerTest(TransformerTest):
 		Xt = pipeline.fit_transform(X)
 		self.assertEqual((3, 3), Xt.shape)
 
-		X = numpy.asarray(X).reshape((3, 1))
+		X = (numpy.asarray(X)).reshape((3, 1))
 		pipeline = make_pipeline(StringNormalizer(), OrdinalEncoder())
 		Xt = pipeline.fit_transform(X)
 		self.assertEqual((3, 1), Xt.shape)

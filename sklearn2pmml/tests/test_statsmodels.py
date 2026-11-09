@@ -78,7 +78,7 @@ class StatsModelsOrdinalClassifierTest(TestCase):
 	def test_ordinal_classification(self):
 		diabetes_X, diabetes_y = load_diabetes(return_X_y = True)
 		discretizer = KBinsDiscretizer(n_bins = 5, encode = "ordinal", strategy = "kmeans")
-		diabetes_y = discretizer.fit_transform(diabetes_y.reshape((-1, 1))).astype(int)
+		diabetes_y = (discretizer.fit_transform(diabetes_y.reshape((-1, 1)))).astype(int)
 		diabetes_y = numpy.vectorize(lambda x:"c{}".format(x + 1))(diabetes_y)
 		diabetes_y = Series(diabetes_y.ravel(), dtype = CategoricalDtype(["c1", "c2", "c3", "c4", "c5"], ordered = True))
 		classifier = StatsModelsOrdinalClassifier(OrderedModel, distr = "logit")

@@ -12,7 +12,7 @@ class PMMLElement(object):
 		self.root = root
 
 	def tostring(self, encoding = "utf-8"):
-		return etree.tostring(self.root, pretty_print = True).decode(encoding)
+		return (etree.tostring(self.root, pretty_print = True)).decode(encoding)
 
 	def set(self, name, value):
 		self.root.set(name, str(value))

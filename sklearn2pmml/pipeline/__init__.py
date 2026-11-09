@@ -85,7 +85,7 @@ class PMMLPipeline(Pipeline):
 		if self.predict_transformer is not None:
 			nrow = len(y_pred)
 			y_pred = y_pred.reshape(nrow, -1)
-			y_predt = self.predict_transformer.transform(y_pred).reshape(nrow, -1)
+			y_predt = (self.predict_transformer.transform(y_pred)).reshape(nrow, -1)
 			return numpy.hstack((y_pred, y_predt))
 		return y_pred
 

@@ -14,8 +14,8 @@ class PCRE2EngineTest(TestCase):
 
 	def test_replace(self):
 		engine = PCRE2Engine(r"(\w)")
-		self.assertEqual("P u p p y", engine.replace(r"$1 ", "Puppy").rstrip())
-		self.assertEqual(r"\1 \1 \1 \1 \1", engine.replace(r"\1 ", "Puppy").rstrip())
+		self.assertEqual("P u p p y", (engine.replace(r"$1 ", "Puppy")).rstrip())
+		self.assertEqual(r"\1 \1 \1 \1 \1", (engine.replace(r"\1 ", "Puppy")).rstrip())
 		with self.assertRaises(Exception):
 			engine.replace(r"$", "Puppy")
 		self.assertEqual("$$$$$", engine.replace(r"$$", "Puppy"))
@@ -36,6 +36,6 @@ class REEngineTest(TestCase):
 
 	def test_replace(self):
 		engine = REEngine(r"(\w)")
-		self.assertEqual("$1 $1 $1 $1 $1", engine.replace(r"$1 ", "Puppy").rstrip())
-		self.assertEqual("P u p p y", engine.replace(r"\1 ", "Puppy").rstrip())
+		self.assertEqual("$1 $1 $1 $1 $1", (engine.replace(r"$1 ", "Puppy")).rstrip())
+		self.assertEqual("P u p p y", (engine.replace(r"\1 ", "Puppy")).rstrip())
 		self.assertEqual("$$$$$", engine.replace(r"$", "Puppy"))
